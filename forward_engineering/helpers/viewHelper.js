@@ -6,20 +6,21 @@ const { prepareName, commentDeactivatedStatements } = require('./generalHelper')
 
 const setDependencies = ({ lodash }) => _ = lodash;
 
+const itemIsDeactivated = item => item.startsWith('-- ');
+
 const joinLastDeactivatedItem = (items = []) => {
-	return _.reverse(items).reduce((newItems, item, index) => {
-		const firstItem = newItems.length === 0;
-		const itemIsDeactivated = item.startsWith('-- ');
-		const lastItemIsDeactivated = newItems[0]?.startsWith('-- ');
-		if (firstItem || itemIsDeactivated || !lastItemIsDeactivated) {
-			return [item, ...newItems];
-		}
-		
-		return [item + ' -- ,\n' + _.first(newItems), ...newItems.slice(1)];
-	}, []);
+	const itemsWithoutDeactivated = _.dropRightWhile(items, itemIsDeactivated);
+	if (itemsWithoutDeactivated.length === items.length || itemsWithoutDeactivated.length === 0) {
+		return items;
+	}
+	
+	const deactivatedItems = items.slice(itemsWithoutDeactivated.length);
+	return [...itemsWithoutDeactivated.slice(0, -1), _.last(itemsWithoutDeactivated) + ' -- ', ...deactivatedItems];
 };
 
-const getColumnNames = (collectionRefsDefinitionsMap, columns) => {
+const getIsAllColumnsDeactivated = (columns = []) => columns.length && columns.every(itemIsDeactivated);
+
+const getColumnNames = (collectionRefsDefinitionsMap, columns, isViewActivated) => {
 	return _.uniq(Object.keys(columns).map(name => {
 		const id = _.get(columns, [name, 'GUID']);
 
@@ -28,7 +29,7 @@ const getColumnNames = (collectionRefsDefinitionsMap, columns) => {
 
 			return definitionData.definitionId === id;
 		});
-		const isActivated = _.get(columns[name], 'isActivated');
+		const isActivated = isViewActivated ? _.get(columns[name], 'isActivated') : true;
 		const itemData = collectionRefsDefinitionsMap[itemDataId] || {};
 		if (!itemData.name || itemData.name === name) {
 			return commentDeactivatedStatements(prepareName(itemData.name), isActivated);
@@ -80,10 +81,6 @@ module.exports = {
 		let script = [];
 		const columns = schema.properties || {};
 		const view = _.first(viewData) || {};
-
-		if (!view.isActivated) {
-			return;
-		}
 		
 		const bucketName = prepareName(retrieveContainerName(containerData));
 		const viewName = prepareName(view.code || view.name);
@@ -100,15 +97,23 @@ module.exports = {
 		if (schema.selectStatement) {
 			return createStatement + ' ' + schema.selectStatement + ';\n\n';
 		}
-		if (!columns) {
-			script.push(`AS SELECT * ${fromStatement};`);
-		} else {
-			const columnsNames = getColumnNames(collectionRefsDefinitionsMap, columns);
-			const joinedColumns = joinLastDeactivatedItem(columnsNames).join(',\n');
-			script.push(`AS SELECT ${joinedColumns}`);
-			script.push(fromStatement);
+
+		if (_.isEmpty(columns)) {
+			return;
 		}
 
-		return script.join('\n  ') + ';\n\n\n\n\n'
+		const columnsNames = getColumnNames(collectionRefsDefinitionsMap, columns, view.isActivated);
+		const isAllColumnsDeactivated = getIsAllColumnsDeactivated(columnsNames);
+	
+		if (isAllColumnsDeactivated) {
+			return;
+		}
+	
+		const joinedColumns = joinLastDeactivatedItem(columnsNames).join(',\n');
+		script.push(`AS SELECT ${joinedColumns}`);
+		script.push(fromStatement);
+
+
+		return commentDeactivatedStatements(script.join('\n  ')  + ';', view.isActivated);
 	}
 };
