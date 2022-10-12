@@ -2,9 +2,22 @@
 
 let _;
 const { dependencies } = require('./appDependencies');
-const { prepareName } = require('./generalHelper');
+const { prepareName, commentDeactivatedStatements } = require('./generalHelper');
 
 const setDependencies = ({ lodash }) => _ = lodash;
+
+const joinLastDeactivatedItem = (items = []) => {
+	return _.reverse(items).reduce((newItems, item, index) => {
+		const firstItem = newItems.length === 0;
+		const itemIsDeactivated = item.startsWith('-- ');
+		const lastItemIsDeactivated = newItems[0]?.startsWith('-- ');
+		if (firstItem || itemIsDeactivated || !lastItemIsDeactivated) {
+			return [item, ...newItems];
+		}
+		
+		return [item + ' -- ,\n' + _.first(newItems), ...newItems.slice(1)];
+	}, []);
+};
 
 const getColumnNames = (collectionRefsDefinitionsMap, columns) => {
 	return _.uniq(Object.keys(columns).map(name => {
@@ -15,14 +28,16 @@ const getColumnNames = (collectionRefsDefinitionsMap, columns) => {
 
 			return definitionData.definitionId === id;
 		});
+		const isActivated = _.get(columns[name], 'isActivated');
 		const itemData = collectionRefsDefinitionsMap[itemDataId] || {};
 		if (!itemData.name || itemData.name === name) {
-			return prepareName(itemData.name);
+			return commentDeactivatedStatements(prepareName(itemData.name), isActivated);
 		}
 		const collection = _.first(itemData.collection) || {};
 		const collectionName = collection.collectionName || collection.code;
+		const columnName = `${prepareName(collectionName)}.${prepareName(itemData.name)} as ${prepareName(name)}`;
 
-		return `${prepareName(collectionName)}.${prepareName(itemData.name)} as ${prepareName(name)}`;
+		return commentDeactivatedStatements(columnName, isActivated);
 	})).filter(_.identity);
 };
 
@@ -89,10 +104,11 @@ module.exports = {
 			script.push(`AS SELECT * ${fromStatement};`);
 		} else {
 			const columnsNames = getColumnNames(collectionRefsDefinitionsMap, columns);
-			script.push(`AS SELECT ${columnsNames.join(', ')}`);
+			const joinedColumns = joinLastDeactivatedItem(columnsNames).join(',\n');
+			script.push(`AS SELECT ${joinedColumns}`);
 			script.push(fromStatement);
 		}
-		
+
 		return script.join('\n  ') + ';\n\n\n\n\n'
 	}
 };
