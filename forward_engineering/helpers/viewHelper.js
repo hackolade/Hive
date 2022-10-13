@@ -9,16 +9,16 @@ const setDependencies = ({ lodash }) => _ = lodash;
 const itemIsDeactivated = item => item.startsWith('-- ');
 
 const joinLastDeactivatedItem = (items = []) => {
-	const itemsWithoutDeactivated = _.dropRightWhile(items, itemIsDeactivated);
-	if (itemsWithoutDeactivated.length === items.length || itemsWithoutDeactivated.length === 0) {
+	const activatedItems = _.dropRightWhile(items, itemIsDeactivated);
+	if (activatedItems.length === items.length || activatedItems.length === 0) {
 		return items;
 	}
 	
-	const deactivatedItems = items.slice(itemsWithoutDeactivated.length);
-	return [...itemsWithoutDeactivated.slice(0, -1), _.last(itemsWithoutDeactivated) + ' -- ', ...deactivatedItems];
+	const deactivatedItems = items.slice(activatedItems.length);
+	return [...activatedItems.slice(0, -1), _.last(activatedItems) + ' -- ', ...deactivatedItems];
 };
 
-const getIsAllColumnsDeactivated = (columns = []) => columns.length && columns.every(itemIsDeactivated);
+const isAllColumnsDeactivated = (columns = []) => columns.length && columns.every(itemIsDeactivated);
 
 const getColumnNames = (collectionRefsDefinitionsMap, columns, isViewActivated) => {
 	return _.uniq(Object.keys(columns).map(name => {
@@ -103,9 +103,9 @@ module.exports = {
 		}
 
 		const columnsNames = getColumnNames(collectionRefsDefinitionsMap, columns, view.isActivated);
-		const isAllColumnsDeactivated = getIsAllColumnsDeactivated(columnsNames);
+		const allColumnsIsDeactivated = isAllColumnsDeactivated(columnsNames);
 	
-		if (isAllColumnsDeactivated) {
+		if (allColumnsIsDeactivated) {
 			return;
 		}
 	
