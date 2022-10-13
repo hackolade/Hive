@@ -18,7 +18,7 @@ const joinLastDeactivatedItem = (items = []) => {
 	return [...activatedItems.slice(0, -1), _.last(activatedItems) + ' -- ', ...deactivatedItems];
 };
 
-const isAllColumnsDeactivated = (columns = []) => columns.length && columns.every(itemIsDeactivated);
+const areAllColumnsDeactivated = (columns = []) => columns.length && columns.every(itemIsDeactivated);
 
 const getColumnNames = (collectionRefsDefinitionsMap, columns, isViewActivated) => {
 	return _.uniq(Object.keys(columns).map(name => {
@@ -103,9 +103,9 @@ module.exports = {
 		}
 
 		const columnsNames = getColumnNames(collectionRefsDefinitionsMap, columns, view.isActivated);
-		const allColumnsIsDeactivated = isAllColumnsDeactivated(columnsNames);
+		const allColumnsAreDeactivated = areAllColumnsDeactivated(columnsNames);
 	
-		if (allColumnsIsDeactivated) {
+		if (allColumnsAreDeactivated) {
 			return;
 		}
 	
