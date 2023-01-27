@@ -108,7 +108,7 @@ module.exports = {
 
 			callback(null, buildScript(needMinify)(databaseStatement, script));
 		} catch (error) {
-			logger.log('error', { message: e.message, stack: e.stack }, 'DeltaLake Forward-Engineering Error');
+			logger.log('error', { message: e.message, stack: e.stack }, 'Hive Forward-Engineering Error');
 
 			callback({ message: e.message, stack: e.stack });
 		}
