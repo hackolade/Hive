@@ -197,14 +197,11 @@ const getModifyColumnsScripts = (definitions, provider) => entity => {
 	};
 	const hydratedAlterColumnName = hydrateAlterColumnName(entity, definitions, properties);
 	const alterColumnScripts = provider.alterTableColumnName(hydratedAlterColumnName);
-	const modifyScript = generateModifyCollectionScript(entityData, definitions, provider);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);
 	
-	return modifyScript.type === 'new' ? 
-		prepareScript(...dropIndexScript, ...modifyScript.script, addIndexScript) : 
-		prepareScript(...dropIndexScript, ...alterColumnScripts, ...modifyScript.script, addIndexScript);
+	return prepareScript(...dropIndexScript, ...alterColumnScripts, addIndexScript);
 };
 
 module.exports = {
