@@ -64,12 +64,15 @@ const getAlterCollectionsScripts = (schema, definitions, provider) => {
 		getModifyCollectionsScripts(definitions, provider)
 	);
 
+	const addedColumnsItems = getItems(schema, 'entities', 'added').filter(item => !item.compMod.created)
 	const addedColumnsScripts = getColumnScripts(
-		getItems(schema, 'entities', 'added').filter(item => !item.compMod.created),
+		addedColumnsItems,
 		getAddColumnsScripts(definitions, provider)
 	);
+
+	const deletedColumnsItems = getItems(schema, 'entities', 'deleted').filter(item => !item.compMod.deleted)
 	const deletedColumnsScripts = getColumnScripts(
-		getItems(schema, 'entities', 'deleted').filter(item => !item.compMod.deleted),
+		deletedColumnsItems,
 		getDeleteColumnsScripts(definitions, provider)
 	);
 	const modifiedColumnsScripts = getColumnScripts(
