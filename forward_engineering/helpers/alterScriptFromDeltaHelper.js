@@ -46,7 +46,7 @@ const getAlterCollectionsScripts = (schema, definitions, provider) => {
 	const getCollectionScripts = (items, compMode, getScript) =>
 		items.filter(item => item.compMod?.[compMode]).flatMap(getScript);
 
-	const getColumnScripts = (items, getScript) => items.filter(item => !item.compMod).flatMap(getScript);
+	const getColumnScripts = (items, getScript) => items.filter(item => item.properties).flatMap(getScript);
 
 	const addedCollectionsScripts = getCollectionScripts(
 		getItems(schema, 'entities', 'added'),
@@ -64,12 +64,15 @@ const getAlterCollectionsScripts = (schema, definitions, provider) => {
 		getModifyCollectionsScripts(definitions, provider)
 	);
 
+	const addedColumnsItems = getItems(schema, 'entities', 'added').filter(item => !item.compMod.created)
 	const addedColumnsScripts = getColumnScripts(
-		getItems(schema, 'entities', 'added'),
+		addedColumnsItems,
 		getAddColumnsScripts(definitions, provider)
 	);
+
+	const deletedColumnsItems = getItems(schema, 'entities', 'deleted').filter(item => !item.compMod.deleted)
 	const deletedColumnsScripts = getColumnScripts(
-		getItems(schema, 'entities', 'deleted'),
+		deletedColumnsItems,
 		getDeleteColumnsScripts(definitions, provider)
 	);
 	const modifiedColumnsScripts = getColumnScripts(
