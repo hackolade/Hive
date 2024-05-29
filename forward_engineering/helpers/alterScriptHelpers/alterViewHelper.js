@@ -1,36 +1,50 @@
 const { dependencies } = require('../appDependencies');
 const { getViewScript } = require('../viewHelper');
-const { getEntityData, getEntityProperties, getContainerName, generateFullEntityName, getEntityName } = require('./generalHelper');
+const {
+	getEntityData,
+	getEntityProperties,
+	getContainerName,
+	generateFullEntityName,
+	getEntityName,
+} = require('./generalHelper');
 
 let _;
-const setDependencies = ({ lodash }) => _ = lodash;
+const setDependencies = ({ lodash }) => (_ = lodash);
 
 const viewProperties = ['tableProperties', 'viewTemporary', 'viewOrReplace', 'isGlobal', 'description', 'name', 'code'];
 
-const prepareColumnGuids = columns => 
-	Object.entries(columns).reduce((columns, [name, value = {}]) => ({
+const prepareColumnGuids = columns =>
+	Object.entries(columns).reduce(
+		(columns, [name, value = {}]) => ({
 			...columns,
 			[name]: {
 				...value,
 				GUID: value.refId || '',
-			}
-		}), {});
+			},
+		}),
+		{},
+	);
 
-const prepareRefsDefinitionsMap = definitions => 
-	Object.entries(definitions).reduce((columns, [definitionId, value = {}]) => ({
-		...columns,
-		[definitionId]: {
-			...value,
-			definitionId,
-		}
-	}), {});
+const prepareRefsDefinitionsMap = definitions =>
+	Object.entries(definitions).reduce(
+		(columns, [definitionId, value = {}]) => ({
+			...columns,
+			[definitionId]: {
+				...value,
+				definitionId,
+			},
+		}),
+		{},
+	);
 
 const hydrateView = view => {
 	const compMod = _.get(view, 'role.compMod', {});
 	const properties = prepareColumnGuids(getEntityProperties(view));
 	const roleData = getEntityData(compMod, viewProperties);
 	const schema = { ..._.get(view, 'role', {}), ...roleData, properties };
-	const collectionRefsDefinitionsMap = prepareRefsDefinitionsMap(schema.compMod?.collectionData?.collectionRefsDefinitionsMap || {});
+	const collectionRefsDefinitionsMap = prepareRefsDefinitionsMap(
+		schema.compMod?.collectionData?.collectionRefsDefinitionsMap || {},
+	);
 	return {
 		schema,
 		collectionRefsDefinitionsMap,
@@ -41,8 +55,8 @@ const hydrateView = view => {
 
 const hydrateAlterView = (view, code) => ({
 	...view,
-	role: { ...view.role || {}, code }
-})
+	role: { ...(view.role || {}), code },
+});
 
 const getAddViewsScripts = view => {
 	setDependencies(dependencies);
@@ -73,4 +87,4 @@ module.exports = {
 	getAddViewsScripts,
 	getDeleteViewsScripts,
 	getModifyViewsScripts,
-}
+};

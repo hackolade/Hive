@@ -14,27 +14,27 @@ const getInt64 = (buffer, offset) => {
 	let carry = 1;
 
 	for (let i = 7; i >= 0; i -= 1) {
-	  let v = b[o + i];
+		let v = b[o + i];
 
-	  // 2's complement for negative numbers
-	  if (negate) {
-		v = (v ^ 0xff) + carry;
-		carry = v >> 8;
-		v &= 0xff;
-	  }
+		// 2's complement for negative numbers
+		if (negate) {
+			v = (v ^ 0xff) + carry;
+			carry = v >> 8;
+			v &= 0xff;
+		}
 
-	  value = value.plus((new Big(v)).times(m));
-	  m = m.times(256);
+		value = value.plus(new Big(v).times(m));
+		m = m.times(256);
 	}
 
 	if (negate) {
-	  value = value.times(-1);
+		value = value.times(-1);
 	}
 
 	return value;
 };
 
-const getColumnValueKeyByTypeDescriptor = (TCLIServiceTypes) =>  (typeDescriptor) => {
+const getColumnValueKeyByTypeDescriptor = TCLIServiceTypes => typeDescriptor => {
 	switch (typeDescriptor.type) {
 		case TCLIServiceTypes.TTypeId.BOOLEAN_TYPE:
 			return 'boolVal';
@@ -78,7 +78,7 @@ const toJSON = defaultValue => value => {
 	}
 };
 
-const getDataConverter = (TCLIServiceTypes) => (typeDescriptor) => {
+const getDataConverter = TCLIServiceTypes => typeDescriptor => {
 	switch (typeDescriptor.type) {
 		case TCLIServiceTypes.TTypeId.NULL_TYPE:
 			return noConversion;
@@ -93,7 +93,7 @@ const getDataConverter = (TCLIServiceTypes) => (typeDescriptor) => {
 			return toJSON({});
 		case TCLIServiceTypes.TTypeId.ARRAY_TYPE:
 			return toJSON([]);
-		
+
 		case TCLIServiceTypes.TTypeId.BIGINT_TYPE:
 			return convertBigInt;
 		case TCLIServiceTypes.TTypeId.TIMESTAMP_TYPE:
@@ -116,11 +116,11 @@ const getDataConverter = (TCLIServiceTypes) => (typeDescriptor) => {
 	}
 };
 
-const getTypeDescriptorByColumnDescriptor = (columnDescriptor) => {
+const getTypeDescriptorByColumnDescriptor = columnDescriptor => {
 	return dependencies.lodash.get(columnDescriptor, 'typeDesc.types[0].primitiveEntry', null);
 };
 
-const getColumnValuesBySchema = (TCLIServiceTypes) => (columnDescriptor, valuesColumn) => {
+const getColumnValuesBySchema = TCLIServiceTypes => (columnDescriptor, valuesColumn) => {
 	const typeDescriptor = getTypeDescriptorByColumnDescriptor(columnDescriptor);
 	const valueType = getColumnValueKeyByTypeDescriptor(TCLIServiceTypes)(typeDescriptor);
 	const values = dependencies.lodash.get(valuesColumn, `${valueType}.values`, []);
@@ -128,7 +128,7 @@ const getColumnValuesBySchema = (TCLIServiceTypes) => (columnDescriptor, valuesC
 	return values.map(getDataConverter(TCLIServiceTypes)(typeDescriptor));
 };
 
-const getColumnName = (columnDescriptor) => {
+const getColumnName = columnDescriptor => {
 	const name = columnDescriptor.columnName || '';
 
 	return name.split('.').pop();
@@ -139,11 +139,11 @@ const getResultParser = (TCLIService, TCLIServiceTypes) => {
 		return fetchResultResponses.reduce((result, fetchResultResponse) => {
 			const columnValues = dependencies.lodash.get(fetchResultResponse, 'results.columns', []);
 			const rows = [...schemaResponse.schema.columns]
-				.sort((c1, c2) => c1.position > c2.position ? 1 : c1.position < c2.position ? -1 : 0)
+				.sort((c1, c2) => (c1.position > c2.position ? 1 : c1.position < c2.position ? -1 : 0))
 				.reduce((rows, columnDescriptor) => {
 					return getColumnValuesBySchema(TCLIServiceTypes)(
 						columnDescriptor,
-						columnValues[columnDescriptor.position - 1]
+						columnValues[columnDescriptor.position - 1],
 					).reduce((result, columnValue, i) => {
 						if (!result[i]) {
 							result[i] = {};
@@ -166,161 +166,167 @@ const getQualifier = (typeDescriptor, qualifierName, defaultValue) => {
 	return result.i32Value || result.stringValue || defaultValue;
 };
 
-const getJsonSchemaByTypeDescriptor = (TCLIServiceTypes) => (typeDescriptor) => {
+const getJsonSchemaByTypeDescriptor = TCLIServiceTypes => typeDescriptor => {
 	switch (typeDescriptor.type) {
-		case TCLIServiceTypes.TTypeId.NULL_TYPE:		
+		case TCLIServiceTypes.TTypeId.NULL_TYPE:
 		case TCLIServiceTypes.TTypeId.STRING_TYPE:
 			return {
-				type: "text",
-				mode: "string"
+				type: 'text',
+				mode: 'string',
 			};
 		case TCLIServiceTypes.TTypeId.VARCHAR_TYPE:
 			return {
-				type: "text",
-				mode: "varchar",
-				maxLength: getQualifier(typeDescriptor, "characterMaximumLength", "")
+				type: 'text',
+				mode: 'varchar',
+				maxLength: getQualifier(typeDescriptor, 'characterMaximumLength', ''),
 			};
 		case TCLIServiceTypes.TTypeId.CHAR_TYPE:
 			return {
-				type: "text",
-				mode: "char",
-				maxLength: getQualifier(typeDescriptor, "characterMaximumLength", "")
+				type: 'text',
+				mode: 'char',
+				maxLength: getQualifier(typeDescriptor, 'characterMaximumLength', ''),
 			};
 		case TCLIServiceTypes.TTypeId.INT_TYPE:
 			return {
-				type: "numeric",
-				mode: "int"
+				type: 'numeric',
+				mode: 'int',
 			};
 		case TCLIServiceTypes.TTypeId.TINYINT_TYPE:
 			return {
-				type: "numeric",
-				mode: "tinyint"
+				type: 'numeric',
+				mode: 'tinyint',
 			};
 		case TCLIServiceTypes.TTypeId.SMALLINT_TYPE:
 			return {
-				type: "numeric",
-				mode: "smallint"
+				type: 'numeric',
+				mode: 'smallint',
 			};
 		case TCLIServiceTypes.TTypeId.BIGINT_TYPE:
 			return {
-				type: "numeric",
-				mode: "bigint"
+				type: 'numeric',
+				mode: 'bigint',
 			};
 		case TCLIServiceTypes.TTypeId.FLOAT_TYPE:
 			return {
-				type: "numeric",
-				mode: "float"
+				type: 'numeric',
+				mode: 'float',
 			};
 		case TCLIServiceTypes.TTypeId.DOUBLE_TYPE:
 			return {
-				type: "numeric",
-				mode: "double"
+				type: 'numeric',
+				mode: 'double',
 			};
 		case TCLIServiceTypes.TTypeId.DECIMAL_TYPE:
 			return {
-				type: "numeric",
-				mode: "decimal",
-				precision: getQualifier(typeDescriptor, "precision", ""),
-				scale: getQualifier(typeDescriptor, "scale", "")
+				type: 'numeric',
+				mode: 'decimal',
+				precision: getQualifier(typeDescriptor, 'precision', ''),
+				scale: getQualifier(typeDescriptor, 'scale', ''),
 			};
 		case TCLIServiceTypes.TTypeId.BOOLEAN_TYPE:
 			return {
-				type: "bool"
+				type: 'bool',
 			};
 		case TCLIServiceTypes.TTypeId.BINARY_TYPE:
 			return {
-				type: "binary"
+				type: 'binary',
 			};
 		case TCLIServiceTypes.TTypeId.TIMESTAMP_TYPE:
 			return {
-				type: "timestamp"
+				type: 'timestamp',
 			};
 		case TCLIServiceTypes.TTypeId.DATE_TYPE:
 			return {
-				type: "date"
+				type: 'date',
 			};
 		case TCLIServiceTypes.TTypeId.ARRAY_TYPE:
 			return {
-				type: "array",
-				subtype: "array<txt>",
-				items: []
+				type: 'array',
+				subtype: 'array<txt>',
+				items: [],
 			};
 		case TCLIServiceTypes.TTypeId.MAP_TYPE:
 			return {
-				type: "map",
-				keySubtype: "string",
-				subtype: "map<txt>",
-				properties: {}
+				type: 'map',
+				keySubtype: 'string',
+				subtype: 'map<txt>',
+				properties: {},
 			};
 		case TCLIServiceTypes.TTypeId.STRUCT_TYPE:
 			return {
-				type: "struct",
-				properties: {}
+				type: 'struct',
+				properties: {},
 			};
 		case TCLIServiceTypes.TTypeId.INTERVAL_YEAR_MONTH_TYPE:
 		case TCLIServiceTypes.TTypeId.INTERVAL_DAY_TIME_TYPE:
 			return {
-				type: "interval"
+				type: 'interval',
 			};
 		case TCLIServiceTypes.TTypeId.UNION_TYPE:
 		case TCLIServiceTypes.TTypeId.USER_DEFINED_TYPE:
 		default:
 			return {
-				type: "string"
+				type: 'string',
 			};
 	}
 };
 
-const getJsonSchemaCreator = (TCLIService, TCLIServiceTypes, tableInfo) => ({ columns, tableSchema, sample, tableColumnsConstraints, notNullColumns }) => {
-	const _ = dependencies.lodash;
-	const columnDescriptors = _.get(tableSchema, 'schema.columns', []);
+const getJsonSchemaCreator =
+	(TCLIService, TCLIServiceTypes, tableInfo) =>
+	({ columns, tableSchema, sample, tableColumnsConstraints, notNullColumns }) => {
+		const _ = dependencies.lodash;
+		const columnDescriptors = _.get(tableSchema, 'schema.columns', []);
 
-	const jsonSchema = columnDescriptors.reduce((jsonSchema, columnDescriptor) => {
-		const typeDescriptor = getTypeDescriptorByColumnDescriptor(columnDescriptor);
-		const columnName = getColumnName(columnDescriptor);
-		const columnInfo = columns.find(({ col_name }) => col_name === columnName) || {};
-		const schema = Object.assign(
-			{},
-			getJsonSchemaByTypeDescriptor(TCLIServiceTypes)(typeDescriptor),
-			{ description: columnDescriptor.comment || columnInfo.comment || "" }
+		const jsonSchema = columnDescriptors.reduce(
+			(jsonSchema, columnDescriptor) => {
+				const typeDescriptor = getTypeDescriptorByColumnDescriptor(columnDescriptor);
+				const columnName = getColumnName(columnDescriptor);
+				const columnInfo = columns.find(({ col_name }) => col_name === columnName) || {};
+				const schema = Object.assign({}, getJsonSchemaByTypeDescriptor(TCLIServiceTypes)(typeDescriptor), {
+					description: columnDescriptor.comment || columnInfo.comment || '',
+				});
+				let jsonSchemaFromInfo = {};
+
+				if (tableInfo.table[columnName]) {
+					jsonSchemaFromInfo = schemaHelper.getJsonSchema(
+						tableInfo.table[columnName],
+						_.get(sample, columnName),
+					);
+				} else if (columnInfo.data_type) {
+					jsonSchemaFromInfo = schemaHelper.getJsonSchema(columnInfo.data_type, _.get(sample, columnName));
+				}
+
+				if (jsonSchemaFromInfo.type === 'union') {
+					return schemaHelper.getChoice(jsonSchema, jsonSchemaFromInfo.subSchemas, columnName);
+				} else {
+					jsonSchema.properties[columnName] = Object.assign(
+						{},
+						schema,
+						jsonSchemaFromInfo,
+						tableColumnsConstraints[columnName],
+					);
+				}
+
+				return jsonSchema;
+			},
+			{
+				$schema: 'http://json-schema.org/draft-04/schema#',
+				type: 'object',
+				additionalProperties: false,
+				properties: {},
+				required: notNullColumns,
+			},
 		);
-		let jsonSchemaFromInfo = {};
-		
-		if (tableInfo.table[columnName]) {
-			jsonSchemaFromInfo = schemaHelper.getJsonSchema(tableInfo.table[columnName], _.get(sample, columnName));
-		} else if (columnInfo.data_type) {
-			jsonSchemaFromInfo = schemaHelper.getJsonSchema(columnInfo.data_type, _.get(sample, columnName));
-		}
-
-		if (jsonSchemaFromInfo.type === 'union') {
-			return schemaHelper.getChoice(jsonSchema, jsonSchemaFromInfo.subSchemas, columnName);
-		} else {
-			jsonSchema.properties[columnName] = Object.assign(
-				{},
-				schema,
-				jsonSchemaFromInfo,
-				tableColumnsConstraints[columnName]
-			);
-		}
 
 		return jsonSchema;
-	}, {
-		$schema: "http://json-schema.org/draft-04/schema#",
-		type: "object",
-		additionalProperties: false,
-		properties: {},
-		required: notNullColumns
-	});
+	};
 
-	return jsonSchema;
-};
-
-const getIterator = (hiveResult) => {
+const getIterator = hiveResult => {
 	let i = 0;
 	return () => hiveResult[i++];
 };
 
-const isDivider = (column) => {
+const isDivider = column => {
 	return !column || Object.keys(column).every(item => !column[item]);
 };
 
@@ -329,11 +335,7 @@ const getColumn = (column, next) => {
 		return {};
 	}
 
-	return Object.assign(
-		{},
-		{ [column.col_name]: column.data_type },
-		getColumn(next(), next)
-	);
+	return Object.assign({}, { [column.col_name]: column.data_type }, getColumn(next(), next));
 };
 
 const getTable = (next, skipColumn) => {
@@ -350,11 +352,11 @@ const getPartitionInfo = (next, skipColumn) => {
 	return getTable(next, skipColumn);
 };
 
-const isTableParameter = (column) => {
-	return column.col_name === "Table Parameters:";
+const isTableParameter = column => {
+	return column.col_name === 'Table Parameters:';
 };
 
-const getTableParameters = (next) => {
+const getTableParameters = next => {
 	const column = next();
 	if (isDivider(column)) {
 		return {};
@@ -363,61 +365,58 @@ const getTableParameters = (next) => {
 	}
 };
 
-const getDetailedInfo = (next) => {
+const getDetailedInfo = next => {
 	const column = next();
 	if (isDivider(column)) {
 		return {};
 	}
 	if (isTableParameter(column)) {
 		return {
-			[column.col_name.trim().slice(0, -1)]: getTableParameters(next)
+			[column.col_name.trim().slice(0, -1)]: getTableParameters(next),
 		};
 	}
 
-	return Object.assign(
-		{[column.col_name.trim().slice(0, -1)]: column.data_type},
-		getDetailedInfo(next)
-	);
+	return Object.assign({ [column.col_name.trim().slice(0, -1)]: column.data_type }, getDetailedInfo(next));
 };
 
-const getStorageInfo = (next) => {
+const getStorageInfo = next => {
 	const column = next();
 	if (isDivider(column)) {
 		return {};
 	}
 	if (isStorageDesc(column)) {
 		return {
-			[column.col_name.trim().slice(0, -1)]: getTableParameters(next)
+			[column.col_name.trim().slice(0, -1)]: getTableParameters(next),
 		};
 	}
 
-	return Object.assign(
-		{[column.col_name.trim().slice(0, -1)]: column.data_type},
-		getStorageInfo(next)
-	);
+	return Object.assign({ [column.col_name.trim().slice(0, -1)]: column.data_type }, getStorageInfo(next));
 };
 
-const getForeignKeys = (next) => {
+const getForeignKeys = next => {
 	const header = next();
-	const getForeignKey = (next) => {
+	const getForeignKey = next => {
 		const column = next();
 
 		if (isDivider(column)) {
 			return [];
 		}
 
-		const parentItem = column.col_name.split(":").pop() || "";
-		const [ dbName, tableName, fieldName ] = parentItem.split(".");
-		const childField = (column.data_type.split(":").pop() || "").trim();
+		const parentItem = column.col_name.split(':').pop() || '';
+		const [dbName, tableName, fieldName] = parentItem.split('.');
+		const childField = (column.data_type.split(':').pop() || '').trim();
 
-		return [{
-			parentDb: dbName,
-			parentTable: tableName,
-			parentField: fieldName,
-			childField
-		}, ...getForeignKey(next)];
+		return [
+			{
+				parentDb: dbName,
+				parentTable: tableName,
+				parentField: fieldName,
+				childField,
+			},
+			...getForeignKey(next),
+		];
 	};
-	const getConstraint = (next) => {
+	const getConstraint = next => {
 		const column = next();
 
 		if (isDivider(column)) {
@@ -428,36 +427,39 @@ const getForeignKeys = (next) => {
 			return [];
 		}
 
-		const constraintName = (column.data_type || "").trim();
+		const constraintName = (column.data_type || '').trim();
 
-		return [...getForeignKey(next).map(foreignKey => {
-			return Object.assign(foreignKey, {
-				name: constraintName
-			});
-		}), ...getConstraint(next)];
+		return [
+			...getForeignKey(next).map(foreignKey => {
+				return Object.assign(foreignKey, {
+					name: constraintName,
+				});
+			}),
+			...getConstraint(next),
+		];
 	};
-	
+
 	return getConstraint(next);
 };
 
-const isConstraint = (column) => (column.col_name || "").trim() === "Constraint Name:";
+const isConstraint = column => (column.col_name || '').trim() === 'Constraint Name:';
 
-const isStorageDesc = (column) => column.col_name === "Storage Desc Params:"
+const isStorageDesc = column => column.col_name === 'Storage Desc Params:';
 
-const isPartitionInfo = (column) => {
-	return (column.col_name === "# Partition Information");
+const isPartitionInfo = column => {
+	return column.col_name === '# Partition Information';
 };
 
-const isDetailedTableInformation = (column) => {
-	return (column.col_name === "# Detailed Table Information");
+const isDetailedTableInformation = column => {
+	return column.col_name === '# Detailed Table Information';
 };
 
-const isStorageInfo = (column) => {
-	return (column.col_name === "# Storage Information");
+const isStorageInfo = column => {
+	return column.col_name === '# Storage Information';
 };
 
-const isForeignKey = (column) => {
-	return (column.col_name === "# Foreign Keys");
+const isForeignKey = column => {
+	return column.col_name === '# Foreign Keys';
 };
 
 const handleRow = (column, next, skipColumn) => {
@@ -472,28 +474,28 @@ const handleRow = (column, next, skipColumn) => {
 	}
 };
 
-const getFormattedTable = (TCLIService, TCLIServiceTypes, currentProtocol) => (hiveResult) => {
+const getFormattedTable = (TCLIService, TCLIServiceTypes, currentProtocol) => hiveResult => {
 	const next = getIterator(hiveResult);
-	const skipColumn = (currentProtocol < TCLIServiceTypes.TProtocolVersion.HIVE_CLI_SERVICE_PROTOCOL_V9);
+	const skipColumn = currentProtocol < TCLIServiceTypes.TProtocolVersion.HIVE_CLI_SERVICE_PROTOCOL_V9;
 
 	const table = getTable(next, skipColumn);
 	let currentColumn = next();
-	let result = { table }
+	let result = { table };
 
 	while (currentColumn) {
 		result = Object.assign(result, handleRow(currentColumn, next, skipColumn));
 		currentColumn = next();
 	}
-	
+
 	return result;
 };
 
-const getDetailInfoFromExtendedTable = (extendedTable) => {
-	const isDetailExtendedTableInformation = (column) => column.col_name === "Detailed Table Information";
+const getDetailInfoFromExtendedTable = extendedTable => {
+	const isDetailExtendedTableInformation = column => column.col_name === 'Detailed Table Information';
 	const next = getIterator(extendedTable);
 	let column;
 
-	while (column = next()) {
+	while ((column = next())) {
 		if (isDetailExtendedTableInformation(column)) {
 			return column.data_type;
 		}
@@ -501,14 +503,16 @@ const getDetailInfoFromExtendedTable = (extendedTable) => {
 };
 
 const findConstraint = (extendedTable, constraintStartWith) => {
-	const constraint = extendedTable.map(item => {
-		if (item.data_type.startsWith(constraintStartWith)) {
-			return item.data_type;
-		} else if (item.col_name.startsWith(constraintStartWith)) {
-			return item.col_name;
-		}
-		return '';
-	}).filter(Boolean);
+	const constraint = extendedTable
+		.map(item => {
+			if (item.data_type.startsWith(constraintStartWith)) {
+				return item.data_type;
+			} else if (item.col_name.startsWith(constraintStartWith)) {
+				return item.col_name;
+			}
+			return '';
+		})
+		.filter(Boolean);
 	return constraint[0];
 };
 
@@ -520,13 +524,13 @@ const getTableConstraints = (tableSchema, extendedTable = []) => {
 	const tableToConstraints = {};
 	const uniqueConstraint = findConstraint(extendedTable, 'Unique Constraints');
 	if (uniqueConstraint) {
-		setConstraints({ 
+		setConstraints({
 			constraintString: uniqueConstraint,
-			constraintKeyword: 'unique', 
-			columnToConstraints, 
+			constraintKeyword: 'unique',
+			columnToConstraints,
 			tableConstraintKeyword: 'uniqueKey',
 			tableColumnKeyword: 'compositeUniqueKey',
-			tableToConstraints
+			tableToConstraints,
 		});
 	}
 
@@ -546,7 +550,7 @@ const getTableConstraints = (tableSchema, extendedTable = []) => {
 			tableToConstraints,
 			tableConstraintKeyword: 'chkConstr',
 			tableColumnKeyword: 'checkExpression',
-			columnNames
+			columnNames,
 		});
 	}
 
@@ -557,29 +561,33 @@ const getTableConstraints = (tableSchema, extendedTable = []) => {
 			constraintKeyword: 'default',
 			regExp: /Column Name: (.*?), Default Value: (.*?)\)/g,
 			columnToConstraints,
-			columnNames
+			columnNames,
 		});
 	}
 
 	return { columnToConstraints, notNullColumns, tableToConstraints };
-}
-
-const getConstraintColumnNames = (constraintString) => {
-	return Array.from(constraintString.matchAll(/Column Name: (.*?)[,}]/g)).map(item => item[1]);
-}
-
-const getConstraints = constraintString => {
-	return Array.from(constraintString.matchAll(/{Constraint Name: (?<constraintName>\S+?),(?<columnsConstraint>[^}]+?)}/g))
-		.map(constraint => ({constraintName: constraint.groups.constraintName, columnsConstraint: constraint.groups.columnsConstraint}));
 };
 
-const setConstraints = ({ 
-	constraintString, 
-	constraintKeyword, 
-	columnToConstraints, 
-	tableToConstraints, 
-	tableConstraintKeyword, 
-	tableColumnKeyword 
+const getConstraintColumnNames = constraintString => {
+	return Array.from(constraintString.matchAll(/Column Name: (.*?)[,}]/g)).map(item => item[1]);
+};
+
+const getConstraints = constraintString => {
+	return Array.from(
+		constraintString.matchAll(/{Constraint Name: (?<constraintName>\S+?),(?<columnsConstraint>[^}]+?)}/g),
+	).map(constraint => ({
+		constraintName: constraint.groups.constraintName,
+		columnsConstraint: constraint.groups.columnsConstraint,
+	}));
+};
+
+const setConstraints = ({
+	constraintString,
+	constraintKeyword,
+	columnToConstraints,
+	tableToConstraints,
+	tableConstraintKeyword,
+	tableColumnKeyword,
 }) => {
 	const constraints = getConstraints(constraintString);
 	constraints.forEach(({ constraintName, columnsConstraint }) => {
@@ -587,9 +595,12 @@ const setConstraints = ({
 		if (constraintColumnNames.length > 1) {
 			const newConstraint = {
 				constraintName,
-				[tableColumnKeyword]: constraintColumnNames
-			}
-			tableToConstraints[tableConstraintKeyword] = [...(tableToConstraints?.[tableConstraintKeyword] || []), newConstraint];
+				[tableColumnKeyword]: constraintColumnNames,
+			};
+			tableToConstraints[tableConstraintKeyword] = [
+				...(tableToConstraints?.[tableConstraintKeyword] || []),
+				newConstraint,
+			];
 		} else {
 			setBooleanConstraint(columnsConstraint, constraintKeyword, columnToConstraints);
 		}
@@ -601,37 +612,43 @@ const setBooleanConstraint = (constraintString, constraintKeyword, columnToConst
 	columnsNames.forEach(name => {
 		columnToConstraints[name] = Object.assign({}, columnToConstraints[name], { [constraintKeyword]: true });
 	});
-}
+};
 
-const setConstraintWithValue = ({ 
-	constraintString, 
-	constraintKeyword, 
-	regExp, 
-	columnToConstraints, 
-	columnNames, 
-	tableToConstraints, 
+const setConstraintWithValue = ({
+	constraintString,
+	constraintKeyword,
+	regExp,
+	columnToConstraints,
+	columnNames,
+	tableToConstraints,
 	tableConstraintKeyword,
-	tableColumnKeyword
+	tableColumnKeyword,
 }) => {
 	const constraints = getConstraints(constraintString);
 	constraints.forEach(({ constraintName, columnsConstraint }) => {
-		const columnsData = Array.from(
-			columnsConstraint.matchAll(regExp)
-		).map((item) => ({ name: item[1], value: item[2] }));
+		const columnsData = Array.from(columnsConstraint.matchAll(regExp)).map(item => ({
+			name: item[1],
+			value: item[2],
+		}));
 		columnsData.forEach(({ name, value }) => {
 			if (columnNames.includes(name)) {
-				columnToConstraints[name] = Object.assign({}, columnToConstraints[name], { [constraintKeyword]: value });
+				columnToConstraints[name] = Object.assign({}, columnToConstraints[name], {
+					[constraintKeyword]: value,
+				});
 			} else if (tableToConstraints) {
-				tableToConstraints[tableConstraintKeyword] = [...(tableToConstraints?.[tableConstraintKeyword] || []), { constraintName, [tableColumnKeyword]: value }];
+				tableToConstraints[tableConstraintKeyword] = [
+					...(tableToConstraints?.[tableConstraintKeyword] || []),
+					{ constraintName, [tableColumnKeyword]: value },
+				];
 			}
 		});
 	});
-}
+};
 
 module.exports = {
 	getResultParser,
 	getJsonSchemaCreator,
 	getFormattedTable,
 	getDetailInfoFromExtendedTable,
-	getTableConstraints
+	getTableConstraints,
 };

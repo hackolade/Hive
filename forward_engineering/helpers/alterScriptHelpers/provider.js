@@ -9,9 +9,9 @@ module.exports = app => {
 		},
 
 		dropTableIndex(indexes = []) {
-			return indexes.map(({ name, indexName }) => 
-				name && indexName ? assignTemplates(templates.dropTableIndex, { name, indexName }) : ''
-			)
+			return indexes.map(({ name, indexName }) =>
+				name && indexName ? assignTemplates(templates.dropTableIndex, { name, indexName }) : '',
+			);
 		},
 
 		dropTable(name) {
@@ -38,11 +38,17 @@ module.exports = app => {
 			}
 			const columnsScripts = columns.map(({ oldName, newName, type, comment }) => {
 				if (!oldName && !newName && !type) {
-					return ''
+					return '';
 				}
-				return comment ? 
-					assignTemplates(templates.alterTableColumnNameWithComment, { collectionName, oldName, newName, type, comment }) :
-					assignTemplates(templates.alterTableColumnName, { collectionName, oldName, newName, type });
+				return comment
+					? assignTemplates(templates.alterTableColumnNameWithComment, {
+							collectionName,
+							oldName,
+							newName,
+							type,
+							comment,
+						})
+					: assignTemplates(templates.alterTableColumnName, { collectionName, oldName, newName, type });
 			});
 			return columnsScripts.filter(Boolean);
 		},
@@ -52,13 +58,15 @@ module.exports = app => {
 				return '';
 			}
 			const { add: addProperties = '' } = dataProperties;
-			return addProperties.length ? assignTemplates(templates.setTableProperties, { name, properties: addProperties }) : '';
+			return addProperties.length
+				? assignTemplates(templates.setTableProperties, { name, properties: addProperties })
+				: '';
 		},
-		
+
 		setTableProperties({ name, properties } = {}) {
 			return !name || !properties ? '' : assignTemplates(templates.setTableProperties, { name, properties });
 		},
-		
+
 		addTableColumns({ name, columns }) {
 			return !name || !columns ? '' : assignTemplates(templates.addTableColumns, { name, columns });
 		},
@@ -75,9 +83,10 @@ module.exports = app => {
 			let script = [];
 
 			if (add) {
-				script = script.concat(serDe ?
-					assignTemplates(templates.alterSerDeProperties, { name, serDe, properties: add }) :
-					assignTemplates(templates.alterSerDePropertiesWithOutSerDE, { name, properties: add })
+				script = script.concat(
+					serDe
+						? assignTemplates(templates.alterSerDeProperties, { name, serDe, properties: add })
+						: assignTemplates(templates.alterSerDePropertiesWithOutSerDE, { name, properties: add }),
 				);
 			} else if (!add && serDe) {
 				script = script.concat(assignTemplates(templates.alterSerDePropertiesOnlySerDe, { name, serDe }));
@@ -104,10 +113,9 @@ module.exports = app => {
 			if (!name || !keys || !intoBuckets) {
 				return '';
 			}
-			return sortedByKey.length ? 
-				assignTemplates(templates.alterTableClusteringKey, { keys, sortedByKey, intoBuckets }) :
-				assignTemplates(templates.alterTableClusteringKeyWithSortedKey, { keys, intoBuckets })
-			;
+			return sortedByKey.length
+				? assignTemplates(templates.alterTableClusteringKey, { keys, sortedByKey, intoBuckets })
+				: assignTemplates(templates.alterTableClusteringKeyWithSortedKey, { keys, intoBuckets });
 		},
 
 		alterTableSkewedBy(data) {
@@ -120,7 +128,7 @@ module.exports = app => {
 			let script = [];
 
 			if (notSkewed) {
-				return assignTemplates(templates.dropSkewBy, {name});
+				return assignTemplates(templates.dropSkewBy, { name });
 			}
 			if (storedAsDirectories?.changed && !storedAsDirectories?.value) {
 				script = script.concat(assignTemplates(templates.dropSkewByStoredAsDirection, { name }));
@@ -129,14 +137,16 @@ module.exports = app => {
 				return script;
 			}
 
-			return storedAsDirectories?.value ?
-				[...script, assignTemplates(templates.alterTableSkewBy, { name, skewedBy, skewedOn })] :
-				[...script, assignTemplates(templates.alterTableSkewByWithoutDirection, { name, skewedBy, skewedOn })];
+			return storedAsDirectories?.value
+				? [...script, assignTemplates(templates.alterTableSkewBy, { name, skewedBy, skewedOn })]
+				: [
+						...script,
+						assignTemplates(templates.alterTableSkewByWithoutDirection, { name, skewedBy, skewedOn }),
+					];
 		},
 
 		setTableLocation({ name, location }) {
 			return name && location ? assignTemplates(templates.setTableLocation, { name, location }) : '';
-		}
-
-	}
+		},
+	};
 };

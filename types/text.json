@@ -21,25 +21,29 @@
 		"maxLength": "",
 		"pattern": "",
 		"enum": [],
-		"sample":"",
-		"comments":"",
+		"sample": "",
+		"comments": "",
 		"mode": "string"
 	},
-	"descriptor": [{
-		"schema": {
-			"format": "time"
+	"descriptor": [
+		{
+			"schema": {
+				"format": "time"
+			},
+			"format": "hh:mm:ss"
 		},
-		"format": "hh:mm:ss"
-	}, {
-		"schema": {
-			"format": "time"
+		{
+			"schema": {
+				"format": "time"
+			},
+			"format": "hh:mm:ss.nnn"
 		},
-		"format": "hh:mm:ss.nnn"
-	}, {
-		"schema": {
-			"format": "time"
-		},
-		"format": "hh:mm:ss.nnnnnn"
-	}],
+		{
+			"schema": {
+				"format": "time"
+			},
+			"format": "hh:mm:ss.nnnnnn"
+		}
+	],
 	"hiddenOnEntity": "view"
 }

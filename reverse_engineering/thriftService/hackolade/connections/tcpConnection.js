@@ -16,7 +16,7 @@ const tcpConnection = (port, host, options) => {
 			conn.host = host;
 			conn.port = port;
 			stream.emit('connect');
-	
+
 			return conn;
 		},
 
@@ -34,7 +34,7 @@ const tcpConnection = (port, host, options) => {
 
 		end() {
 			return stream.end();
-		}
+		},
 	};
 };
 

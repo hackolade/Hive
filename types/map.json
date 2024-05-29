@@ -42,8 +42,7 @@
 		"map<struct>": {
 			"childValueType": "struct"
 		},
-		"map<union>": {
-		}
+		"map<union>": {}
 	},
 	"keyTypes": {
 		"text": {

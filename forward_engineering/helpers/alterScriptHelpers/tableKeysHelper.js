@@ -4,7 +4,7 @@ const { getKeyNames } = require('../keyHelper');
 const { isEqualProperty } = require('./generalHelper');
 
 let _;
-const setDependencies = ({ lodash }) => _ = lodash;
+const setDependencies = ({ lodash }) => (_ = lodash);
 
 const hydrateKeys = (hydratedCollectionData, collection, definitions, fullCollectionName) => {
 	setDependencies(dependencies);
@@ -20,20 +20,20 @@ const hydrateKeys = (hydratedCollectionData, collection, definitions, fullCollec
 		notSkewed: !skewedBy && !skewedOn && compMod?.skewedby?.old,
 		storedAsDirectories: {
 			changed: !isEqualProperty(compMod, 'skewStoredAsDir'),
-			value: collection?.role?.skewStoredAsDir
-		}
+			value: collection?.role?.skewStoredAsDir,
+		},
 	};
 	const clusteringKeyData = {
 		isChange: !isEqualProperty(compMod, 'sortedByKey') || !isEqualProperty(compMod, 'compositeClusteringKey'),
 		compositeClusteringKey: keys.compositeClusteringKey.join(', '),
 		sortedByKey: keys.sortedByKey.map(sortedKey => `${sortedKey.name} ${sortedKey.type}`).join(', '),
 		intoBuckets: collection?.role?.numBuckets,
-	}
+	};
 	return {
 		clusteringKeyData,
 		skewedByData,
-		name: fullCollectionName
-	}
+		name: fullCollectionName,
+	};
 };
 
 module.exports = {

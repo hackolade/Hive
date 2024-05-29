@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const {
 	buildStatement,
@@ -12,7 +12,8 @@ const {
 } = require('./generalHelper');
 const { getConstraintOpts } = require('./constraintHelper');
 
-const getStructChild = (name, type, comment) => `${prepareName(name)}: ${type}` + (comment ? ` COMMENT '${encodeStringLiteral(comment)}'` : '');
+const getStructChild = (name, type, comment) =>
+	`${prepareName(name)}: ${type}` + (comment ? ` COMMENT '${encodeStringLiteral(comment)}'` : '');
 
 const getStructChildProperties = (getTypeByProperty, definitions) => property => {
 	const childProperties = Object.keys(property.properties || {});
@@ -55,8 +56,8 @@ const getStructChildProperties = (getTypeByProperty, definitions) => property =>
 };
 
 const getStruct = (getTypeByProperty, definitions) => property => {
-	const getStructStatement = (propertiesString) => `struct<${propertiesString}>`;
-	
+	const getStructStatement = propertiesString => `struct<${propertiesString}>`;
+
 	const { activatedProps, deactivatedProps } = getStructChildProperties(getTypeByProperty, definitions)(property);
 	if (deactivatedProps.length === 0) {
 		return getStructStatement(activatedProps.join(', '));
@@ -68,16 +69,19 @@ const getStruct = (getTypeByProperty, definitions) => property => {
 
 const getChildBySubtype = (parentType, subtype) => {
 	const childValueType = ((getTypeDescriptor(parentType).subtypes || {})[subtype] || {}).childValueType || 'text';
-	
+
 	return getPropertyByType(childValueType);
 };
 
-const getPropertyByType = (type) => {
+const getPropertyByType = type => {
 	const childTypeDescriptor = getTypeDescriptor(type);
 
-	return Object.assign({
-		type
-	}, childTypeDescriptor.defaultValues || {});
+	return Object.assign(
+		{
+			type,
+		},
+		childTypeDescriptor.defaultValues || {},
+	);
 };
 
 const getArray = getTypeByProperty => property => {
@@ -104,7 +108,7 @@ const getArray = getTypeByProperty => property => {
 	return `array<${type}>`;
 };
 
-const getMapKey = (property) => {
+const getMapKey = property => {
 	if (['char', 'varchar'].indexOf(property.keySubtype) !== -1) {
 		return property.keySubtype + '(255)';
 	} else if (property.keySubtype) {
@@ -138,7 +142,7 @@ const getMap = getTypeByProperty => property => {
 	return `map<${key}, ${type}>`;
 };
 
-const getText = (property) => {
+const getText = property => {
 	const mode = property.mode;
 
 	if (['char', 'varchar'].indexOf(mode) === -1) {
@@ -150,7 +154,7 @@ const getText = (property) => {
 	}
 };
 
-const getNumeric = (property) => {
+const getNumeric = property => {
 	const mode = property.mode;
 
 	if (mode !== 'decimal') {
@@ -173,8 +177,8 @@ const getJsonType = getTypeByProperty => property => {
 const getUnionTypeFromMultiple = getTypeByProperty => property => {
 	const types = property.type.map(type => {
 		const dataType = type === 'number' ? 'numeric' : type;
-		
-		return getTypeByProperty(getPropertyByType(dataType))
+
+		return getTypeByProperty(getPropertyByType(dataType));
 	});
 
 	return `uniontype<${types.join(',')}>`;
@@ -209,12 +213,8 @@ const getUnionFromAllOf = getTypeByProperty => property => {
 		if (!Array.isArray(subschema.oneOf)) {
 			return types;
 		}
-		
-		return Object.assign(
-			{},
-			types,
-			getUnionFromOneOf(getTypeByProperty)(subschema)
-		);  
+
+		return Object.assign({}, types, getUnionFromOneOf(getTypeByProperty)(subschema));
 	}, {});
 };
 
@@ -241,50 +241,55 @@ const getDefinitionByReference = (definitions, reference) => {
 		return definitionsProperties[definitionName];
 	}
 
-	const allDefinitions = definitions.reduce((result, { properties }) => ({
-		...result,
-		...(properties || {})
-	}), {});
+	const allDefinitions = definitions.reduce(
+		(result, { properties }) => ({
+			...result,
+			...(properties || {}),
+		}),
+		{},
+	);
 
 	return allDefinitions[definitionName] || definitionName;
 };
 
-const getTypeByProperty = (definitions = []) => property => {
-	if (Array.isArray(property.type)) {
-		return getUnionTypeFromMultiple(getTypeByProperty(definitions))(property);
-	}
+const getTypeByProperty =
+	(definitions = []) =>
+	property => {
+		if (Array.isArray(property.type)) {
+			return getUnionTypeFromMultiple(getTypeByProperty(definitions))(property);
+		}
 
-	if (property.$ref) {
-		property = getDefinitionByReference(definitions, property)
-	}
-	
-	switch(property.type) {
-		case 'jsonObject':
-		case 'jsonArray':
-			return getJsonType(getTypeByProperty(definitions))(property);
-		case 'text':
-			return getText(property);
-		case 'numeric':
-			return getNumeric(property);
-		case 'bool':
-			return 'boolean';
-		case 'interval':
-			return 'string';
-		case 'struct':
-			return getStruct(getTypeByProperty(definitions), definitions)(property);
-		case 'array':
-			return getArray(getTypeByProperty(definitions))(property);
-		case 'map':
-			return getMap(getTypeByProperty(definitions))(property);
-		case undefined:
-			return 'string';
-		default:
-			return property.type;
-	}
-};
+		if (property.$ref) {
+			property = getDefinitionByReference(definitions, property);
+		}
+
+		switch (property.type) {
+			case 'jsonObject':
+			case 'jsonArray':
+				return getJsonType(getTypeByProperty(definitions))(property);
+			case 'text':
+				return getText(property);
+			case 'numeric':
+				return getNumeric(property);
+			case 'bool':
+				return 'boolean';
+			case 'interval':
+				return 'string';
+			case 'struct':
+				return getStruct(getTypeByProperty(definitions), definitions)(property);
+			case 'array':
+				return getArray(getTypeByProperty(definitions))(property);
+			case 'map':
+				return getMap(getTypeByProperty(definitions))(property);
+			case undefined:
+				return 'string';
+			default:
+				return property.type;
+		}
+	};
 
 const getColumn = (name, type, comment, constraints, isActivated) => ({
-	[name]: { type, comment, constraints, isActivated }
+	[name]: { type, comment, constraints, isActivated },
 });
 
 const getColumns = (jsonSchema, areColumnConstraintsAvailable, definitions) => {
@@ -296,12 +301,10 @@ const getColumns = (jsonSchema, areColumnConstraintsAvailable, definitions) => {
 		if (!property.isActivated) {
 			deactivatedColumnNames.add(name);
 		}
-		const isPrimaryKey = property.primaryKey &&
-			!property.compositePrimaryKey && 
-			!property.compositeClusteringKey;
+		const isPrimaryKey = property.primaryKey && !property.compositePrimaryKey && !property.compositeClusteringKey;
 
 		const isUnique = property.unique && !property.compositeUniqueKey && !isPrimaryKey;
-		
+
 		return Object.assign(
 			{},
 			hash,
@@ -309,39 +312,39 @@ const getColumns = (jsonSchema, areColumnConstraintsAvailable, definitions) => {
 				prepareName(name),
 				getTypeByProperty(definitions)(property),
 				getDescription(definitions, property),
-				areColumnConstraintsAvailable ? {
-					notNull: isRequired,
-					unique: isUnique,
-					check: property.check,
-					primaryKey: isPrimaryKey,
-					defaultValue: property.default,
-					rely: property.rely,
-					noValidateSpecification: property.noValidateSpecification,
-					enableSpecification: property.enableSpecification,
-				} : {},
-				property.isActivated
-			)
+				areColumnConstraintsAvailable
+					? {
+							notNull: isRequired,
+							unique: isUnique,
+							check: property.check,
+							primaryKey: isPrimaryKey,
+							defaultValue: property.default,
+							rely: property.rely,
+							noValidateSpecification: property.noValidateSpecification,
+							enableSpecification: property.enableSpecification,
+						}
+					: {},
+				property.isActivated,
+			),
 		);
 	}, {});
 
 	if (Array.isArray(jsonSchema.oneOf)) {
 		const unions = getUnionFromOneOf(getTypeByProperty(definitions))(jsonSchema);
 
-		columns = Object.keys(unions).reduce((hash, typeName) => Object.assign(
-			{},
-			hash,
-			getColumn(prepareName(typeName), unions[typeName])
-		), columns);
-	} 
-	
+		columns = Object.keys(unions).reduce(
+			(hash, typeName) => Object.assign({}, hash, getColumn(prepareName(typeName), unions[typeName])),
+			columns,
+		);
+	}
+
 	if (Array.isArray(jsonSchema.allOf)) {
 		const unions = getUnionFromAllOf(getTypeByProperty(definitions))(jsonSchema);
-		
-		columns = Object.keys(unions).reduce((hash, typeName) => Object.assign(
-			{},
-			hash,
-			getColumn(prepareName(typeName), unions[typeName])
-		), columns);
+
+		columns = Object.keys(unions).reduce(
+			(hash, typeName) => Object.assign({}, hash, getColumn(prepareName(typeName), unions[typeName])),
+			columns,
+		);
 	}
 
 	return { columns, deactivatedColumnNames };
@@ -355,21 +358,22 @@ const getColumnStatement = ({ name, type, comment, constraints, isActivated, isP
 };
 
 const getColumnsStatement = (columns, isParentActivated) => {
-	return Object.keys(columns).map((name) => {
-		return getColumnStatement(Object.assign(
-			{},
-			columns[name],
-			{ name, isParentActivated }
-		))
-	}).join(',\n');
+	return Object.keys(columns)
+		.map(name => {
+			return getColumnStatement(Object.assign({}, columns[name], { name, isParentActivated }));
+		})
+		.join(',\n');
 };
 
-const getColumnConstraintsStaitment = (constraint) => {
-	const { notNull, unique, check, defaultValue, primaryKey, rely, noValidateSpecification, enableSpecification } = constraint;
-	const noValidateStatement = enableSpecification => getConstraintOpts({ rely, enableSpecification, noValidateSpecification });
-	const getColStatement = (statement, noValidateStatement) => statement ? ` ${statement}${noValidateStatement}` : '';
+const getColumnConstraintsStaitment = constraint => {
+	const { notNull, unique, check, defaultValue, primaryKey, rely, noValidateSpecification, enableSpecification } =
+		constraint;
+	const noValidateStatement = enableSpecification =>
+		getConstraintOpts({ rely, enableSpecification, noValidateSpecification });
+	const getColStatement = (statement, noValidateStatement) =>
+		statement ? ` ${statement}${noValidateStatement}` : '';
 	const constraints = [
-		(notNull && !unique) ? getColStatement('NOT NULL', noValidateStatement(enableSpecification)) : '',
+		notNull && !unique ? getColStatement('NOT NULL', noValidateStatement(enableSpecification)) : '',
 		unique ? getColStatement('UNIQUE', noValidateStatement('DISABLE')) : '',
 		defaultValue ? getColStatement(`DEFAULT ${defaultValue}`, noValidateStatement(enableSpecification)) : '',
 		check ? getColStatement(`CHECK ${check}`, noValidateStatement(enableSpecification)) : '',
@@ -380,14 +384,14 @@ const getColumnConstraintsStaitment = (constraint) => {
 };
 
 const getDescription = (definitions, property) => {
-	if(!property.$ref) {
+	if (!property.$ref) {
 		return property.description;
 	}
 
 	const definitionDescription = getDefinitionByReference(definitions, property)?.description;
 
-	return property.refDescription || property.description || definitionDescription
-}
+	return property.refDescription || property.description || definitionDescription;
+};
 
 module.exports = {
 	getColumns,

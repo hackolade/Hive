@@ -1,10 +1,7 @@
 {
-  "name": "Hive",
-  "version": "1.0.0",
-  "description": "",
-  "author": "Hackolade",
-  "dependencies": {
-    "sql-formatter": "^4.0.2"
-  },
-  "installed": true
+    "name": "Hive",
+    "version": "1.0.0",
+    "description": "",
+    "author": "Hackolade",
+    "installed": true
 }

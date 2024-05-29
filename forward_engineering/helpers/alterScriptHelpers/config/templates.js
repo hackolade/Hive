@@ -21,26 +21,28 @@ module.exports = {
 
 	alterTableColumnName: 'ALTER TABLE ${collectionName} CHANGE ${oldName} ${newName} ${type};',
 
-	alterTableColumnNameWithComment: 'ALTER TABLE ${collectionName} CHANGE ${oldName} ${newName} ${type} COMMENT "${comment}";',
+	alterTableColumnNameWithComment:
+		'ALTER TABLE ${collectionName} CHANGE ${oldName} ${newName} ${type} COMMENT "${comment}";',
 
 	addTableColumns: 'ALTER TABLE ${name} ADD COLUMNS (${columns});',
 
 	setTableProperties: 'ALTER TABLE ${name} SET TBLPROPERTIES (${properties});',
 
 	alterSerDeProperties: 'ALTER TABLE ${name} SET SERDE ${serDe} WITH SERDEPROPERTIES (${properties});',
-	
+
 	alterSerDePropertiesOnlySerDe: 'ALTER TABLE ${name} SET SERDE ${serDe};',
 
 	alterSerDePropertiesWithOutSerDE: 'ALTER TABLE ${name} SET SERDEPROPERTIES (${properties});',
-	
+
 	unsetSerDeProperties: 'ALTER TABLE ${name} UNSET SERDEPROPERTIES (${properties});',
 
-	alterTableClusteringKey: 'ALTER TABLE ${name} CLUSTERED BY (${keys}) SORTED BY (${sortedByKey}) INTO ${intoBuckets} BUCKETS;',
-	
+	alterTableClusteringKey:
+		'ALTER TABLE ${name} CLUSTERED BY (${keys}) SORTED BY (${sortedByKey}) INTO ${intoBuckets} BUCKETS;',
+
 	alterTableClusteringKeyWithSortedKey: 'ALTER TABLE ${name} CLUSTERED BY (${keys}) INTO ${intoBuckets} BUCKETS;',
 
 	alterTableSkewBy: 'ALTER TABLE ${name} SKEWED BY (${skewedBy}) ON (${skewedOn}), STORED AS DIRECTORIES;',
-	
+
 	alterTableSkewByWithoutDirection: 'ALTER TABLE ${name} SKEWED BY (${skewedBy}) ON (${skewedOn});',
 
 	dropSkewBy: 'ALTER TABLE ${name} NOT SKEWED;',
@@ -48,5 +50,4 @@ module.exports = {
 	dropSkewByStoredAsDirection: 'ALTER TABLE ${name} NOT STORED AS DIRECTORIES;',
 
 	setTableLocation: 'ALTER TABLE ${name} SET LOCATION "${location}";',
-
 };

@@ -12,12 +12,12 @@ const createKrb5 = (app, options, logger) => {
 							keytab: options.keytab,
 						};
 						logger.log('info', { message: 'Kinit', authData }, 'Auth');
-						
+
 						krb5.kinit(authData, (err, ccname) => {
 							if (err) {
 								return reject(err);
 							}
-	
+
 							const spnegoData = {
 								service_fqdn: options.krb_host,
 								service_principal: options.krb_service + '/' + options.krb_host,
@@ -34,9 +34,9 @@ const createKrb5 = (app, options, logger) => {
 							});
 						});
 					});
-				}
+				},
 			});
-		}
+		},
 	};
 };
 
@@ -44,12 +44,12 @@ const createKerberos = (app, options, logger) => {
 	const shouldUseKrb5 = options.keytab && options.mode === 'http';
 
 	if (!shouldUseKrb5) {
-		logger.log('info', { message: 'Use kerberos lib' }, 'Initialize')
+		logger.log('info', { message: 'Use kerberos lib' }, 'Initialize');
 
 		return app.require('kerberos');
 	}
 
-	logger.log('info', { message: 'Use krb5 lib' }, 'Initialize')
+	logger.log('info', { message: 'Use krb5 lib' }, 'Initialize');
 
 	return createKrb5(app, options, logger);
 };

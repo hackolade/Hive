@@ -134,11 +134,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Subtype",
 				"propertyKeyword": "mode",
 				"propertyType": "select",
-				"options": [
-					"string",
-					"varchar",
-					"char"
-				],
+				"options": ["string", "varchar", "char"],
 				"data": "options",
 				"valueType": "string"
 			},
@@ -163,7 +159,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -292,11 +288,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -344,10 +336,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -465,11 +454,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -614,15 +599,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Subtype",
 				"propertyKeyword": "mode",
 				"propertyType": "select",
-				"options": [
-					"tinyint",
-					"smallint",
-					"int",
-					"bigint",
-					"float",
-					"double",
-					"decimal"
-				],
+				"options": ["tinyint", "smallint", "int", "bigint", "float", "double", "decimal"],
 				"data": "options",
 				"valueType": "string"
 			},
@@ -673,7 +650,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -802,11 +779,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -854,10 +827,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -975,11 +945,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -1139,11 +1105,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -1191,10 +1153,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -1242,11 +1201,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -1332,7 +1287,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -1461,11 +1416,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -1513,10 +1464,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -1634,11 +1582,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -1796,7 +1740,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -1925,11 +1869,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -1977,10 +1917,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -2098,11 +2035,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -2260,7 +2193,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -2389,11 +2322,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -2441,10 +2370,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -2562,11 +2488,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -2723,7 +2645,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -2852,11 +2774,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -2904,10 +2822,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -3025,11 +2940,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -3205,7 +3116,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -3333,11 +3244,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -3369,10 +3276,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -3474,11 +3378,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -3606,21 +3506,13 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Key type",
 				"propertyKeyword": "keyType",
 				"propertyType": "select",
-				"options": [
-					"",
-					"text",
-					"numeric"
-				]
+				"options": ["", "text", "numeric"]
 			},
 			{
 				"propertyName": "Key subtype",
 				"propertyKeyword": "keySubtype",
 				"propertyType": "select",
-				"options": [
-					"string",
-					"varchar",
-					"char"
-				],
+				"options": ["string", "varchar", "char"],
 				"dependency": {
 					"key": "keyType",
 					"value": "text"
@@ -3630,15 +3522,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Key subtype",
 				"propertyKeyword": "keySubtype",
 				"propertyType": "select",
-				"options": [
-					"tinyint",
-					"smallint",
-					"int",
-					"bigint",
-					"float",
-					"double",
-					"decimal"
-				],
+				"options": ["tinyint", "smallint", "int", "bigint", "float", "double", "decimal"],
 				"dependency": {
 					"key": "keyType",
 					"value": "numeric"
@@ -3679,7 +3563,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -3807,11 +3691,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -3843,10 +3723,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -3948,11 +3825,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -4095,7 +3968,7 @@ making sure that you maintain a proper JSON format.
 							"tooltip": "This column is part of the table composite primary key definition. Please refer to this definition if you want more information or to update the Primary Key definition",
 							"dependency": {
 								"key": "compositePrimaryKey",
-								"value": true 
+								"value": true
 							}
 						},
 						{
@@ -4223,11 +4096,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "enableSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"DISABLE",
-					"ENABLE"
-				],
+				"options": ["", "DISABLE", "ENABLE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -4259,10 +4128,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "noValidateSpecification",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"NOVALIDATE"
-				],
+				"options": ["", "NOVALIDATE"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -4364,11 +4230,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rely",
 				"propertyType": "select",
 				"defaultValue": "",
-				"options": [
-					"",
-					"RELY",
-					"NORELY"
-				],
+				"options": ["", "RELY", "NORELY"],
 				"dependency": {
 					"type": "or",
 					"values": [
@@ -4477,4 +4339,4 @@ making sure that you maintain a proper JSON format.
 			}
 		]
 	}
-} 
+}
