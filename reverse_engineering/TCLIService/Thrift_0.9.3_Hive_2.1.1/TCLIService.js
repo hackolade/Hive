@@ -91,9 +91,6 @@ TCLIService_OpenSession_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -192,9 +189,6 @@ TCLIService_CloseSession_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -295,9 +289,6 @@ TCLIService_GetInfo_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -396,9 +387,6 @@ TCLIService_ExecuteStatement_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -499,9 +487,6 @@ TCLIService_GetTypeInfo_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -600,9 +585,6 @@ TCLIService_GetCatalogs_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -703,9 +685,6 @@ TCLIService_GetSchemas_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -804,9 +783,6 @@ TCLIService_GetTables_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -907,8 +883,6 @@ TCLIService_GetTableTypes_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -1009,9 +983,6 @@ TCLIService_GetColumns_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -1110,9 +1081,6 @@ TCLIService_GetFunctions_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -1213,9 +1181,6 @@ TCLIService_GetPrimaryKeys_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -1314,9 +1279,6 @@ TCLIService_GetCrossReference_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -1417,9 +1379,6 @@ TCLIService_GetOperationStatus_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -1518,9 +1477,6 @@ TCLIService_CancelOperation_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -1621,9 +1577,6 @@ TCLIService_CloseOperation_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -1722,9 +1675,6 @@ TCLIService_GetResultSetMetadata_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -1825,9 +1775,6 @@ TCLIService_FetchResults_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -1926,9 +1873,6 @@ TCLIService_GetDelegationToken_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -2029,9 +1973,6 @@ TCLIService_CancelDelegationToken_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -2130,9 +2071,6 @@ TCLIService_RenewDelegationToken_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
@@ -2233,9 +2171,6 @@ TCLIService_GetQueryId_result.prototype.read = function (input) {
 					input.skip(ftype);
 				}
 				break;
-			case 0:
-				input.skip(ftype);
-				break;
 			default:
 				input.skip(ftype);
 		}
@@ -2334,9 +2269,6 @@ TCLIService_SetClientInfo_result.prototype.read = function (input) {
 				} else {
 					input.skip(ftype);
 				}
-				break;
-			case 0:
-				input.skip(ftype);
 				break;
 			default:
 				input.skip(ftype);
