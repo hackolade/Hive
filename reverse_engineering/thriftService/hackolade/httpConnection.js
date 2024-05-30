@@ -24,7 +24,7 @@ var thrift = require('thrift');
 
 var TBufferedTransport = thrift.TBufferedTransport;
 var TBinaryProtocol = thrift.TBinaryProtocol;
-var InputBufferUnderrunError = require('../../node_modules/thrift/lib/nodejs/lib/thrift/input_buffer_underrun_error');
+var InputBufferUnderrunError = require('../../../node_modules/thrift/lib/nodejs/lib/thrift/input_buffer_underrun_error');
 
 var createClient = thrift.create_client;
 
