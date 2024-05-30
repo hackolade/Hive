@@ -36,7 +36,7 @@ module.exports = {
 		);
 
 		if (connectionInfo.ssl === 'https') {
-			const rootCas = require('ssl-root-cas/latest').inject();
+			const rootCas = require('ssl-root-cas').inject();
 			if (connectionInfo.httpsCA) {
 				connectionInfo.httpsCA
 					.split(',')
