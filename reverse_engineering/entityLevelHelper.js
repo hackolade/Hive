@@ -51,7 +51,6 @@ const getStoredAs = storageInfo => {
 				storedAsTable: 'textfile',
 				rowFormat: 'delimited',
 				fieldsTerminatedBy: (storageParams['field.delim'] || '').trim(),
-				linesTerminatedBy: (storageParams['line.delim'] || '').trim(),
 				collectionItemsTerminatedBy: (storageParams['collection.delim'] || '').trim(),
 				fieldsescapedBy: (storageParams['escape.delim'] || '').trim(),
 				linesTerminatedBy: (storageParams['line.delim'] || '').trim(),

@@ -400,15 +400,6 @@ class Visitor extends HiveParserVisitor {
 			.filter(Boolean)[0];
 	}
 
-	visitAlterStatementSuffixRename(ctx) {
-		const { database, table } = this.visit(ctx.tableName());
-
-		return {
-			type: RENAME_COLLECTION_COMMAND,
-			newCollectionName: table,
-		};
-	}
-
 	visitAlterStatementSuffixProperties(ctx) {
 		return {};
 	}
@@ -1186,10 +1177,6 @@ class Visitor extends HiveParserVisitor {
 		};
 	}
 
-	visitColumnParenthesesList(ctx) {
-		return this.visit(ctx.columnNameList());
-	}
-
 	visitTableProperties(ctx) {
 		return ctx.getText();
 	}
@@ -1317,17 +1304,6 @@ class Visitor extends HiveParserVisitor {
 				name: getTextFromStringLiteral(ctx),
 				mappingType: getMappingType(ctx),
 			},
-		};
-	}
-
-	visitDropIndexStatement(ctx) {
-		const { database, table } = this.visit(ctx.tableName());
-
-		return {
-			type: REMOVE_COLLECTION_LEVEL_INDEX_COMMAND,
-			indexName: this.visit(ctx.identifier()),
-			bucketName: database,
-			collectionName: table,
 		};
 	}
 
