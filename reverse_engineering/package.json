@@ -1,0 +1,5 @@
+{
+	"name": "Hive",
+    "description": "custom attributes to drive application behavior",
+	"type": "multi"
+}
