@@ -6,7 +6,7 @@ const sslTcpConnection = (port, host, options) => {
 
 	if (!('secureProtocol' in options) && !('secureOptions' in options)) {
 		options.secureProtocol = 'SSLv23_method';
-		options.secureOptions = constants.SSL_OP_NO_SSLv2 | constants.SSL_OP_NO_SSLv3;
+		options.secureOptions = constants.SSL_OP_NO_SSLv2 || constants.SSL_OP_NO_SSLv3;
 	}
 
 	options.rejectUnauthorized = false;
@@ -20,12 +20,10 @@ const sslTcpConnection = (port, host, options) => {
 		},
 
 		assignStream(connection) {
-			const conn = new connection(
-				stream,
-				Object.assign({}, options, {
-					ssl: true,
-				}),
-			);
+			const conn = new connection(stream, {
+				ssl: true,
+				...options,
+			});
 
 			conn.host = host;
 			conn.port = port;

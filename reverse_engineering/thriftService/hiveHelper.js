@@ -8,6 +8,7 @@ const getInt64 = (buffer, offset) => {
 	const o = offset;
 
 	// Running sum of octets, doing a 2's complement
+	// eslint-disable-next-line no-bitwise
 	const negate = b[o] & 0x80;
 	let value = new Big(0);
 	let m = new Big(1);
@@ -18,8 +19,11 @@ const getInt64 = (buffer, offset) => {
 
 		// 2's complement for negative numbers
 		if (negate) {
+			// eslint-disable-next-line no-bitwise
 			v = (v ^ 0xff) + carry;
+			// eslint-disable-next-line no-bitwise
 			carry = v >> 8;
+			// eslint-disable-next-line no-bitwise
 			v &= 0xff;
 		}
 

@@ -91,9 +91,9 @@ module.exports = {
 
 			callback(null, buildScript(needMinify)(databaseStatement, script));
 		} catch (error) {
-			logger.log('error', { message: e.message, stack: e.stack }, 'Hive Forward-Engineering Error');
+			logger.log('error', { message: error.message, stack: error.stack }, 'Hive Forward-Engineering Error');
 
-			callback({ message: e.message, stack: e.stack });
+			callback({ message: error.message, stack: error.stack });
 		}
 	},
 
@@ -201,7 +201,7 @@ module.exports = {
 				this.generateScript(data, logger, callback, app);
 			}
 		} catch (e) {
-			callback({ message: e.message, stack: e.stack });
+			cb({ message: e.message, stack: e.stack });
 		}
 	},
 
