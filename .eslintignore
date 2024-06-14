@@ -1,0 +1,11 @@
+.git
+.vscode
+.idea
+node_modules
+reverse_engineering/node_modules
+reverse_engineering/parser
+reverse_engineering/thriftService/hackolade/httpConnection.js
+reverse_engineering/TCLIService
+forward_engineering/node_modules
+build
+release

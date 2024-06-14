@@ -46,7 +46,8 @@
 				"description": "Optionally specify database name to limit scope of discovery"
 			}
 		]
-	}, {
+	},
+	{
 		"lowerTab": "Authentication",
 		"helpUrl": [
 			{
@@ -83,19 +84,24 @@
 				"inputLabel": "Authentication type",
 				"inputKeyword": "authMechanism",
 				"inputType": "select",
-				"options": [{
-					"label": "None (Plain SASL)",
-					"value": "PLAIN"
-				},	{
-					"label": "NoSASL",
-					"value": "NOSASL"
-				}, 	{
-					"label": "LDAP",
-					"value": "LDAP"
-				},  {
-					"label": "Kerberos",
-					"value": "GSSAPI"
-				}]
+				"options": [
+					{
+						"label": "None (Plain SASL)",
+						"value": "PLAIN"
+					},
+					{
+						"label": "NoSASL",
+						"value": "NOSASL"
+					},
+					{
+						"label": "LDAP",
+						"value": "LDAP"
+					},
+					{
+						"label": "Kerberos",
+						"value": "GSSAPI"
+					}
+				]
 			},
 			{
 				"inputLabel": "User Name",
@@ -154,8 +160,9 @@
 					"value": "GSSAPI"
 				}
 			}
-		]	
-	}, {
+		]
+	},
+	{
 		"lowerTab": "Options",
 		"structure": [
 			{
@@ -177,7 +184,7 @@
 					"value": "http"
 				}
 			}
-		]	
+		]
 	},
 	{
 		"lowerTab": "SSL",
@@ -186,19 +193,24 @@
 				"inputLabel": "SSL Type",
 				"inputKeyword": "ssl",
 				"inputType": "select",
-				"options": [{
-					"label": "None",
-					"value": false
-				}, {
-					"label": "HTTPs",
-					"value": "https"
-				}, {
-					"label": "Java Keystore",
-					"value": "jks"
-				}, {
-					"label": "Certificates",
-					"value": true
-				}]
+				"options": [
+					{
+						"label": "None",
+						"value": false
+					},
+					{
+						"label": "HTTPs",
+						"value": "https"
+					},
+					{
+						"label": "Java Keystore",
+						"value": "jks"
+					},
+					{
+						"label": "Certificates",
+						"value": true
+					}
+				]
 			},
 			{
 				"inputLabel": "Certificate Authority",
@@ -254,7 +266,7 @@
 					"value": "jks"
 				}
 			},
-/*			{
+			/*			{
 				"inputLabel": "Disable Reject Unauthorized",
 				"inputKeyword": "disableRejectUnauthorized",
 				"inputType": "checkbox",
@@ -286,6 +298,6 @@
 					"value": "https"
 				}
 			}
-		]	
+		]
 	}
 ]

@@ -1,8 +1,7 @@
-
 const createTransport = (transport, client) => {
 	return class extends transport {
 		static receiver(handle, seqid) {
-			return super.receiver((frame) => {
+			return super.receiver(frame => {
 				client.unwrap(frame.inBuf.toString('base64'), (err, decodedData) => {
 					if (err) {
 						throw err;
@@ -19,18 +18,20 @@ const createTransport = (transport, client) => {
 
 const createQopCodec = (connection, client) => {
 	return class extends connection {
-
 		constructor(stream, options) {
-			super(stream, Object.assign({}, options, {
-				transport: createTransport(options.transport, client)
-			}));
+			super(
+				stream,
+				Object.assign({}, options, {
+					transport: createTransport(options.transport, client),
+				}),
+			);
 
 			this.saslClient = client;
 		}
 
 		write(data) {
 			const payload = data.slice(4);
-	
+
 			this.saslClient.wrap(payload.toString('base64'), { encode: 1 }, (err, encodedData) => {
 				if (err) {
 					throw err;
@@ -47,7 +48,7 @@ const createQopCodec = (connection, client) => {
 
 			bodyLength.writeUInt32BE(body.length);
 
-			return Buffer.concat([ bodyLength, body ]);
+			return Buffer.concat([bodyLength, body]);
 		}
 	};
 };

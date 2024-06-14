@@ -124,9 +124,7 @@ making sure that you maintain a proper JSON format.
 				"shouldValidate": false,
 				"propertyTooltip": "DB vendor",
 				"propertyType": "select",
-				"options": [
-					"Hive"
-				],
+				"options": ["Hive"],
 				"disabledOption": true
 			},
 			{
@@ -135,11 +133,7 @@ making sure that you maintain a proper JSON format.
 				"shouldValidate": false,
 				"propertyTooltip": "DB version",
 				"propertyType": "select",
-				"options": [
-					"1.x",
-					"2.x",
-					"3.x"
-				],
+				"options": ["1.x", "2.x", "3.x"],
 				"disabledOption": false
 			},
 			{
@@ -147,11 +141,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "modelingMethodology",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
-				"options": [
-					"Relational",
-					"Dimensional",
-					"Vault"
-				]
+				"options": ["Relational", "Dimensional", "Vault"]
 			},
 			{
 				"propertyName": "Host",
@@ -210,11 +200,7 @@ making sure that you maintain a proper JSON format.
 								"propertyName": "Scheduling policy",
 								"propertyKeyword": "schedulingPolicy",
 								"propertyType": "select",
-								"options": [
-									"default",
-									"fair",
-									"fcfs"
-								]
+								"options": ["default", "fair", "fcfs"]
 							},
 							{
 								"propertyName": "Mappings",
@@ -231,11 +217,7 @@ making sure that you maintain a proper JSON format.
 										"propertyName": "Mapping type",
 										"propertyKeyword": "mappingType",
 										"propertyType": "select",
-										"options": [
-											"application",
-											"user",
-											"group"
-										]
+										"options": ["application", "user", "group"]
 									}
 								]
 							}

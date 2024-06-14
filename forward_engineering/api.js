@@ -26,16 +26,10 @@ module.exports = {
 			const externalDefinitions = JSON.parse(data.externalDefinitions);
 			const containerData = data.containerData;
 			const entityData = data.entityData;
-			const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith(
-				'3'
-			);
-			const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith(
-				'1'
-			);
+			const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
+			const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith('1');
 			const needMinify = (
-				_.get(data, 'options.additionalOptions', []).find(
-					(option) => option.id === 'minify'
-				) || {}
+				_.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify') || {}
 			).value;
 
 			if (data.isUpdateScript) {
@@ -53,33 +47,22 @@ module.exports = {
 						containerData,
 						entityData,
 						jsonSchema,
-						[
-							modelDefinitions,
-							internalDefinitions,
-							externalDefinitions,
-						],
+						[modelDefinitions, internalDefinitions, externalDefinitions],
 						null,
 						areColumnConstraintsAvailable,
-						areForeignPrimaryKeyConstraintsAvailable
+						areForeignPrimaryKeyConstraintsAvailable,
 					),
 					getIndexes(
-						containerData, 
-						entityData, 
-						jsonSchema, [
-							modelDefinitions,
-							internalDefinitions,
-							externalDefinitions,
-						],
-						areColumnConstraintsAvailable
-					)
-				)
+						containerData,
+						entityData,
+						jsonSchema,
+						[modelDefinitions, internalDefinitions, externalDefinitions],
+						areColumnConstraintsAvailable,
+					),
+				),
 			);
 		} catch (e) {
-			logger.log(
-				'error',
-				{ message: e.message, stack: e.stack },
-				'Hive Forward-Engineering Error'
-			);
+			logger.log('error', { message: e.message, stack: e.stack }, 'Hive Forward-Engineering Error');
 
 			setTimeout(() => {
 				callback({ message: e.message, stack: e.stack });
@@ -108,12 +91,11 @@ module.exports = {
 
 			callback(null, buildScript(needMinify)(databaseStatement, script));
 		} catch (error) {
-			logger.log('error', { message: e.message, stack: e.stack }, 'Hive Forward-Engineering Error');
+			logger.log('error', { message: error.message, stack: error.stack }, 'Hive Forward-Engineering Error');
 
-			callback({ message: e.message, stack: e.stack });
+			callback({ message: error.message, stack: error.stack });
 		}
 	},
-
 
 	generateContainerScript(data, logger, callback, app) {
 		try {
@@ -125,20 +107,11 @@ module.exports = {
 			const workloadManagementStatements = getWorkloadManagementStatements(data.modelData);
 			const databaseStatement = getDatabaseStatement(containerData);
 			const jsonSchema = parseEntities(data.entities, data.jsonSchema);
-			const internalDefinitions = parseEntities(
-				data.entities,
-				data.internalDefinitions
-			);
-			const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith(
-				'3'
-			);
-			const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith(
-				'1'
-			);
+			const internalDefinitions = parseEntities(data.entities, data.internalDefinitions);
+			const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
+			const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith('1');
 			const needMinify = (
-				_.get(data, 'options.additionalOptions', []).find(
-					(option) => option.id === 'minify'
-				) || {}
+				_.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify') || {}
 			).value;
 
 			if (data.isUpdateScript) {
@@ -157,8 +130,8 @@ module.exports = {
 					viewData: data.viewData[viewId],
 					containerData: data.containerData,
 					collectionRefsDefinitionsMap: data.collectionRefsDefinitionsMap,
-					isKeyspaceActivated: true
-				})
+					isKeyspaceActivated: true,
+				});
 			});
 
 			const foreignKeyHashTable = foreignKeyHelper.getForeignKeyHashTable(
@@ -168,7 +141,7 @@ module.exports = {
 				jsonSchema,
 				internalDefinitions,
 				[modelDefinitions, externalDefinitions],
-				containerData[0] && containerData[0].isActivated
+				containerData[0] && containerData[0].isActivated,
 			);
 
 			const entities = data.entities.reduce((result, entityId) => {
@@ -176,11 +149,7 @@ module.exports = {
 					containerData,
 					data.entityData[entityId],
 					jsonSchema[entityId],
-					[
-						internalDefinitions[entityId],
-						modelDefinitions,
-						externalDefinitions,
-					],
+					[internalDefinitions[entityId], modelDefinitions, externalDefinitions],
 				];
 
 				return result.concat([
@@ -188,17 +157,13 @@ module.exports = {
 						...args,
 						null,
 						areColumnConstraintsAvailable,
-						areForeignPrimaryKeyConstraintsAvailable
+						areForeignPrimaryKeyConstraintsAvailable,
 					),
 					getIndexes(...args, areColumnConstraintsAvailable),
 				]);
 			}, []);
 
-			const foreignKeys = getForeignKeys(
-				data,
-				foreignKeyHashTable,
-				areForeignPrimaryKeyConstraintsAvailable
-			);
+			const foreignKeys = getForeignKeys(data, foreignKeyHashTable, areForeignPrimaryKeyConstraintsAvailable);
 
 			callback(
 				null,
@@ -207,15 +172,11 @@ module.exports = {
 					databaseStatement,
 					...entities,
 					...viewsScripts,
-					foreignKeys
-				)
+					foreignKeys,
+				),
 			);
 		} catch (e) {
-			logger.log(
-				'error',
-				{ message: e.message, stack: e.stack },
-				'Hive Forward-Engineering Error'
-			);
+			logger.log('error', { message: e.message, stack: e.stack }, 'Hive Forward-Engineering Error');
 
 			setTimeout(() => {
 				callback({ message: e.message, stack: e.stack });
@@ -226,40 +187,48 @@ module.exports = {
 	isDropInStatements(data, logger, cb, app) {
 		try {
 			setDependencies(app);
-			
+
 			const callback = (error, script = '') => {
-				cb(error, DROP_STATEMENTS.some(statement => script.includes(statement)));
+				cb(
+					error,
+					DROP_STATEMENTS.some(statement => script.includes(statement)),
+				);
 			};
-			
+
 			if (data.level === 'container') {
 				this.generateContainerScript(data, logger, callback, app);
 			} else if (data.level === 'entity') {
 				this.generateScript(data, logger, callback, app);
 			}
-		}	catch (e) {
-			callback({ message: e.message, stack: e.stack });
+		} catch (e) {
+			cb({ message: e.message, stack: e.stack });
 		}
 	},
 
-	testConnection: function(connectionInfo, logger, cb, app){
+	testConnection: function (connectionInfo, logger, cb, app) {
 		setDependencies(app);
 		_ = dependencies.lodash;
 		logInfo('Test connection', connectionInfo, logger);
-		connect(connectionInfo, logger, (err) => {
-			if (err) {
-				logger.log('error', { message: err.message, stack: err.stack, error: err }, 'Connection failed');
-			}
+		connect(
+			connectionInfo,
+			logger,
+			err => {
+				if (err) {
+					logger.log('error', { message: err.message, stack: err.stack, error: err }, 'Connection failed');
+				}
 
-			return cb(err);
-		}, app);
+				return cb(err);
+			},
+			app,
+		);
 	},
 
 	async applyToInstance(connectionInfo, logger, callback, app) {
 		logger.clear();
 		logInfo('info', connectionInfo, logger);
-		
+
 		try {
-			await applyToInstanceHelper.applyToInstance(connectionInfo, logger, app)
+			await applyToInstanceHelper.applyToInstance(connectionInfo, logger, app);
 			callback();
 		} catch (error) {
 			callback(error);
@@ -267,14 +236,16 @@ module.exports = {
 	},
 };
 
-const buildScript = (needMinify) => (...statements) => {
-	const script = statements.filter((statement) => statement).join('\n\n');
-	if (needMinify) {
-		return script;
-	}
+const buildScript =
+	needMinify =>
+	(...statements) => {
+		const script = statements.filter(statement => statement).join('\n\n');
+		if (needMinify) {
+			return script;
+		}
 
-	return sqlFormatter.format(script, { language: 'spark', indent: '    ', linesBetweenQueries: 2 }) + '\n';
-};
+		return sqlFormatter.format(script, { language: 'spark', indent: '    ', linesBetweenQueries: 2 }) + '\n';
+	};
 
 const parseEntities = (entities, serializedItems) => {
 	return entities.reduce((result, entityId) => {
@@ -288,21 +259,17 @@ const parseEntities = (entities, serializedItems) => {
 	}, {});
 };
 
-const getForeignKeys = (
-	data,
-	foreignKeyHashTable,
-	areForeignPrimaryKeyConstraintsAvailable
-) => {
+const getForeignKeys = (data, foreignKeyHashTable, areForeignPrimaryKeyConstraintsAvailable) => {
 	if (!areForeignPrimaryKeyConstraintsAvailable) {
 		return null;
 	}
 
 	const dbName = replaceSpaceWithUnderscore(getName(getTab(0, data.containerData)));
-	
+
 	const foreignKeysStatements = data.entities
 		.reduce((result, entityId) => {
 			const foreignKeyStatement = foreignKeyHelper.getForeignKeyStatementsByHashItem(
-				foreignKeyHashTable[entityId] || {}
+				foreignKeyHashTable[entityId] || {},
 			);
 
 			if (foreignKeyStatement) {
@@ -317,70 +284,74 @@ const getForeignKeys = (
 	return foreignKeysStatements ? `\nUSE ${dbName};${foreignKeysStatements}` : '';
 };
 
-const setAppDependencies = ({ lodash }) => _ = lodash;
+const setAppDependencies = ({ lodash }) => (_ = lodash);
 
 const getWorkloadManagementStatements = modelData => {
-    const resourcePlansData = _.get(_.first(modelData), 'resourcePlans', []);
+	const resourcePlansData = _.get(_.first(modelData), 'resourcePlans', []);
 
-    return resourcePlansData
-        .filter(resourcePlan => resourcePlan.name)
-        .map(resourcePlan => {
-            const resourcePlanOptionsString = _.isUndefined(resourcePlan.parallelism)
-                ? ''
-                : ` WITH QUERY_PARALLELISM = ${resourcePlan.parallelism}`;
-            const resourcePlanStatement = `CREATE RESOURCE PLAN ${prepareName(
-                resourcePlan.name
-            )}${resourcePlanOptionsString};`;
-            const pools = _.get(resourcePlan, 'pools', []).filter(pool => pool.name);
-            const mappingNameToPoolNameHashTable = getMappingNameToPoolNameHashTable(pools);
-            const mappings = pools.flatMap(pool => _.get(pool, 'mappings', []).filter(mapping => mapping.name));
-            const triggers = _.get(resourcePlan, 'triggers', []).filter(trigger => trigger.name);
-            const poolsStatements = pools
-                .filter(pool => _.toUpper(pool.name) !== 'DEFAULT')
-                .map(pool => {
-                    let poolOptions = [];
-                    if (!_.isUndefined(pool.allocFraction)) {
-                        poolOptions.push(`ALLOC_FRACTION = ${pool.allocFraction}`);
-                    }
-                    if (!_.isUndefined(pool.parallelism)) {
-                        poolOptions.push(`QUERY_PARALLELISM = ${pool.parallelism}`);
-                    }
-                    if (!_.isUndefined(pool.schedulingPolicy) && pool.schedulingPolicy !== 'default') {
-                        poolOptions.push(`SCHEDULING_POLICY = '${pool.schedulingPolicy}'`);
-                    }
-                    const poolOptionsString = _.isEmpty(poolOptions) ? '' : ` WITH ${poolOptions.join(', ')}`;
-                    return `CREATE POOL ${prepareName(resourcePlan.name)}.${prepareName(
-                        pool.name
-                    )}${poolOptionsString};`;
-                });
+	return resourcePlansData
+		.filter(resourcePlan => resourcePlan.name)
+		.map(resourcePlan => {
+			const resourcePlanOptionsString = _.isUndefined(resourcePlan.parallelism)
+				? ''
+				: ` WITH QUERY_PARALLELISM = ${resourcePlan.parallelism}`;
+			const resourcePlanStatement = `CREATE RESOURCE PLAN ${prepareName(
+				resourcePlan.name,
+			)}${resourcePlanOptionsString};`;
+			const pools = _.get(resourcePlan, 'pools', []).filter(pool => pool.name);
+			const mappingNameToPoolNameHashTable = getMappingNameToPoolNameHashTable(pools);
+			const mappings = pools.flatMap(pool => _.get(pool, 'mappings', []).filter(mapping => mapping.name));
+			const triggers = _.get(resourcePlan, 'triggers', []).filter(trigger => trigger.name);
+			const poolsStatements = pools
+				.filter(pool => _.toUpper(pool.name) !== 'DEFAULT')
+				.map(pool => {
+					let poolOptions = [];
+					if (!_.isUndefined(pool.allocFraction)) {
+						poolOptions.push(`ALLOC_FRACTION = ${pool.allocFraction}`);
+					}
+					if (!_.isUndefined(pool.parallelism)) {
+						poolOptions.push(`QUERY_PARALLELISM = ${pool.parallelism}`);
+					}
+					if (!_.isUndefined(pool.schedulingPolicy) && pool.schedulingPolicy !== 'default') {
+						poolOptions.push(`SCHEDULING_POLICY = '${pool.schedulingPolicy}'`);
+					}
+					const poolOptionsString = _.isEmpty(poolOptions) ? '' : ` WITH ${poolOptions.join(', ')}`;
+					return `CREATE POOL ${prepareName(resourcePlan.name)}.${prepareName(
+						pool.name,
+					)}${poolOptionsString};`;
+				});
 
-            const mappingsStatements = mappings.map(mapping => {
-                return `CREATE ${_.toUpper(mapping.mappingType || 'application')} MAPPING '${prepareName(
-                    mapping.name
-                )}' IN ${prepareName(resourcePlan.name)} TO ${prepareName(
-                    mappingNameToPoolNameHashTable[mapping.name]
-                )};`;
-            });
+			const mappingsStatements = mappings.map(mapping => {
+				return `CREATE ${_.toUpper(mapping.mappingType || 'application')} MAPPING '${prepareName(
+					mapping.name,
+				)}' IN ${prepareName(resourcePlan.name)} TO ${prepareName(
+					mappingNameToPoolNameHashTable[mapping.name],
+				)};`;
+			});
 
-            const triggersStatements = triggers.map(trigger => {
-                return `CREATE TRIGGER ${prepareName(resourcePlan.name)}.${prepareName(trigger.name)} WHEN ${
-                    trigger.condition
-                } DO ${trigger.action};`;
-            });
+			const triggersStatements = triggers.map(trigger => {
+				return `CREATE TRIGGER ${prepareName(resourcePlan.name)}.${prepareName(trigger.name)} WHEN ${
+					trigger.condition
+				} DO ${trigger.action};`;
+			});
 
-            return [resourcePlanStatement, ...poolsStatements, ...mappingsStatements, ...triggersStatements].join(
-                '\n\n'
-            );
-        });
+			return [resourcePlanStatement, ...poolsStatements, ...mappingsStatements, ...triggersStatements].join(
+				'\n\n',
+			);
+		});
 };
 
 const getMappingNameToPoolNameHashTable = pools => {
-	return _.fromPairs(_.flatten(pools.map(pool => {
-		const mappings = _.get(pool, 'mappings', []).filter(mapping => mapping.name);
+	return _.fromPairs(
+		_.flatten(
+			pools.map(pool => {
+				const mappings = _.get(pool, 'mappings', []).filter(mapping => mapping.name);
 
-		return mappings.map(mapping => [mapping.name, pool.name]);
-	})));
-}
+				return mappings.map(mapping => [mapping.name, pool.name]);
+			}),
+		),
+	);
+};
 
 const logInfo = (step, connectionInfo, logger) => {
 	logger.clear();

@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const { getTab, buildStatement, getName, replaceSpaceWithUnderscore, encodeStringLiteral } = require('./generalHelper');
 const schemaHelper = require('./jsonSchemaHelper');
@@ -6,19 +6,27 @@ const { getItemByPath } = require('./jsonSchemaHelper');
 const { dependencies } = require('./appDependencies');
 let _;
 
-const setDependencies = ({ lodash }) => _ = lodash;
+const setDependencies = ({ lodash }) => (_ = lodash);
 
 const getIndexStatement = ({
-	name, tableName, dbName, columns, indexHandler, comment, withDeferredRebuild,
-	idxProperties, inTable, isActivated
+	name,
+	tableName,
+	dbName,
+	columns,
+	indexHandler,
+	comment,
+	withDeferredRebuild,
+	idxProperties,
+	inTable,
+	isActivated,
 }) => {
-	return buildStatement(`CREATE INDEX ${name} ON TABLE ${dbName}.${tableName} (${columns}) AS '${indexHandler}'`, isActivated)
-		(withDeferredRebuild, 'WITH DEFERRED REBUILD')
-		(idxProperties, `IDXPROPERTIES ${idxProperties}`)
-		(inTable, inTable)
-		(comment, `COMMENT '${encodeStringLiteral(comment)}'`)
-		(true, ';')
-		();
+	return buildStatement(
+		`CREATE INDEX ${name} ON TABLE ${dbName}.${tableName} (${columns}) AS '${indexHandler}'`,
+		isActivated,
+	)(withDeferredRebuild, 'WITH DEFERRED REBUILD')(idxProperties, `IDXPROPERTIES ${idxProperties}`)(inTable, inTable)(
+		comment,
+		`COMMENT '${encodeStringLiteral(comment)}'`,
+	)(true, ';')();
 };
 
 const getIndexKeys = (keys, jsonSchema, definitions) => {
@@ -26,17 +34,18 @@ const getIndexKeys = (keys, jsonSchema, definitions) => {
 		return '';
 	}
 
-	const paths = schemaHelper.getPathsByIds(keys.map(key => key.keyId), [jsonSchema, ...definitions]);
+	const paths = schemaHelper.getPathsByIds(
+		keys.map(key => key.keyId),
+		[jsonSchema, ...definitions],
+	);
 	const idToNameHashTable = schemaHelper.getIdToNameHashTable([jsonSchema, ...definitions]);
 	const [activatedKeys, deactivatedKeys] = _.partition(paths, path => {
 		const item = getItemByPath(path, jsonSchema);
 		return item ? item.isActivated : true;
 	});
 	const joinColumnNamesByPath = paths => {
-		return paths
-			.map(path => schemaHelper.getNameByPath(idToNameHashTable, path))
-			.join(', ');
-	}; 
+		return paths.map(path => schemaHelper.getNameByPath(idToNameHashTable, path)).join(', ');
+	};
 	const columns = joinColumnNamesByPath(paths);
 	if (deactivatedKeys.length === 0) {
 		return { isIndexActivated: true, columns };
@@ -46,9 +55,7 @@ const getIndexKeys = (keys, jsonSchema, definitions) => {
 	}
 	return {
 		isIndexActivated: true,
-		columns: `${joinColumnNamesByPath(
-			activatedKeys
-		)} /*, ${joinColumnNamesByPath(deactivatedKeys)}*/`,
+		columns: `${joinColumnNamesByPath(activatedKeys)} /*, ${joinColumnNamesByPath(deactivatedKeys)}*/`,
 	};
 };
 
@@ -64,12 +71,8 @@ const getIndexes = (containerData, entityData, jsonSchema, definitions, areColum
 	const tableName = replaceSpaceWithUnderscore(getName(tableData));
 
 	return indexesData
-		.map((indexData) => {
-			const { columns, isIndexActivated = true } = getIndexKeys(
-				indexData.SecIndxKey,
-				jsonSchema,
-				definitions
-			);
+		.map(indexData => {
+			const { columns, isIndexActivated = true } = getIndexKeys(indexData.SecIndxKey, jsonSchema, definitions);
 
 			return getIndexStatement({
 				name: replaceSpaceWithUnderscore(indexData.name),
@@ -81,15 +84,12 @@ const getIndexes = (containerData, entityData, jsonSchema, definitions, areColum
 				comment: indexData.SecIndxComments,
 				withDeferredRebuild: indexData.SecIndxWithDeferredRebuild,
 				isActivated:
-					indexData.isActivated !== false &&
-					isIndexActivated &&
-					tableData.isActivated &&
-					dbData.isActivated,
+					indexData.isActivated !== false && isIndexActivated && tableData.isActivated && dbData.isActivated,
 			});
 		})
 		.join('\n\n');
 };
 
 module.exports = {
-	getIndexes
+	getIndexes,
 };
