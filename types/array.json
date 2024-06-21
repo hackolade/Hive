@@ -38,8 +38,7 @@
 		"array<struct>": {
 			"childValueType": "struct"
 		},
-		"array<union>": {
-		}
+		"array<union>": {}
 	},
 	"hiddenOnEntity": "view"
 }
