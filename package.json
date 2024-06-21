@@ -54,7 +54,7 @@
     "description": "Hackolade plugin for Apache Hive",
     "dependencies": {
         "antlr4": "4.8.0",
-        "async": "2.6.1",
+        "async": "2.6.4",
         "big.js": "5.2.1",
         "lodash": "4.17.21",
         "sql-formatter": "4.0.2",
