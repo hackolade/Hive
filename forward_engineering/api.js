@@ -273,7 +273,6 @@ const getForeignKeys = (data, foreignKeyHashTable, areForeignPrimaryKeyConstrain
 			);
 
 			if (foreignKeyStatement) {
-				foreignKeyStatement;
 				return [...result, foreignKeyStatement];
 			}
 

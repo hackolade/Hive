@@ -287,9 +287,7 @@ const getTableStatement = (
 		checkStatement: areColumnConstraintsAvailable ? constraintHelper.getCheckConstraint(jsonSchema) : null,
 		foreignKeyStatement: areForeignPrimaryKeyConstraintsAvailable ? foreignKeyStatement : null,
 		comment: tableData.description,
-		partitionedByKeys: getPartitionKeyStatement(
-			getPartitionsKeys(columns, keyNames.compositePartitionKey, isTableActivated),
-		),
+		partitionedByKeys: getPartitionKeyStatement(getPartitionsKeys(columns, keyNames.compositePartitionKey)),
 		clusteredKeys: getClusteringKeys(keyNames.compositeClusteringKey, deactivatedColumnNames, isTableActivated),
 		sortedKeys: getSortedKeys(keyNames.sortedByKey, deactivatedColumnNames, isTableActivated),
 		numBuckets: tableData.numBuckets,
