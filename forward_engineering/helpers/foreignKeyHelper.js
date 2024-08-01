@@ -1,33 +1,44 @@
 'use strict';
 
 const schemaHelper = require('./jsonSchemaHelper');
-const { getName, getTab, commentDeactivatedStatements } = require('./generalHelper');
+const { getName, getTab, commentDeactivatedStatements, replaceSpaceWithUnderscore } = require('./generalHelper');
 const { dependencies } = require('./appDependencies');
 const { getItemByPath } = require('./jsonSchemaHelper');
 let _;
 const setAppDependencies = ({ lodash }) => (_ = lodash);
 
-const getIdToNameHashTable = (relationships, entities, jsonSchemas, internalDefinitions, otherDefinitions) => {
-	const entitiesForHashing = entities.filter(entityId =>
-		relationships.find(
-			relationship => relationship.childCollection === entityId || relationship.parentCollection === entityId,
-		),
-	);
+const getIdToNameHashTable = (
+	relationships,
+	entities,
+	jsonSchemas,
+	internalDefinitions,
+	otherDefinitions,
+	relatedSchemas,
+) => {
+	const entitiesForHashing = entities
+		.concat(Object.keys(relatedSchemas))
+		.filter(entityId =>
+			relationships.find(
+				relationship => relationship.childCollection === entityId || relationship.parentCollection === entityId,
+			),
+		);
 
 	return entitiesForHashing.reduce((hashTable, entityId) => {
 		return Object.assign(
 			{},
 			hashTable,
-			schemaHelper.getIdToNameHashTable([
-				jsonSchemas[entityId],
-				internalDefinitions[entityId],
-				...otherDefinitions,
-			]),
+			schemaHelper.getIdToNameHashTable(
+				[
+					jsonSchemas[entityId] ?? relatedSchemas[entityId],
+					internalDefinitions[entityId],
+					...otherDefinitions,
+				].filter(Boolean),
+			),
 		);
 	}, {});
 };
 
-const getForeignKeyHashTable = (
+const getForeignKeyHashTable = ({
 	relationships,
 	entities,
 	entityData,
@@ -35,7 +46,8 @@ const getForeignKeyHashTable = (
 	internalDefinitions,
 	otherDefinitions,
 	isContainerActivated,
-) => {
+	relatedSchemas,
+}) => {
 	setAppDependencies(dependencies);
 	const idToNameHashTable = getIdToNameHashTable(
 		relationships,
@@ -43,6 +55,7 @@ const getForeignKeyHashTable = (
 		jsonSchemas,
 		internalDefinitions,
 		otherDefinitions,
+		relatedSchemas,
 	);
 
 	return relationships.reduce((hashTable, relationship) => {
@@ -51,17 +64,34 @@ const getForeignKeyHashTable = (
 		}
 
 		const constraintName = relationship.name;
+		const parentDifferentSchemaName =
+			replaceSpaceWithUnderscore(relatedSchemas[relationship.parentCollection]?.bucketName) || '';
 		const parentTableData = getTab(0, entityData[relationship.parentCollection]);
-		const parentTableName = getName(parentTableData);
+		const parentTableSIngleName =
+			replaceSpaceWithUnderscore(
+				getName(parentTableData) || relatedSchemas[relationship.parentCollection].collectionName,
+			) || '';
+		const parentTableName = parentDifferentSchemaName
+			? `${parentDifferentSchemaName}.${parentTableSIngleName}`
+			: parentTableSIngleName;
 		const childTableData = getTab(0, entityData[relationship.childCollection]);
-		const childTableName = getName(childTableData);
+		const childTableName =
+			replaceSpaceWithUnderscore(
+				getName(childTableData) || relatedSchemas[relationship.childCollection].collectionName,
+			) || '';
 		const groupKey = parentTableName + constraintName;
 		const childFieldActivated = relationship.childField.reduce((isActivated, field) => {
-			const fieldData = getItemByPath(field.slice(1), jsonSchemas[relationship.childCollection]);
+			const fieldData = getItemByPath(
+				field.slice(1),
+				jsonSchemas[relationship.childCollection] ?? relatedSchemas[relationship.childCollection],
+			);
 			return isActivated && _.get(fieldData, 'isActivated');
 		}, true);
 		const parentFieldActivated = relationship.parentField.reduce((isActivated, field) => {
-			const fieldData = getItemByPath(field.slice(1), jsonSchemas[relationship.parentCollection]);
+			const fieldData = getItemByPath(
+				field.slice(1),
+				jsonSchemas[relationship.parentCollection] ?? relatedSchemas[relationship.parentCollection],
+			);
 			return isActivated && _.get(fieldData, 'isActivated');
 		}, true);
 
