@@ -138,16 +138,16 @@ module.exports = {
 				});
 			});
 
-			const foreignKeyHashTable = foreignKeyHelper.getForeignKeyHashTable(
-				data.relationships,
-				data.entities,
-				data.entityData,
-				jsonSchema,
-				internalDefinitions,
-				[modelDefinitions, externalDefinitions],
-				containerData[0] && containerData[0].isActivated,
-				relatedSchemas,
-			);
+			const foreignKeyHashTable = foreignKeyHelper.getForeignKeyHashTable({
+				relationships: data.relationships,
+				entities: data.entities,
+				entityData: data.entityData,
+				jsonSchemas: jsonSchema,
+				internalDefinitions: internalDefinitions,
+				otherDefinitions: [modelDefinitions, externalDefinitions],
+				isContainerActivated: containerData[0] && containerData[0].isActivated,
+				relatedSchemas: relatedSchemas,
+			});
 
 			const entities = data.entities.reduce((result, entityId) => {
 				const args = [

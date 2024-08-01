@@ -38,7 +38,7 @@ const getIdToNameHashTable = (
 	}, {});
 };
 
-const getForeignKeyHashTable = (
+const getForeignKeyHashTable = ({
 	relationships,
 	entities,
 	entityData,
@@ -47,7 +47,7 @@ const getForeignKeyHashTable = (
 	otherDefinitions,
 	isContainerActivated,
 	relatedSchemas,
-) => {
+}) => {
 	setAppDependencies(dependencies);
 	const idToNameHashTable = getIdToNameHashTable(
 		relationships,
