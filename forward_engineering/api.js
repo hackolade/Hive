@@ -107,7 +107,11 @@ module.exports = {
 			const workloadManagementStatements = getWorkloadManagementStatements(data.modelData);
 			const databaseStatement = getDatabaseStatement(containerData);
 			const jsonSchema = parseEntities(data.entities, data.jsonSchema);
-			const internalDefinitions = parseEntities(data.entities, data.internalDefinitions);
+			const internalDefinitions = parseEntities(
+				data.entities.concat(data.relatedEntities ?? []),
+				data.internalDefinitions,
+			);
+			const relatedSchemas = parseEntities(data.relatedEntities ?? [], data.relatedSchemas);
 			const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
 			const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith('1');
 			const needMinify = (
@@ -142,6 +146,7 @@ module.exports = {
 				internalDefinitions,
 				[modelDefinitions, externalDefinitions],
 				containerData[0] && containerData[0].isActivated,
+				relatedSchemas,
 			);
 
 			const entities = data.entities.reduce((result, entityId) => {
