@@ -95,7 +95,7 @@ module.exports = {
 			});
 	},
 
-	disconnect: function (connectionInfo, cb) {
+	disconnect: function (connectionInfo, logger, cb, app) {
 		cb();
 	},
 
