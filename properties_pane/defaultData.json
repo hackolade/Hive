@@ -5,7 +5,7 @@
 		"dbVendor": "Hive"
 	},
 	"container": {
-		"name": "New database",
+		"name": "New_database",
 		"indexes": []
 	},
 	"collection": {
