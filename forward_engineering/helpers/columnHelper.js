@@ -373,7 +373,7 @@ const getColumnConstraintsStaitment = constraint => {
 	const getColStatement = (statement, noValidateStatement) =>
 		statement ? ` ${statement}${noValidateStatement}` : '';
 	const constraints = [
-		notNull && !unique ? getColStatement('NOT NULL', noValidateStatement(enableSpecification)) : '',
+		notNull && !unique && !primaryKey ? getColStatement('NOT NULL', noValidateStatement(enableSpecification)) : '',
 		unique ? getColStatement('UNIQUE', noValidateStatement('DISABLE')) : '',
 		defaultValue ? getColStatement(`DEFAULT ${defaultValue}`, noValidateStatement(enableSpecification)) : '',
 		check ? getColStatement(`CHECK ${check}`, noValidateStatement(enableSpecification)) : '',
