@@ -41,7 +41,14 @@
             "disableChoices": false,
             "enableJsonType": true,
             "relationships": {
-                "compositeRelationships": true
+                "compositeRelationships": {
+                    "allowRelationshipsByProperties": [
+                        "primaryKey",
+                        "unique",
+                        "compositeUniqueKey",
+                        "compositePrimaryKey"
+                    ]
+                }
             },
             "FEScriptCommentsSupported": [
                 "2.x",
