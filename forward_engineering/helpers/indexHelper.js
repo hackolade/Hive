@@ -59,6 +59,16 @@ const getIndexKeys = (keys, jsonSchema, definitions) => {
 	};
 };
 
+const getIndexName = ({ name, dbName }) => {
+	const indexName = replaceSpaceWithUnderscore(name);
+
+	if (!indexName) {
+		return '';
+	}
+
+	return dbName ? `${dbName}.${name}` : name;
+};
+
 const getIndexes = (containerData, entityData, jsonSchema, definitions, areColumnConstraintsAvailable) => {
 	if (areColumnConstraintsAvailable) {
 		return '';
@@ -75,7 +85,7 @@ const getIndexes = (containerData, entityData, jsonSchema, definitions, areColum
 			const { columns, isIndexActivated = true } = getIndexKeys(indexData.SecIndxKey, jsonSchema, definitions);
 
 			return getIndexStatement({
-				name: replaceSpaceWithUnderscore(indexData.name),
+				name: getIndexName({ name: indexData.name, dbName }),
 				dbName: dbName,
 				tableName: tableName,
 				columns,
