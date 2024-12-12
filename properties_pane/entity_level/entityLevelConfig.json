@@ -585,7 +585,10 @@ making sure that you maintain a proper JSON format.
 						"propertyKeyword": "name",
 						"propertyTooltip": "",
 						"propertyType": "text",
-						"defaultValue": "New Secondary Index"
+						"defaultValue": "",
+						"validation": {
+							"required": true
+						}
 					},
 					{
 						"propertyName": "Activated",
@@ -598,7 +601,11 @@ making sure that you maintain a proper JSON format.
 						"propertyName": "Key",
 						"propertyKeyword": "SecIndxKey",
 						"propertyType": "fieldList",
-						"template": "orderedList"
+						"template": "orderedList",
+						"validation": {
+							"minLength": 1,
+							"required": true
+						}
 					},
 					{
 						"propertyName": "Id",
