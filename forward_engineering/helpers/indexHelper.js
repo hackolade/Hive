@@ -20,6 +20,10 @@ const getIndexStatement = ({
 	inTable,
 	isActivated,
 }) => {
+	if (!name.trim() || !columns) {
+		return '';
+	}
+
 	return buildStatement(
 		`CREATE INDEX ${name} ON TABLE ${dbName}.${tableName} (${columns}) AS '${indexHandler}'`,
 		isActivated,
