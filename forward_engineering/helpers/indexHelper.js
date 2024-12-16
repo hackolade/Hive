@@ -20,7 +20,7 @@ const getIndexStatement = ({
 	inTable,
 	isActivated,
 }) => {
-	if (!name || !columns) {
+	if (!name.trim() || !columns) {
 		return '';
 	}
 
