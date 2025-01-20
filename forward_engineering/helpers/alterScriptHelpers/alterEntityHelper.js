@@ -1,4 +1,4 @@
-const { dependencies } = require('../appDependencies');
+const _ = require('lodash');
 const { getColumns, getColumnsStatement, getTypeByProperty } = require('../columnHelper');
 const { getIndexes } = require('../indexHelper');
 const { getTableStatement } = require('../tableHelper');
@@ -15,9 +15,6 @@ const {
 } = require('./generalHelper');
 const { hydrateKeys } = require('./tableKeysHelper');
 const { replaceSpaceWithUnderscore } = require('../generalHelper');
-
-let _;
-const setDependencies = ({ lodash }) => (_ = lodash);
 
 const tableProperties = [
 	'compositePartitionKey',
@@ -140,7 +137,6 @@ const generateModifyCollectionScript = (entity, definitions, provider) => {
 };
 
 const getAddCollectionsScripts = definitions => entity => {
-	setDependencies(dependencies);
 	const properties = getEntityProperties(entity);
 	const indexes = _.get(entity, 'role.SecIndxs', []);
 	const hydratedCollection = hydrateCollection(entity, definitions);
@@ -151,7 +147,6 @@ const getAddCollectionsScripts = definitions => entity => {
 };
 
 const getDeleteCollectionsScripts = provider => entity => {
-	setDependencies(dependencies);
 	const entityData = { ...entity, ..._.get(entity, 'role', {}) };
 	const fullCollectionName = generateFullEntityName(entity);
 	const collectionScript = provider.dropTable(fullCollectionName);
@@ -161,7 +156,6 @@ const getDeleteCollectionsScripts = provider => entity => {
 };
 
 const getModifyCollectionsScripts = (definitions, provider) => entity => {
-	setDependencies(dependencies);
 	const properties = getEntityProperties(entity);
 	const { script } = generateModifyCollectionScript(entity, definitions, provider);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
@@ -172,7 +166,6 @@ const getModifyCollectionsScripts = (definitions, provider) => entity => {
 };
 
 const getAddColumnsScripts = (definitions, provider) => entity => {
-	setDependencies(dependencies);
 	const entityData = { ...entity, ..._.omit(entity.role, ['properties']) };
 	const { columns } = getColumns(entityData, true, definitions);
 	const properties = getEntityProperties(entity);
@@ -190,7 +183,6 @@ const getAddColumnsScripts = (definitions, provider) => entity => {
 };
 
 const getDeleteColumnsScripts = (definitions, provider) => entity => {
-	setDependencies(dependencies);
 	const deleteColumnsName = Object.keys(entity.properties || {});
 	const properties = _.omit(_.get(entity, 'role.properties', {}), deleteColumnsName);
 	const entityData = { role: { ..._.omit(entity.role, ['properties']), properties } };
@@ -206,20 +198,8 @@ const getDeleteColumnsScripts = (definitions, provider) => entity => {
 };
 
 const getModifyColumnsScripts = (definitions, provider) => entity => {
-	setDependencies(dependencies);
 	const properties = _.get(entity, 'properties', {});
-	const unionProperties = _.unionWith(
-		Object.entries(properties),
-		Object.entries(_.get(entity, 'role.properties', {})),
-		(firstProperty, secondProperty) =>
-			_.isEqual(_.get(firstProperty, '[1].GUID'), _.get(secondProperty, '[1].GUID')),
-	);
-	const entityData = {
-		role: {
-			..._.omit(entity.role || {}, ['properties']),
-			properties: Object.fromEntries(unionProperties),
-		},
-	};
+
 	const hydratedAlterColumnName = hydrateAlterColumnName(entity, definitions, properties);
 	const alterColumnScripts = provider.alterTableColumnName(hydratedAlterColumnName);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);

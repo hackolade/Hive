@@ -1,4 +1,4 @@
-const { dependencies } = require('../appDependencies');
+const _ = require('lodash');
 
 const cleanContent = str => {
 	const start = str.indexOf('<');
@@ -40,9 +40,7 @@ const splitContent = content => {
 	const result = [];
 	const arrayContent = content.split('');
 
-	for (let i = 0; i < arrayContent.length; i++) {
-		const symb = arrayContent[i];
-
+	for (const symb of arrayContent) {
 		guillemetStack.put(symb);
 		braceStack.put(symb);
 		const stackLength = guillemetStack.length() + braceStack.length();
@@ -129,15 +127,13 @@ const parseMap = ([keySubtype, subtype], sample = {}) => {
 
 	return setProperty(
 		childName,
-		Object.assign({}, subtypeSchema),
-		Object.assign(
-			{
-				type: 'map',
-				subtype: getMapSubtype(subtypeSchema.type),
-				properties: {},
-			},
-			getMapKeyType(keySubtypeSchema),
-		),
+		{ ...subtypeSchema },
+		{
+			type: 'map',
+			subtype: getMapSubtype(subtypeSchema.type),
+			properties: {},
+			...getMapKeyType(keySubtypeSchema),
+		},
 	);
 };
 
@@ -178,7 +174,7 @@ const parseArray = ([content], sample = []) => {
 const parsePrimitive = ([type]) => {
 	const preparedType = type.trim();
 	const hiveType = preparedType.replace(/\(.*?\)$/, '');
-	const modifiers = dependencies.lodash.get(preparedType.match(/\((.*?)\)$/), '[1]', '').split(',');
+	const modifiers = _.get(preparedType.match(/\((.*?)\)$/), '[1]', '').split(',');
 
 	switch (hiveType) {
 		case 'string':
@@ -233,7 +229,7 @@ const parseUnion = (types, sample) => {
 
 	if (!complexTypes) {
 		return {
-			type: dependencies.lodash.uniq(jsonSchemas.map(schema => schema.type)),
+			type: _.uniq(jsonSchemas.map(schema => schema.type)),
 		};
 	}
 

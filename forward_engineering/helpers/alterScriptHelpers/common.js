@@ -1,10 +1,6 @@
-const { dependencies } = require('../appDependencies');
-
-let _;
-const setDependencies = ({ lodash }) => (_ = lodash);
+const _ = require('lodash');
 
 const getDifferentItems = (newItems = [], oldItems = []) => {
-	setDependencies(dependencies);
 	const intersection = _.intersectionWith(newItems, oldItems, _.isEqual);
 	return {
 		add: _.xorWith(newItems, intersection, _.isEqual),
@@ -13,7 +9,6 @@ const getDifferentItems = (newItems = [], oldItems = []) => {
 };
 
 const hydrateTableProperties = ({ new: newItems, old: oldItems }, name, comment) => {
-	setDependencies(dependencies);
 	const hydrateProperties = properties => (properties || '').split(',').map(prop => prop.trim());
 	const prepareProperties = properties =>
 		properties
@@ -37,7 +32,6 @@ const hydrateTableProperties = ({ new: newItems, old: oldItems }, name, comment)
 };
 
 const compareProperties = ({ new: newProperty, old: oldProperty }) => {
-	setDependencies(dependencies);
 	if (!newProperty && !oldProperty) {
 		return;
 	}

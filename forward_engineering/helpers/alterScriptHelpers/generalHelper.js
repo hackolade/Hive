@@ -1,8 +1,5 @@
-const { dependencies } = require('../appDependencies');
+const _ = require('lodash');
 const { replaceSpaceWithUnderscore, getName } = require('../generalHelper');
-
-let _;
-const setDependencies = ({ lodash }) => (_ = lodash);
 
 const getContainerName = compMod => compMod.keyspaceName;
 
@@ -18,7 +15,6 @@ const getEntityData = (object, properties = [], type = 'new') =>
 const getFullEntityName = (dbName, entityName) => (dbName ? `${dbName}.${entityName}` : entityName);
 
 const generateFullEntityName = entity => {
-	setDependencies(dependencies);
 	const compMod = _.get(entity, 'role.compMod', {});
 	const entityData = _.get(entity, 'role', {});
 	const dbName = replaceSpaceWithUnderscore(getContainerName(compMod));
@@ -27,7 +23,6 @@ const generateFullEntityName = entity => {
 };
 
 const getEntityProperties = entity => {
-	setDependencies(dependencies);
 	const propertiesInRole = _.get(entity, 'role.properties', {});
 	const propertiesInEntity = _.get(entity, 'properties', {});
 	return { ...(propertiesInEntity || {}), ...propertiesInRole };
@@ -43,13 +38,11 @@ const getEntityName = (compMod = {}, type = 'collectionName') => {
 const prepareScript = (...scripts) => scripts.filter(Boolean);
 
 const isEqualProperty = (compMod, nameProperty) => {
-	setDependencies(dependencies);
 	const { new: newProperty, old: oldProperty } = _.get(compMod, nameProperty, {});
 	return _.isEqual(newProperty, oldProperty);
 };
 
 const hydrateProperty = (entity, compMod, nameProperty) => {
-	setDependencies(dependencies);
 	return !isEqualProperty(compMod, nameProperty) ? entity?.role?.[nameProperty] : null;
 };
 

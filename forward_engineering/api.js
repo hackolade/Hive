@@ -1,6 +1,5 @@
-'use strict';
-
-const { setDependencies, dependencies } = require('./helpers/appDependencies');
+const _ = require('lodash');
+const sqlFormatter = require('sql-formatter');
 const { getDatabaseStatement } = require('./helpers/databaseHelper');
 const { getTableStatement } = require('./helpers/tableHelper');
 const { getIndexes } = require('./helpers/indexHelper');
@@ -9,17 +8,13 @@ const { prepareName, replaceSpaceWithUnderscore, getName, getTab } = require('./
 const { getAlterScript } = require('./helpers/alterScriptFromDeltaHelper');
 const { DROP_STATEMENTS } = require('./helpers/constants');
 const foreignKeyHelper = require('./helpers/foreignKeyHelper');
-const sqlFormatter = require('sql-formatter');
 const { connect } = require('../reverse_engineering/api');
 const logHelper = require('../reverse_engineering/logHelper');
 const applyToInstanceHelper = require('./helpers/applyToInstanceHelper');
-let _;
 
 module.exports = {
 	generateScript(data, logger, callback, app) {
 		try {
-			setDependencies(app);
-			setAppDependencies(dependencies);
 			const jsonSchema = JSON.parse(data.jsonSchema);
 			const modelDefinitions = JSON.parse(data.modelDefinitions);
 			const internalDefinitions = JSON.parse(data.internalDefinitions);
@@ -28,9 +23,9 @@ module.exports = {
 			const entityData = data.entityData;
 			const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
 			const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith('1');
-			const needMinify = (
-				_.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify') || {}
-			).value;
+			const needMinify = _.get(data, 'options.additionalOptions', []).find(
+				option => option.id === 'minify',
+			)?.value;
 
 			if (data.isUpdateScript) {
 				const definitions = [modelDefinitions, internalDefinitions, externalDefinitions];
@@ -72,12 +67,10 @@ module.exports = {
 
 	generateViewScript(data, logger, callback, app) {
 		try {
-			setDependencies(app);
-			setAppDependencies(dependencies);
 			const viewSchema = JSON.parse(data.jsonSchema || '{}');
-			const needMinify = (
-				_.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify') || {}
-			).value;
+			const needMinify = _.get(data, 'options.additionalOptions', []).find(
+				option => option.id === 'minify',
+			)?.value;
 
 			const databaseStatement = getDatabaseStatement(data.containerData);
 
@@ -99,8 +92,6 @@ module.exports = {
 
 	generateContainerScript(data, logger, callback, app) {
 		try {
-			setDependencies(app);
-			setAppDependencies(dependencies);
 			const containerData = data.containerData;
 			const modelDefinitions = JSON.parse(data.modelDefinitions);
 			const externalDefinitions = JSON.parse(data.externalDefinitions);
@@ -114,9 +105,9 @@ module.exports = {
 			const relatedSchemas = parseEntities(data.relatedEntities ?? [], data.relatedSchemas);
 			const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
 			const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith('1');
-			const needMinify = (
-				_.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify') || {}
-			).value;
+			const needMinify = _.get(data, 'options.additionalOptions', []).find(
+				option => option.id === 'minify',
+			)?.value;
 
 			if (data.isUpdateScript) {
 				const deltaModelSchema = _.first(Object.values(jsonSchema)) || {};
@@ -145,7 +136,7 @@ module.exports = {
 				jsonSchemas: jsonSchema,
 				internalDefinitions: internalDefinitions,
 				otherDefinitions: [modelDefinitions, externalDefinitions],
-				isContainerActivated: containerData[0] && containerData[0].isActivated,
+				isContainerActivated: containerData[0]?.isActivated,
 				relatedSchemas: relatedSchemas,
 			});
 
@@ -191,8 +182,6 @@ module.exports = {
 
 	isDropInStatements(data, logger, cb, app) {
 		try {
-			setDependencies(app);
-
 			const callback = (error, script = '') => {
 				cb(
 					error,
@@ -211,8 +200,6 @@ module.exports = {
 	},
 
 	testConnection: function (connectionInfo, logger, cb, app) {
-		setDependencies(app);
-		_ = dependencies.lodash;
 		logInfo('Test connection', connectionInfo, logger);
 		connect(
 			connectionInfo,
@@ -255,9 +242,7 @@ const buildScript =
 const parseEntities = (entities, serializedItems) => {
 	return entities.reduce((result, entityId) => {
 		try {
-			return Object.assign({}, result, {
-				[entityId]: JSON.parse(serializedItems[entityId]),
-			});
+			return { ...result, [entityId]: JSON.parse(serializedItems[entityId]) };
 		} catch (e) {
 			return result;
 		}
@@ -287,8 +272,6 @@ const getForeignKeys = (data, foreignKeyHashTable, areForeignPrimaryKeyConstrain
 
 	return foreignKeysStatements ? `\nUSE ${dbName};${foreignKeysStatements}` : '';
 };
-
-const setAppDependencies = ({ lodash }) => (_ = lodash);
 
 const getWorkloadManagementStatements = modelData => {
 	const resourcePlansData = _.get(_.first(modelData), 'resourcePlans', []);

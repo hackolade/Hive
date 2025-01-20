@@ -1,7 +1,4 @@
-'use strict';
-
-let _;
-const { setDependencies, dependencies } = require('./appDependencies');
+const _ = require('lodash');
 const uuid = require('uuid');
 const async = require('async');
 const fs = require('fs');
@@ -23,8 +20,6 @@ const ExprErrorListener = require('./antlrErrorListener');
 
 module.exports = {
 	connect: function (connectionInfo, logger, cb, app) {
-		setDependencies(app);
-		_ = dependencies.lodash;
 		if (connectionInfo.path && (connectionInfo.path || '').charAt(0) !== '/') {
 			connectionInfo.path = '/' + connectionInfo.path;
 		}
@@ -64,16 +59,13 @@ module.exports = {
 						krb_host: connectionInfo.authMechanism === 'GSSAPI' ? connectionInfo.krb_host : undefined,
 						krb_service: connectionInfo.authMechanism === 'GSSAPI' ? connectionInfo.krb_service : undefined,
 					},
-					options: Object.assign(
-						{},
-						{
-							https: connectionInfo.isHTTPS,
-							path: connectionInfo.path,
-							ssl: isSsl(connectionInfo.ssl),
-							rejectUnauthorized: connectionInfo.disableRejectUnauthorized === true ? false : true,
-						},
-						sslCerts,
-					),
+					options: {
+						https: connectionInfo.isHTTPS,
+						path: connectionInfo.path,
+						ssl: isSsl(connectionInfo.ssl),
+						rejectUnauthorized: connectionInfo.disableRejectUnauthorized !== true,
+						...sslCerts,
+					},
 				})()(
 					TCLIService,
 					TCLIServiceTypes,
@@ -100,8 +92,6 @@ module.exports = {
 	},
 
 	testConnection: function (connectionInfo, logger, cb, app) {
-		setDependencies(app);
-		_ = dependencies.lodash;
 		logInfo('Test connection', connectionInfo, logger);
 		this.connect(
 			connectionInfo,
@@ -119,8 +109,6 @@ module.exports = {
 
 	getDbCollectionsNames: function (connectionInfo, logger, cb, app) {
 		logInfo('Retrieving databases and tables information', connectionInfo, logger);
-		setDependencies(app);
-		_ = dependencies.lodash;
 
 		const { includeSystemCollection, dbName } = connectionInfo;
 
@@ -177,7 +165,7 @@ module.exports = {
 									})
 									.then(({ views, dbCollections }) => {
 										next(null, {
-											isEmpty: !Boolean(dbCollections.length),
+											isEmpty: !dbCollections.length,
 											dbName,
 											dbCollections,
 											views,
@@ -221,8 +209,6 @@ module.exports = {
 	},
 
 	getDbCollectionsData: function (data, logger, cb, app) {
-		setDependencies(app);
-		_ = dependencies.lodash;
 		logger.log('info', data, 'Retrieving schema', data.hiddenKeys);
 		const progress = message => {
 			logger.log('info', message, 'Retrieving schema', data.hiddenKeys);
@@ -632,8 +618,6 @@ module.exports = {
 
 	reFromFile: async (data, logger, callback, app) => {
 		try {
-			setDependencies(app);
-			_ = dependencies.lodash;
 			const input = await handleFileData(data.filePath);
 			const chars = new antlr4.InputStream(input);
 			const lexer = new HiveLexer.HiveLexer(chars);

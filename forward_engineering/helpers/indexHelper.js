@@ -1,12 +1,7 @@
-'use strict';
-
+const _ = require('lodash');
 const { getTab, buildStatement, getName, replaceSpaceWithUnderscore, encodeStringLiteral } = require('./generalHelper');
 const schemaHelper = require('./jsonSchemaHelper');
 const { getItemByPath } = require('./jsonSchemaHelper');
-const { dependencies } = require('./appDependencies');
-let _;
-
-const setDependencies = ({ lodash }) => (_ = lodash);
 
 const getIndexStatement = ({
 	name,
@@ -67,7 +62,6 @@ const getIndexes = (containerData, entityData, jsonSchema, definitions, areColum
 	if (areColumnConstraintsAvailable) {
 		return '';
 	}
-	setDependencies(dependencies);
 	const dbData = getTab(0, containerData);
 	const dbName = replaceSpaceWithUnderscore(getName(dbData));
 	const tableData = getTab(0, entityData);

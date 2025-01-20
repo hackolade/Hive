@@ -91,22 +91,16 @@ const getConnection = cacheCall((connectionData = {}) => {
 		connectionHandler = createLdapConnection();
 	}
 
-	const connection = connectionHandler(
-		host,
-		port,
-		Object.assign(
-			{
-				https: false,
-				debug: true,
-				max_attempts: 1,
-				retry_max_delay: 2,
-				connect_timeout: 1000,
-				timeout: 1000,
-			},
-			getConnectionByMechanism(authMech, mode),
-			options || {},
-		),
-	);
+	const connection = connectionHandler(host, port, {
+		https: false,
+		debug: true,
+		max_attempts: 1,
+		retry_max_delay: 2,
+		connect_timeout: 1000,
+		timeout: 1000,
+		...getConnectionByMechanism(authMech, mode),
+		...(options || {}),
+	});
 
 	return (connection instanceof Promise ? connection : Promise.resolve(connection)).then(connection => {
 		return thrift.createClient(TCLIService, connection);
@@ -143,16 +137,14 @@ const getBinaryConnectionParams = ({ host, port, authMech, options }) => {
 
 const getKerberosHttpConnectionParams = data => {
 	const httpParameters = getHttpConnectionParams(data);
-	const kerberosParameters = (getKerberosConnectionParams(data).options || {}).krb5;
+	const kerberosParameters = getKerberosConnectionParams(data).options?.krb5;
 
 	return {
 		host: data.host,
 		port: data.port,
 		authMech: data.authMech,
 		mode: 'http',
-		options: Object.assign({}, httpParameters.options, {
-			krb5: kerberosParameters,
-		}),
+		options: { ...httpParameters.options, krb5: kerberosParameters },
 	};
 };
 
@@ -173,30 +165,32 @@ const getHttpConnectionParams = ({ host, port, username, password, authMech, opt
 		port,
 		authMech,
 		mode: 'http',
-		options: Object.assign({}, options, {
+		options: {
+			...options,
 			headers,
 			nodeOptions: options.https
 				? {
 						ca: options.ca,
 						cert: options.cert,
 						key: options.key,
-						rejectUnauthorized: options.rejectUnauthorized === false ? false : true,
+						rejectUnauthorized: options.rejectUnauthorized !== false,
 					}
 				: {},
-		}),
+		},
 	};
 };
 
 const getKerberosConnectionParams = ({ host, port, username, password, authMech, options, configuration }) => {
 	return {
-		options: Object.assign({}, options, {
+		options: {
+			...options,
 			krb5: {
 				krb_service: configuration.krb_service,
 				krb_host: configuration.krb_host,
 				username,
 				password,
 			},
-		}),
+		},
 		mode: 'binary',
 		host,
 		port,
@@ -206,10 +200,11 @@ const getKerberosConnectionParams = ({ host, port, username, password, authMech,
 
 const getLdapConnectionParams = ({ host, port, username, password, authMech, options, configuration }) => {
 	return {
-		options: Object.assign({}, options, {
+		options: {
+			...options,
 			username,
 			password,
-		}),
+		},
 		mode: 'binary',
 		authMech,
 		host,
@@ -235,13 +230,7 @@ const createSessionRequest = cacheCall((TCLIServiceTypes, options) => {
 const filterConfiguration = configuration => {
 	return Object.keys(configuration)
 		.filter(key => configuration[key] !== undefined)
-		.reduce(
-			(result, key) =>
-				Object.assign({}, result, {
-					[key]: configuration[key],
-				}),
-			{},
-		);
+		.reduce((result, key) => ({ ...result, [key]: configuration[key] }), {});
 };
 
 const connect =
@@ -262,16 +251,14 @@ const connect =
 		const protocol = getProtocolByVersion(TCLIServiceTypes, version);
 
 		const execute = (sessionHandle, statement, options = {}) => {
-			const requestOptions = Object.assign(
-				{
-					sessionHandle,
-					statement,
-					confOverlay: undefined,
-					runAsync: false,
-					queryTimeout: 100000,
-				},
-				options,
-			);
+			const requestOptions = {
+				sessionHandle,
+				statement,
+				confOverlay: undefined,
+				runAsync: false,
+				queryTimeout: 100000,
+				...options,
+			};
 			const request = new TCLIServiceTypes.TExecuteStatementReq(requestOptions);
 
 			return getConnection().then(client =>
@@ -290,7 +277,7 @@ const connect =
 		};
 
 		const asyncExecute = (sessionHandle, statement, options = {}) => {
-			return execute(sessionHandle, statement, Object.assign({}, options, { runAsync: true })).then(res => {
+			return execute(sessionHandle, statement, { ...options, runAsync: true }).then(res => {
 				return waitFinish(res.operationHandle).then(() => {
 					return Promise.resolve(res);
 				});
@@ -347,7 +334,7 @@ const connect =
 				return true;
 			}
 
-			const columns = (response.results || {}).columns || [];
+			const columns = response.results?.columns || [];
 
 			if (!columns.length) {
 				return false;
@@ -365,7 +352,7 @@ const connect =
 				column['i64Val'] ||
 				column['stringVal'];
 
-			return (((columnValue || {}).values || {}).length || 0) > 0;
+			return (columnValue?.values?.length || 0) > 0;
 		};
 
 		const getSchema = executeStatementResponse => {

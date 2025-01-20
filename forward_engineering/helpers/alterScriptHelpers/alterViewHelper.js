@@ -1,4 +1,4 @@
-const { dependencies } = require('../appDependencies');
+const _ = require('lodash');
 const { getViewScript } = require('../viewHelper');
 const {
 	getEntityData,
@@ -7,9 +7,6 @@ const {
 	generateFullEntityName,
 	getEntityName,
 } = require('./generalHelper');
-
-let _;
-const setDependencies = ({ lodash }) => (_ = lodash);
 
 const viewProperties = ['tableProperties', 'viewTemporary', 'viewOrReplace', 'isGlobal', 'description', 'name', 'code'];
 
@@ -59,7 +56,6 @@ const hydrateAlterView = (view, code) => ({
 });
 
 const getAddViewsScripts = view => {
-	setDependencies(dependencies);
 	const hydratedView = hydrateView(view);
 	return getViewScript(hydratedView);
 };
@@ -71,7 +67,6 @@ const getDeleteViewsScripts = provider => view => {
 };
 
 const getModifyViewsScripts = provider => view => {
-	setDependencies(dependencies);
 	const compMod = view.role?.compMod || {};
 	const viewName = getEntityName(compMod, 'name');
 	if (viewName.newName === viewName.oldName) {

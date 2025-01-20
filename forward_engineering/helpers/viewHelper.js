@@ -1,10 +1,5 @@
-'use strict';
-
-let _;
-const { dependencies } = require('./appDependencies');
+const _ = require('lodash');
 const { prepareName, commentDeactivatedStatements, encodeStringLiteral } = require('./generalHelper');
-
-const setDependencies = ({ lodash }) => (_ = lodash);
 
 const itemIsDeactivated = item => item.startsWith('-- ');
 
@@ -68,14 +63,14 @@ const getFromStatement = (collectionRefsDefinitionsMap, columns) => {
 	return 'FROM ' + sourceCollections.join(' INNER JOIN ');
 };
 
-const retrivePropertyFromConfig = (config, tab, propertyName, defaultValue = '') =>
-	((config || [])[tab] || {})[propertyName] || defaultValue;
+const retrievePropertyFromConfig = (config, tab, propertyName, defaultValue = '') =>
+	config?.[tab]?.[propertyName] || defaultValue;
 
 const retrieveContainerName = containerConfig =>
-	retrivePropertyFromConfig(containerConfig, 0, 'code', retrivePropertyFromConfig(containerConfig, 0, 'name', ''));
+	retrievePropertyFromConfig(containerConfig, 0, 'code', retrievePropertyFromConfig(containerConfig, 0, 'name', ''));
+
 module.exports = {
 	getViewScript({ schema, viewData, containerData, collectionRefsDefinitionsMap }) {
-		setDependencies(dependencies);
 		let script = [];
 		const columns = schema.properties || {};
 		const view = _.first(viewData) || {};

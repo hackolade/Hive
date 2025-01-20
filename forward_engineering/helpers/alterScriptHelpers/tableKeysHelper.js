@@ -1,13 +1,9 @@
-const { dependencies } = require('../appDependencies');
+const _ = require('lodash');
 const { getTab } = require('../generalHelper');
 const { getKeyNames } = require('../keyHelper');
 const { isEqualProperty } = require('./generalHelper');
 
-let _;
-const setDependencies = ({ lodash }) => (_ = lodash);
-
 const hydrateKeys = (hydratedCollectionData, collection, definitions, fullCollectionName) => {
-	setDependencies(dependencies);
 	const compMod = _.get(collection, 'role.compMod', {});
 	const [__, entityData, jsonSchema] = hydratedCollectionData;
 	const keys = getKeyNames(getTab(0, entityData), jsonSchema, definitions);

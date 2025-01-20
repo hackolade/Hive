@@ -142,7 +142,7 @@ const getAlterScript = (schema, definitions, data, app, needMinify, sqlFormatter
 
 const getCommentedDropScript = (scripts, data) => {
 	const { additionalOptions = [] } = data.options || {};
-	const applyDropStatements = (additionalOptions.find(option => option.id === 'applyDropStatements') || {}).value;
+	const applyDropStatements = additionalOptions.find(option => option.id === 'applyDropStatements')?.value;
 	if (applyDropStatements) {
 		return scripts;
 	}
