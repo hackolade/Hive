@@ -1,7 +1,6 @@
 const _ = require('lodash');
 const schemaHelper = require('./jsonSchemaHelper');
 const { getName, getTab, commentDeactivatedStatements, replaceSpaceWithUnderscore } = require('./generalHelper');
-const { getItemByPath } = require('./jsonSchemaHelper');
 
 const getIdToNameHashTable = (
 	relationships,
@@ -75,14 +74,14 @@ const getForeignKeyHashTable = ({
 			) || '';
 		const groupKey = parentTableName + constraintName;
 		const childFieldActivated = relationship.childField.reduce((isActivated, field) => {
-			const fieldData = getItemByPath(
+			const fieldData = schemaHelper.getItemByPath(
 				field.slice(1),
 				jsonSchemas[relationship.childCollection] ?? relatedSchemas[relationship.childCollection],
 			);
 			return isActivated && _.get(fieldData, 'isActivated');
 		}, true);
 		const parentFieldActivated = relationship.parentField.reduce((isActivated, field) => {
-			const fieldData = getItemByPath(
+			const fieldData = schemaHelper.getItemByPath(
 				field.slice(1),
 				jsonSchemas[relationship.parentCollection] ?? relatedSchemas[relationship.parentCollection],
 			);
@@ -144,7 +143,29 @@ const getPreparedForeignColumns = (columnsPaths, idToNameHashTable) => {
 	}
 };
 
+const getForeignKeys = (data, foreignKeyHashTable, areForeignPrimaryKeyConstraintsAvailable) => {
+	if (!areForeignPrimaryKeyConstraintsAvailable) {
+		return null;
+	}
+
+	const dbName = replaceSpaceWithUnderscore(getName(getTab(0, data.containerData)));
+
+	const foreignKeysStatements = data.entities
+		.reduce((result, entityId) => {
+			const foreignKeyStatement = getForeignKeyStatementsByHashItem(foreignKeyHashTable[entityId] || {});
+
+			if (foreignKeyStatement) {
+				return [...result, foreignKeyStatement];
+			}
+
+			return result;
+		}, [])
+		.join('\n');
+
+	return foreignKeysStatements ? `\nUSE ${dbName};${foreignKeysStatements}` : '';
+};
+
 module.exports = {
 	getForeignKeyHashTable,
-	getForeignKeyStatementsByHashItem,
+	getForeignKeys,
 };
