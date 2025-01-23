@@ -1,5 +1,5 @@
-const createKrb5 = (app, options, logger) => {
-	const krb5 = app.require('krb5');
+const createKrb5 = async (app, options, logger) => {
+	const krb5 = await app.require('krb5');
 
 	return {
 		initializeClient(spn, config) {
@@ -40,18 +40,18 @@ const createKrb5 = (app, options, logger) => {
 	};
 };
 
-const createKerberos = (app, options, logger) => {
+const createKerberos = async (app, options, logger) => {
 	const shouldUseKrb5 = options.keytab && options.mode === 'http';
 
 	if (!shouldUseKrb5) {
 		logger.log('info', { message: 'Use kerberos lib' }, 'Initialize');
 
-		return app.require('kerberos');
+		return await app.require('kerberos');
 	}
 
 	logger.log('info', { message: 'Use krb5 lib' }, 'Initialize');
 
-	return createKrb5(app, options, logger);
+	return await createKrb5(app, options, logger);
 };
 
 module.exports = createKerberos;

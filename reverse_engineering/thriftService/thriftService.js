@@ -55,7 +55,7 @@ const cacheCall = func => {
 	};
 };
 
-const getConnection = cacheCall((connectionData = {}) => {
+const getConnection = cacheCall(async (connectionData = {}) => {
 	const TCLIService = connectionData.TCLIService;
 	const kerberos = connectionData.kerberos;
 	const parameters = connectionData.parameters;
@@ -74,9 +74,9 @@ const getConnection = cacheCall((connectionData = {}) => {
 
 	if (authMech === 'GSSAPI') {
 		if (mode === 'http') {
-			connectionHandler = createKerberosHttpConnection(kerberos(), logger);
+			connectionHandler = createKerberosHttpConnection(await kerberos(), logger);
 		} else {
-			connectionHandler = createKerberosConnection(kerberos().processes.MongoAuthProcess, logger);
+			connectionHandler = createKerberosConnection((await kerberos()).processes.MongoAuthProcess, logger);
 		}
 	}
 
@@ -236,7 +236,7 @@ const filterConfiguration = configuration => {
 const connect =
 	({ host, port, username, password, authMech, version, options, configuration, mode }) =>
 	handler =>
-	(TCLIService, TCLIServiceTypes, logger, kerberos) => {
+	async (TCLIService, TCLIServiceTypes, logger, kerberos) => {
 		const connectionsParams = getConnectionParamsByMode(mode, {
 			host,
 			port,
