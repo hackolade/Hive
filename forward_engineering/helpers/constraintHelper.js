@@ -3,7 +3,7 @@ const findName = (keyId, properties) => {
 };
 
 const checkIfActivated = (keyId, properties) => {
-	return (Object.values(properties).find(prop => prop.GUID === keyId) || {})['isActivated'] || true;
+	return Object.values(properties).find(prop => prop.GUID === keyId)?.['isActivated'] || true;
 };
 
 const getKeys = (keys, jsonSchema) => {
@@ -65,7 +65,7 @@ const getUniqueKeyStatement = (jsonSchema, isParentItemActivated) => {
 
 		const isActivatedColumnsName = getColumnsName(columns.filter(column => column.isActivated));
 
-		if (!Boolean(isActivatedColumnsName.length)) {
+		if (!isActivatedColumnsName.length) {
 			return '-- ' + getStatement({ keys: columnsName, name, constraintOptsStatement });
 		}
 		return getStatement({ keys: isActivatedColumnsName, name, constraintOptsStatement });

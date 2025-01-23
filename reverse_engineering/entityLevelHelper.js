@@ -1,4 +1,4 @@
-const { dependencies } = require('./appDependencies');
+const _ = require('lodash');
 
 const getFieldsArray = bucketColumns => {
 	try {
@@ -29,12 +29,11 @@ const getSkewedOn = skewedValues => {
 	return skewedValues.replace(/\[/g, '(').replace(/\]/g, ')').trim();
 };
 
-const isExternal = detailedInfo => dependencies.lodash.get(detailedInfo, 'Table Type', '').trim() === 'EXTERNAL_TABLE';
+const isExternal = detailedInfo => _.get(detailedInfo, 'Table Type', '').trim() === 'EXTERNAL_TABLE';
 
 const isTemporary = extendedDetailedInfo => /temporary:true/i.test(extendedDetailedInfo || '');
 
 const getStoredAs = storageInfo => {
-	const _ = dependencies.lodash;
 	const inputFormat = _.get(storageInfo, 'InputFormat', '').trim();
 	const outputFormat = _.get(storageInfo, 'OutputFormat', '').trim();
 	const serDeLibrary = _.get(storageInfo, 'SerDe Library', '').trim();
@@ -130,7 +129,7 @@ const getTableProperties = tableParams => {
 };
 
 const getNumBuckets = storageInfo => {
-	const value = dependencies.lodash.get(storageInfo, 'Num Buckets', '').trim();
+	const value = _.get(storageInfo, 'Num Buckets', '').trim();
 
 	if (!value) {
 		return {};
@@ -144,29 +143,26 @@ const getNumBuckets = storageInfo => {
 };
 
 const getEntityLevelData = (tableName, tableInfo, extendedTableInfo) => {
-	const _ = dependencies.lodash;
 	const partitionInfo = tableInfo.partitionInfo || {};
 	const detailedInfo = tableInfo.detailedInfo || {};
 	const storageInfo = tableInfo.storageInfo || {};
 
-	return Object.assign(
-		{
-			code: tableName,
-			location: _.get(detailedInfo, 'Location', ''),
-			externalTable: isExternal(detailedInfo),
-			temporaryTable: isTemporary(extendedTableInfo),
-			compositePartitionKey: Object.keys(partitionInfo),
-			compositeClusteringKey: getFieldsArray(_.get(storageInfo, 'Bucket Columns', '')),
-			sortedByKey: getSortColumns(_.get(storageInfo, 'Sort Columns', '')),
-			skewedby: getFieldsArray(_.get(storageInfo, 'Skewed Columns', '')),
-			skewedOn: getSkewedOn(_.get(storageInfo, 'Skewed Values', '')),
-			description: _.get(detailedInfo, 'Table Parameters.comment', ''),
-			skewStoredAsDir: _.get(storageInfo, 'Stored As SubDirectories', '').trim().toLowerCase() === 'yes',
-			tableProperties: getTableProperties(_.get(detailedInfo, 'Table Parameters', {})),
-		},
-		getNumBuckets(storageInfo),
-		getStoredAs(storageInfo),
-	);
+	return {
+		code: tableName,
+		location: _.get(detailedInfo, 'Location', ''),
+		externalTable: isExternal(detailedInfo),
+		temporaryTable: isTemporary(extendedTableInfo),
+		compositePartitionKey: Object.keys(partitionInfo),
+		compositeClusteringKey: getFieldsArray(_.get(storageInfo, 'Bucket Columns', '')),
+		sortedByKey: getSortColumns(_.get(storageInfo, 'Sort Columns', '')),
+		skewedby: getFieldsArray(_.get(storageInfo, 'Skewed Columns', '')),
+		skewedOn: getSkewedOn(_.get(storageInfo, 'Skewed Values', '')),
+		description: _.get(detailedInfo, 'Table Parameters.comment', ''),
+		skewStoredAsDir: _.get(storageInfo, 'Stored As SubDirectories', '').trim().toLowerCase() === 'yes',
+		tableProperties: getTableProperties(_.get(detailedInfo, 'Table Parameters', {})),
+		...getNumBuckets(storageInfo),
+		...getStoredAs(storageInfo),
+	};
 };
 
 module.exports = {

@@ -1,5 +1,3 @@
-'use strict';
-
 const jsonSchemaHelper = require('./jsonSchemaHelper');
 
 const filterPaths = (keys, paths) => paths.filter(path => keys.find(key => path[path.length - 1] === key.keyId));

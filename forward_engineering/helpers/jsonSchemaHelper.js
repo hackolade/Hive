@@ -1,5 +1,3 @@
-'use strict';
-
 const { getName, prepareName } = require('./generalHelper');
 
 const getPathById = (schema, id, path) => {
@@ -36,7 +34,7 @@ const getPathById = (schema, id, path) => {
 const getRootItemNameById = (id, properties) => {
 	const propertyName = Object.keys(properties).find(propertyName => properties[propertyName].GUID === id);
 
-	if (properties[propertyName] && properties[propertyName].code) {
+	if (properties[propertyName]?.code) {
 		return prepareName(properties[propertyName].code);
 	}
 
@@ -55,11 +53,11 @@ const findFieldNameById = (id, source) => {
 
 const getNamesByIds = (ids, sources) => {
 	return ids.reduce((hash, id) => {
-		for (let i = 0; i < sources.length; i++) {
-			const name = findFieldNameById(id, sources[i]);
+		for (const element of sources) {
+			const name = findFieldNameById(id, element);
 
 			if (name) {
-				return Object.assign({}, hash, { [id]: name });
+				return { ...hash, [id]: name };
 			}
 		}
 
@@ -70,8 +68,8 @@ const getNamesByIds = (ids, sources) => {
 const getPathsByIds = (ids, sources) => {
 	return ids
 		.map(id => {
-			for (let i = 0; i < sources.length; i++) {
-				const path = getPathById(sources[i], id, []);
+			for (const element of sources) {
+				const path = getPathById(element, id, []);
 
 				if (path) {
 					return path;

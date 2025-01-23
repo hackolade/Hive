@@ -1,10 +1,8 @@
-'use strict';
-
+const _ = require('lodash');
 const {
 	buildStatement,
 	getName,
 	getTab,
-	indentString,
 	replaceSpaceWithUnderscore,
 	commentDeactivatedInlineKeys,
 	removeRedundantTrailingCommaFromStatement,
@@ -13,10 +11,6 @@ const {
 const { getColumnsStatement, getColumnStatement, getColumns } = require('./columnHelper');
 const keyHelper = require('./keyHelper');
 const constraintHelper = require('./constraintHelper');
-const { dependencies } = require('./appDependencies');
-
-let _;
-const setDependencies = ({ lodash }) => (_ = lodash);
 
 const getCreateStatement = ({
 	dbName,
@@ -159,7 +153,7 @@ const getPartitionKeyStatement = (keys, isParentActivated) => {
 const getPartitionsKeys = (columns, partitions) => {
 	return partitions
 		.map(keyName => {
-			return Object.assign({}, columns[keyName] || { type: 'string' }, { name: keyName }, { constraints: {} });
+			return { ...(columns[keyName] || { type: 'string' }), name: keyName, constraints: {} };
 		})
 		.filter(key => key);
 };
@@ -171,7 +165,7 @@ const removePartitions = (columns, partitions) => {
 
 			return columns;
 		},
-		Object.assign({}, columns),
+		{ ...columns },
 	);
 };
 
@@ -252,8 +246,6 @@ const getTableStatement = (
 	areColumnConstraintsAvailable,
 	areForeignPrimaryKeyConstraintsAvailable,
 ) => {
-	setDependencies(dependencies);
-
 	const dbName = replaceSpaceWithUnderscore(getName(getTab(0, containerData)));
 	const tableData = getTab(0, entityData);
 	const container = getTab(0, containerData);

@@ -1,9 +1,5 @@
+const _ = require('lodash');
 const { getDatabaseStatement } = require('../databaseHelper');
-const { dependencies } = require('../appDependencies');
-
-let _;
-
-const setDependencies = ({ lodash }) => (_ = lodash);
 
 const hydrateDrop = container => {
 	const { role } = container;
@@ -22,7 +18,6 @@ const getDeleteContainerScript = provider => container => {
 };
 
 const getModifyContainerScript = provider => container => {
-	setDependencies(dependencies);
 	const compMod = _.get(container, 'role.compMod', {});
 	const getName = type => compMod.code?.[type] || compMod.name?.[type];
 	const name = {

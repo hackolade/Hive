@@ -1,10 +1,5 @@
-'use strict';
-
+const _ = require('lodash');
 const RESERVED_WORDS = require('./reserverWords');
-const { dependencies } = require('./appDependencies');
-let _;
-
-const setDependencies = ({ lodash }) => (_ = lodash);
 
 const BEFORE_DEACTIVATED_STATEMENT = '-- ';
 
@@ -93,8 +88,6 @@ const commentDeactivatedStatements = (statement, isActivated = true) => {
 };
 
 const commentDeactivatedInlineKeys = (keys, deactivatedKeyNames) => {
-	setDependencies(dependencies);
-
 	const [activatedKeys, deactivatedKeys] = _.partition(
 		keys,
 		key => !(deactivatedKeyNames.has(key) || deactivatedKeyNames.has(key.slice(1, -1))),
@@ -113,21 +106,18 @@ const commentDeactivatedInlineKeys = (keys, deactivatedKeyNames) => {
 };
 
 const removeRedundantTrailingCommaFromStatement = statement => {
-	setDependencies(dependencies);
-
-	const splitedStatement = statement.split('\n');
-	if (splitedStatement.length < 4 || !splitedStatement[splitedStatement.length - 2].trim().startsWith('--')) {
+	const statements = statement.split('\n');
+	if (statements.length < 4 || !statements[statements.length - 2].trim().startsWith('--')) {
 		return statement;
 	}
-	const lineWithTrailingCommaIndex = _.findLastIndex(splitedStatement, line => {
+	const lineWithTrailingCommaIndex = _.findLastIndex(statements, line => {
 		if (line.trim() !== ');' && !line.trim().startsWith('--')) {
 			return true;
 		}
 	});
 	if (lineWithTrailingCommaIndex !== -1) {
-		splitedStatement[lineWithTrailingCommaIndex] =
-			`${splitedStatement[lineWithTrailingCommaIndex].slice(0, -1)} -- ,`;
-		return splitedStatement.join('\n');
+		statements[lineWithTrailingCommaIndex] = `${statements[lineWithTrailingCommaIndex].slice(0, -1)} -- ,`;
+		return statements.join('\n');
 	}
 	return statement;
 };

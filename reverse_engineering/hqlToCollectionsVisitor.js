@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { HiveParserVisitor } = require('./parser/HiveParserVisitor');
 const { HiveParser } = require('./parser/HiveParser');
 const {
@@ -29,7 +30,6 @@ const {
 } = require('./commandsService');
 
 const schemaHelper = require('./thriftService/schemaHelper');
-const { dependencies } = require('./appDependencies');
 
 const ALLOWED_COMMANDS = [
 	HiveParser.RULE_createTableStatement,
@@ -54,8 +54,6 @@ class Visitor extends HiveParserVisitor {
 		if (execStatement) {
 			return this.visit(execStatement);
 		}
-
-		return;
 	}
 
 	visitExecStatement(ctx) {
@@ -63,19 +61,15 @@ class Visitor extends HiveParserVisitor {
 		if (ddlStatement) {
 			return this.visit(ddlStatement);
 		}
-
-		return;
 	}
 
 	visitDdlStatement(ctx) {
 		if (ALLOWED_COMMANDS.includes(ctx.children[0].ruleIndex)) {
 			return super.visitDdlStatement(ctx)[0];
 		}
-		return;
 	}
 
 	visitIfExists(ctx, defaultValue = '') {
-		const _ = dependencies.lodash;
 		if (ctx && !_.isEmpty(ctx)) {
 			return this.visit(ctx);
 		} else {
@@ -84,7 +78,6 @@ class Visitor extends HiveParserVisitor {
 	}
 
 	visitCreateTableStatement(ctx) {
-		const _ = dependencies.lodash;
 		const [tableName, tableLikeName] = this.visit(ctx.tableName());
 		const compositePartitionKey = this.visitWhenExists(ctx, 'tablePartition', []);
 		const ifNotExist = Boolean(ctx.ifNotExists());
@@ -125,7 +118,7 @@ class Visitor extends HiveParserVisitor {
 					type: 'object',
 					properties: { ...properties, ...convertKeysToProperties(compositePartitionKey) },
 				}),
-				tableLikeName: (tableLikeName || {}).table,
+				tableLikeName: tableLikeName?.table,
 				entityLevelData: _.pickBy(
 					{
 						temporaryTable,
@@ -380,8 +373,6 @@ class Visitor extends HiveParserVisitor {
 				...this.visit(ctx.alterViewStatementSuffix()),
 			};
 		}
-
-		return;
 	}
 
 	visitAlterTableStatementSuffix(ctx) {
@@ -409,8 +400,8 @@ class Visitor extends HiveParserVisitor {
 			type: UPDATE_ENTITY_LEVEL_DATA_COMMAND,
 			data: {
 				...this.visitWhenExists(ctx, 'tableSkewed', {}),
-				...(Boolean(ctx.KW_NOT() && ctx.KW_SKEWED()) ? { skewedby: [], skewedOn: '' } : {}),
-				...(Boolean(ctx.storedAsDirs()) ? { skewStoredAsDir: false } : {}),
+				...(ctx.KW_NOT() && ctx.KW_SKEWED() ? { skewedby: [], skewedOn: '' } : {}),
+				...(ctx.storedAsDirs() ? { skewStoredAsDir: false } : {}),
 			},
 		};
 	}
@@ -474,8 +465,8 @@ class Visitor extends HiveParserVisitor {
 		return {
 			type: UPDATE_ENTITY_LEVEL_DATA_COMMAND,
 			data: {
-				...(Boolean(ctx.KW_CLUSTERED()) ? { compositeClusteringKey: [] } : {}),
-				...(Boolean(ctx.KW_SORTED()) ? { sortedByKey: [] } : {}),
+				...(ctx.KW_CLUSTERED() ? { compositeClusteringKey: [] } : {}),
+				...(ctx.KW_SORTED() ? { sortedByKey: [] } : {}),
 				...this.visitWhenExists(ctx, 'tableBuckets', {}),
 			},
 		};
@@ -490,7 +481,7 @@ class Visitor extends HiveParserVisitor {
 			nameTo: this.visit(ctx.identifier()[1]),
 			data: {
 				...this.visit(ctx.colType()),
-				...(Boolean(ctx.KW_COMMENT()) ? { description: getTextFromStringLiteral(ctx) } : {}),
+				...(ctx.KW_COMMENT() ? { description: getTextFromStringLiteral(ctx) } : {}),
 				...columnConstraint,
 			},
 		};
@@ -864,7 +855,7 @@ class Visitor extends HiveParserVisitor {
 
 		if (!complexTypes) {
 			return {
-				type: dependencies.lodash.uniq(types.map(schema => schema.type)),
+				type: _.uniq(types.map(schema => schema.type)),
 			};
 		}
 
@@ -1000,11 +991,11 @@ class Visitor extends HiveParserVisitor {
 	visitColumnConstraintType(ctx) {
 		const test = this.visitIfExists(ctx.tableConstraintType());
 		return {
-			...(Boolean(ctx.KW_NOT() && ctx.KW_NULL()) ? { required: true } : {}),
+			...(ctx.KW_NOT() && ctx.KW_NULL() ? { required: true } : {}),
 			...(this.visitIfExists(ctx.tableConstraintType()) === 'unique' ? { unique: true } : {}),
 			...(this.visitIfExists(ctx.tableConstraintType()) === 'primary' ? { primaryKey: true } : {}),
-			...(Boolean(ctx.KW_DEFAULT()) ? { default: this.visit(ctx.defaultVal()) } : {}),
-			...(Boolean(ctx.checkConstraint()) ? { check: this.visitWhenExists(ctx, 'checkConstraint', '') } : {}),
+			...(ctx.KW_DEFAULT() ? { default: this.visit(ctx.defaultVal()) } : {}),
+			...(ctx.checkConstraint() ? { check: this.visitWhenExists(ctx, 'checkConstraint', '') } : {}),
 		};
 	}
 
@@ -1060,17 +1051,17 @@ class Visitor extends HiveParserVisitor {
 	}
 
 	visitTableFileFormat(ctx) {
-		if (Boolean(ctx.tableInputOutputFileFormat())) {
+		if (ctx.tableInputOutputFileFormat()) {
 			return {
 				storedAsTable: 'input/output format',
 				...this.visit(ctx.tableInputOutputFileFormat()),
 			};
-		} else if (Boolean(ctx.tableFileFormatStoredBy())) {
+		} else if (ctx.tableFileFormatStoredBy()) {
 			return {
 				storedAsTable: 'by',
 				...this.visit(ctx.tableFileFormatStoredBy()),
 			};
-		} else if (Boolean(ctx.tableFileFormatStoredAs())) {
+		} else if (ctx.tableFileFormatStoredAs()) {
 			return {
 				storedAsTable: this.visit(ctx.tableFileFormatStoredAs()),
 			};
@@ -1142,7 +1133,6 @@ class Visitor extends HiveParserVisitor {
 	}
 
 	visitCreateIndexStatement(ctx) {
-		const _ = dependencies.lodash;
 		const { name, database, table, columns, SecIndxHandler } = this.visit(ctx.createIndexMainStatement());
 		const SecIndxWithDeferredRebuild = Boolean(ctx.KW_WITH() && ctx.KW_DEFERRED() && ctx.KW_REBUILD());
 		const SecIndxProperties = this.visitWhenExists(ctx, 'tableProperties');
@@ -1221,12 +1211,12 @@ class Visitor extends HiveParserVisitor {
 		return {
 			type: CREATE_RESOURCE_PLAN,
 			name: this.visit(ctx.identifier()),
-			parallelism: (this.visitWhenExists(ctx, 'rpAssignList', {}) || {}).parallelism,
+			parallelism: this.visitWhenExists(ctx, 'rpAssignList', {})?.parallelism,
 		};
 	}
 
 	visitRpAssignList(ctx) {
-		return this.visit(ctx.rpAssign()).find(({ parallelism }) => !dependencies.lodash.isEmpty(parallelism));
+		return this.visit(ctx.rpAssign()).find(({ parallelism }) => !_.isEmpty(parallelism));
 	}
 
 	visitRpAssign(ctx) {
