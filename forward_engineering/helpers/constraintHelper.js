@@ -1,3 +1,9 @@
+/**
+ * @typedef {import('../types').ColumnDefinition} ColumnDefinition
+ * @typedef {import('../types').ConstraintDto} ConstraintDto
+ * @typedef {import('../types').JsonSchema} JsonSchema
+ */
+
 const findName = (keyId, properties) => {
 	return Object.keys(properties).find(name => properties[name].GUID === keyId);
 };
@@ -91,8 +97,104 @@ const getCheckConstraint = jsonSchema => {
 	return checkConstraint.filter(Boolean).join(',\n');
 };
 
+/**
+ * @param {{ jsonSchema: JsonSchema }}
+ * @returns {ConstraintDto[]}
+ */
+const getCompositePrimaryKeys = ({ jsonSchema }) => {
+	if (!Array.isArray(jsonSchema.primaryKey)) {
+		return [];
+	}
+
+	return jsonSchema.primaryKey
+		.filter(primaryKey => primaryKey.compositePrimaryKey?.length)
+		.map(primaryKey => ({
+			keyType: 'PRIMARY KEY',
+			name: primaryKey.constraintName,
+			columns: getKeys(primaryKey.compositePrimaryKey, jsonSchema),
+		}));
+};
+
+/**
+ * @param {{ jsonSchema: JsonSchema }}
+ * @returns {ConstraintDto[]}
+ */
+const getCompositeUniqueKeys = ({ jsonSchema }) => {
+	if (!Array.isArray(jsonSchema.uniqueKey)) {
+		return [];
+	}
+
+	return jsonSchema.uniqueKey
+		.filter(uniqueKey => uniqueKey.compositeUniqueKey?.length)
+		.map(uniqueKey => ({
+			keyType: 'UNIQUE',
+			name: uniqueKey.constraintName,
+			columns: getKeys(uniqueKey.compositeUniqueKey, jsonSchema),
+		}));
+};
+
+/**
+ * @param {{ columnDefinition: ColumnDefinition }}
+ * @returns {ConstraintDto}
+ */
+const getColumnPrimaryKeyConstraint = ({ columnDefinition }) => {
+	const isPrimaryKey = columnDefinition.primaryKey && !columnDefinition.compositePrimaryKey;
+
+	if (!isPrimaryKey) {
+		return;
+	}
+
+	return {
+		keyType: 'PRIMARY KEY',
+	};
+};
+
+/**
+ * @param {{ columnDefinition: ColumnDefinition }}
+ * @returns {ConstraintDto}
+ */
+const getColumnUniqueKeyConstraint = ({ columnDefinition }) => {
+	if (!columnDefinition.unique) {
+		return;
+	}
+
+	return {
+		keyType: 'UNIQUE',
+	};
+};
+
+/**
+ * @param {{ columnDefinition: ColumnDefinition }}
+ * @returns {ConstraintDto}
+ */
+const getColumnCheckConstraint = ({ columnDefinition }) => {
+	if (!columnDefinition.check) {
+		return;
+	}
+
+	return {
+		keyType: 'CHECK',
+		expression: columnDefinition.check,
+	};
+};
+
+/**
+ * @param {{ columnDefinition: ColumnDefinition; jsonSchema: JsonSchema }}
+ * @returns {ConstraintDto[]}
+ */
+const getColumnConstraints = ({ columnDefinition, jsonSchema }) => {
+	const primaryKeyConstraint = getColumnPrimaryKeyConstraint({ columnDefinition });
+	const uniqueKeyConstraint = getColumnUniqueKeyConstraint({ columnDefinition });
+	const checkConstraint = getColumnCheckConstraint({ columnDefinition });
+
+	return [primaryKeyConstraint, uniqueKeyConstraint, checkConstraint].filter(Boolean);
+};
+
 module.exports = {
 	getConstraintOpts,
 	getUniqueKeyStatement,
 	getCheckConstraint,
+	getCompositeUniqueKeys,
+	getCompositePrimaryKeys,
+	getColumnConstraints,
 };
