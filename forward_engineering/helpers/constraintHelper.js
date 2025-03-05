@@ -135,7 +135,7 @@ const getCompositeUniqueKeys = ({ jsonSchema }) => {
 
 /**
  * @param {{ columnDefinition: ColumnDefinition }}
- * @returns {ConstraintDto}
+ * @returns {ConstraintDto | undefined}
  */
 const getColumnPrimaryKeyConstraint = ({ columnDefinition }) => {
 	const isPrimaryKey = columnDefinition.primaryKey && !columnDefinition.compositePrimaryKey;
@@ -151,7 +151,7 @@ const getColumnPrimaryKeyConstraint = ({ columnDefinition }) => {
 
 /**
  * @param {{ columnDefinition: ColumnDefinition }}
- * @returns {ConstraintDto}
+ * @returns {ConstraintDto | undefined}
  */
 const getColumnUniqueKeyConstraint = ({ columnDefinition }) => {
 	if (!columnDefinition.unique) {
@@ -165,7 +165,7 @@ const getColumnUniqueKeyConstraint = ({ columnDefinition }) => {
 
 /**
  * @param {{ columnDefinition: ColumnDefinition }}
- * @returns {ConstraintDto}
+ * @returns {ConstraintDto | undefined}
  */
 const getColumnCheckConstraint = ({ columnDefinition }) => {
 	if (!columnDefinition.check) {
