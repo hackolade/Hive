@@ -52,13 +52,17 @@ const getForeignKeyHashTable = ({
 	);
 
 	return relationships.reduce((hashTable, relationship) => {
+		if (!relatedSchemas[relationship.parentCollection]) {
+			return hashTable;
+		}
+
 		if (!hashTable[relationship.childCollection]) {
 			hashTable[relationship.childCollection] = {};
 		}
 
 		const constraintName = relationship.name;
 		const parentDifferentSchemaName =
-			replaceSpaceWithUnderscore(relatedSchemas[relationship.parentCollection]?.bucketName) || '';
+			replaceSpaceWithUnderscore(relatedSchemas[relationship.parentCollection].bucketName) || '';
 		const parentTableData = getTab(0, entityData[relationship.parentCollection]);
 		const parentTableSingleName =
 			replaceSpaceWithUnderscore(
