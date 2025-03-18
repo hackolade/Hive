@@ -385,9 +385,30 @@ const getDescription = (definitions, property) => {
 	return property.refDescription || property.description || definitionDescription;
 };
 
+/**
+ * @param {{ type: string }}
+ * @returns {string}
+ */
+const clearComplexStructure = ({ type }) => {
+	const isArray = /^array/i.test(type);
+	const isStruct = /^struct/i.test(type);
+	const isComplexType = isArray || isStruct;
+
+	if (!isComplexType) {
+		return type;
+	}
+
+	const structureREgexp = /<([\s\S]+)>$/;
+	const [, subType] = structureREgexp.exec(type) ?? ['', ''];
+	const structure = isArray ? clearComplexStructure({ type: subType }) : '';
+
+	return type.replace(structureREgexp, () => `<${structure}>`);
+};
+
 module.exports = {
 	getColumns,
 	getColumnsStatement,
 	getColumnStatement,
 	getTypeByProperty,
+	clearComplexStructure,
 };
