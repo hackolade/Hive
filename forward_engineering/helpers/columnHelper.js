@@ -398,11 +398,11 @@ const clearComplexStructure = ({ type }) => {
 		return type;
 	}
 
-	const structureREgexp = /<([\s\S]+)>$/;
-	const [, subType] = structureREgexp.exec(type) ?? ['', ''];
+	const structureRegExp = /<([\s\S]+)>$/;
+	const [, subType] = structureRegExp.exec(type) ?? ['', ''];
 	const structure = isArray ? clearComplexStructure({ type: subType }) : '';
 
-	return type.replace(structureREgexp, () => `<${structure}>`);
+	return type.replace(structureRegExp, () => `<${structure}>`);
 };
 
 module.exports = {
