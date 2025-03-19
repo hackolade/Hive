@@ -62,7 +62,7 @@ const getForeignKeyHashTable = ({
 		const parentTableData = getTab(0, entityData[relationship.parentCollection]);
 		const parentTableSingleName =
 			replaceSpaceWithUnderscore(
-				getName(parentTableData) || relatedSchemas[relationship.parentCollection].collectionName,
+				getName(parentTableData) || relatedSchemas[relationship.parentCollection]?.collectionName,
 			) || '';
 		const parentTableName = parentDifferentSchemaName
 			? `${parentDifferentSchemaName}.${parentTableSingleName}`
@@ -70,7 +70,7 @@ const getForeignKeyHashTable = ({
 		const childTableData = getTab(0, entityData[relationship.childCollection]);
 		const childTableName =
 			replaceSpaceWithUnderscore(
-				getName(childTableData) || relatedSchemas[relationship.childCollection].collectionName,
+				getName(childTableData) || relatedSchemas[relationship.childCollection]?.collectionName,
 			) || '';
 		const groupKey = parentTableName + constraintName;
 		const childFieldActivated = relationship.childField.reduce((isActivated, field) => {
