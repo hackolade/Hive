@@ -21,9 +21,8 @@ class DbtProvider {
 	 */
 	decorateType({ columnDefinition }) {
 		const type = columnHelper.getTypeByProperty([], '')(columnDefinition);
-		const isComplexType = /^(array|struct)/i.test(type);
 
-		return isComplexType ? type.replace(/<[\s\S]+>$/, '<>') : type;
+		return columnHelper.clearComplexStructure({ type });
 	}
 
 	/**
