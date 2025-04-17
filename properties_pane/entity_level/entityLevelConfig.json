@@ -71,8 +71,8 @@ making sure that you maintain a proper JSON format.
 				]
 			},
 // “groupInput” can have the following states - 0 items, 1 item, and many items.
-// “blockInput” has only 2 states - 0 items or 1 item. 
-// This gives us an easy way to represent it as an object and not as an array internally which is beneficial for processing 
+// “blockInput” has only 2 states - 0 items or 1 item.
+// This gives us an easy way to represent it as an object and not as an array internally which is beneficial for processing
 // and forward-engineering in particular.
 			{
 				"propertyName": "Block",
@@ -100,7 +100,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "keyList",
 				"propertyType": "fieldList",
 				"template": "orderedList"
-			}, 
+			},
 			{
 				"propertyName": "List with attribute",
 				"propertyKeyword": "keyListOrder",
@@ -566,6 +566,13 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "select",
 						"defaultValue": "",
 						"options": ["", "RELY", "NORELY"]
+					},
+					{
+						"propertyName": "Alternate key",
+						"propertyKeyword": "alternateKey",
+						"propertyTooltip": "",
+						"propertyType": "checkbox",
+						"setFieldPropertyBy": "compositeUniqueKey"
 					}
 				]
 			}
