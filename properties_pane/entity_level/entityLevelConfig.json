@@ -539,9 +539,12 @@ making sure that you maintain a proper JSON format.
 					{
 						"propertyName": "Constraint name",
 						"propertyKeyword": "constraintName",
-						"requiredProperty": true,
 						"propertyTooltip": "",
-						"propertyType": "text"
+						"propertyType": "text",
+						"shouldValidate": true,
+						"validation": {
+							"required": true
+						}
 					},
 					{
 						"propertyName": "Key",
