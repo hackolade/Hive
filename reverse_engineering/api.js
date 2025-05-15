@@ -7,7 +7,6 @@ const hiveHelper = require('./thriftService/hiveHelper');
 const entityLevelHelper = require('./entityLevelHelper');
 const TCLIService = require('./TCLIService/Thrift_0.9.3_Hive_2.1.1/TCLIService');
 const TCLIServiceTypes = require('./TCLIService/Thrift_0.9.3_Hive_2.1.1/TCLIService_types');
-const logHelper = require('./logHelper');
 const { adaptJsonSchema } = require('./adaptJsonSchema');
 const createKerberos = require('./thriftService/hackolade/createKerberos/createKerberos');
 
@@ -92,7 +91,6 @@ module.exports = {
 	},
 
 	testConnection: function (connectionInfo, logger, cb, app) {
-		logInfo('Test connection', connectionInfo, logger);
 		this.connect(
 			connectionInfo,
 			logger,
@@ -108,8 +106,6 @@ module.exports = {
 	},
 
 	getDbCollectionsNames: function (connectionInfo, logger, cb, app) {
-		logInfo('Retrieving databases and tables information', connectionInfo, logger);
-
 		const { includeSystemCollection, dbName } = connectionInfo;
 
 		this.connect(
@@ -209,7 +205,6 @@ module.exports = {
 	},
 
 	getDbCollectionsData: function (data, logger, cb, app) {
-		logger.log('info', data, 'Retrieving schema', data.hiddenKeys);
 		const progress = message => {
 			logger.log('info', message, 'Retrieving schema', data.hiddenKeys);
 			logger.progress(message);
@@ -691,12 +686,6 @@ const retrieveData = (query, tableName, limit, offset) => {
 			}
 		},
 	);
-};
-
-const logInfo = (step, connectionInfo, logger) => {
-	logger.clear();
-	logger.log('info', logHelper.getSystemInfo(connectionInfo.appVersion), step);
-	logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
 };
 
 const expandPackages = packages => {
