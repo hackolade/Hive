@@ -1,3 +1,4 @@
+const logHelper = require('../reverse_engineering/logHelper');
 const applyToInstanceHelper = require('./helpers/applyToInstanceHelper');
 const { connect } = require('../reverse_engineering/api');
 const { generateScript } = require('./generateScript');
@@ -15,6 +16,7 @@ module.exports = {
 	isDropInStatements,
 
 	testConnection: function (connectionInfo, logger, cb, app) {
+		logInfo('Test connection', connectionInfo, logger);
 		connect(
 			connectionInfo,
 			logger,
@@ -30,6 +32,9 @@ module.exports = {
 	},
 
 	async applyToInstance(connectionInfo, logger, callback, app) {
+		logger.clear();
+		logInfo('info', connectionInfo, logger);
+
 		try {
 			await applyToInstanceHelper.applyToInstance(connectionInfo, logger, app);
 			callback();
@@ -37,4 +42,10 @@ module.exports = {
 			callback(error);
 		}
 	},
+};
+
+const logInfo = (step, connectionInfo, logger) => {
+	logger.clear();
+	logger.log('info', logHelper.getSystemInfo(connectionInfo.appVersion), step);
+	logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
 };
