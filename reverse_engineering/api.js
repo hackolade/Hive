@@ -7,7 +7,6 @@ const hiveHelper = require('./thriftService/hiveHelper');
 const entityLevelHelper = require('./entityLevelHelper');
 const TCLIService = require('./TCLIService/Thrift_0.9.3_Hive_2.1.1/TCLIService');
 const TCLIServiceTypes = require('./TCLIService/Thrift_0.9.3_Hive_2.1.1/TCLIService_types');
-const logHelper = require('./logHelper');
 const { adaptJsonSchema } = require('./adaptJsonSchema');
 const createKerberos = require('./thriftService/hackolade/createKerberos/createKerberos');
 
@@ -695,7 +694,6 @@ const retrieveData = (query, tableName, limit, offset) => {
 
 const logInfo = (step, connectionInfo, logger) => {
 	logger.clear();
-	logger.log('info', logHelper.getSystemInfo(connectionInfo.appVersion), step);
 	logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
 };
 
