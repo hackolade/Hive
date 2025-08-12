@@ -19,6 +19,7 @@ const getColumnNames = (collectionRefsDefinitionsMap, columns, isViewActivated) 
 	return _.uniq(
 		Object.keys(columns).map(name => {
 			const id = _.get(columns, [name, 'GUID']);
+			const refId = columns[name]?.refId;
 
 			const itemDataId = Object.keys(collectionRefsDefinitionsMap).find(viewFieldId => {
 				const definitionData = collectionRefsDefinitionsMap[viewFieldId];
@@ -26,7 +27,8 @@ const getColumnNames = (collectionRefsDefinitionsMap, columns, isViewActivated) 
 				return definitionData.definitionId === id;
 			});
 			const isActivated = isViewActivated ? _.get(columns[name], 'isActivated') : true;
-			const itemData = collectionRefsDefinitionsMap[itemDataId] || {};
+			const itemData = collectionRefsDefinitionsMap[refId] || collectionRefsDefinitionsMap[itemDataId] || {};
+
 			if (!itemData.name || itemData.name === name) {
 				return commentDeactivatedStatements(prepareName(itemData.name), isActivated);
 			}
