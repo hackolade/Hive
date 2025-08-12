@@ -69,7 +69,14 @@ const convertCommandsToReDocs = (commands, originalScript) => {
 	const reData = convertCommandsToEntities(commands, originalScript);
 
 	const result = reData.entities.map(entity => {
-		const relatedViews = reData.views.filter(view => view.collectionName === entity.collectionName);
+		const relatedViews = reData.views.reduce((result, view) => {
+			if (view.collectionName === entity.collectionName || result.find(v => view.collectionName === v.name)) {
+				return [...result, view];
+			}
+
+			return result;
+		}, []);
+
 		return {
 			objectNames: {
 				collectionName: entity.collectionName,
@@ -223,6 +230,13 @@ const createView = (entitiesData, bucket, statementData, originalScript) => {
 				data: {
 					...statementData.data,
 					selectStatement,
+				},
+				ddl: {
+					script: `CREATE VIEW ${statementData.name} ${statementData.columnNames ? `(${statementData.columnNames})` : ''} AS ${selectStatement};`.replace(
+						/`/g,
+						'"',
+					),
+					type: 'postgres',
 				},
 				bucketName: statementData.bucketName || bucket,
 			},
