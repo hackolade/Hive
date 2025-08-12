@@ -220,6 +220,11 @@ const updateField = (entitiesData, bucket, statementData) => {
 const createView = (entitiesData, bucket, statementData, originalScript) => {
 	const { views } = entitiesData;
 	const selectStatement = `${originalScript.substring(statementData.select.start, statementData.select.stop)}`;
+	const getDdlScript = () => {
+		const columnNames = statementData.columnNames ? `(${statementData.columnNames})` : '';
+		const script = `CREATE VIEW ${statementData.name} ${columnNames} AS ${selectStatement}`;
+		return script.replace(/`/g, '"');
+	};
 
 	return {
 		...entitiesData,
@@ -232,10 +237,7 @@ const createView = (entitiesData, bucket, statementData, originalScript) => {
 					selectStatement,
 				},
 				ddl: {
-					script: `CREATE VIEW ${statementData.name} ${statementData.columnNames ? `(${statementData.columnNames})` : ''} AS ${selectStatement};`.replace(
-						/`/g,
-						'"',
-					),
+					script: getDdlScript(),
 					type: 'postgres',
 				},
 				bucketName: statementData.bucketName || bucket,
