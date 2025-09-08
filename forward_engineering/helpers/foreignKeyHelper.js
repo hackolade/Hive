@@ -56,7 +56,7 @@ const getForeignKeyHashTable = ({
 			hashTable[relationship.childCollection] = {};
 		}
 
-		const constraintName = relationship.name;
+		const constraintName = relationship.code || relationship.name;
 		const parentDifferentSchemaName =
 			replaceSpaceWithUnderscore(relatedSchemas[relationship.parentCollection]?.bucketName) || '';
 		const parentTableData = getTab(0, entityData[relationship.parentCollection]);
@@ -95,6 +95,7 @@ const getForeignKeyHashTable = ({
 
 		hashTable[relationship.childCollection][groupKey].push({
 			name: relationship.name,
+			code: relationship.code,
 			disableNoValidate: disableNoValidate,
 			parentTableName: parentTableName,
 			childTableName: childTableName,
@@ -117,7 +118,7 @@ const getForeignKeyStatementsByHashItem = hashItem => {
 		.map(groupKey => {
 			const keys = hashItem[groupKey];
 			const firstKey = keys[0] || {};
-			const keyName = firstKey.name || '';
+			const keyName = firstKey.code || firstKey.name || '';
 			const constraintName = keyName.includes(' ') ? `\`${keyName}\`` : keyName;
 			const parentTableName = firstKey.parentTableName;
 			const childTableName = firstKey.childTableName;
