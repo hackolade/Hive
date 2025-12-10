@@ -1,3 +1,5 @@
+const { generateContainerScript } = require('./generateContainerScript');
+const { generateScript } = require('./generateScript');
 const { DROP_STATEMENTS } = require('./helpers/constants');
 
 const isDropInStatements = (data, logger, cb, app) => {
@@ -10,9 +12,9 @@ const isDropInStatements = (data, logger, cb, app) => {
 		};
 
 		if (data.level === 'container') {
-			this.generateContainerScript(data, logger, callback, app);
+			generateContainerScript(data, logger, callback, app);
 		} else if (data.level === 'entity') {
-			this.generateScript(data, logger, callback, app);
+			generateScript(data, logger, callback, app);
 		}
 	} catch (e) {
 		cb({ message: e.message, stack: e.stack });

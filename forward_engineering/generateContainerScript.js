@@ -10,6 +10,7 @@ const { buildScript } = require('./helpers/buildScript');
 const { parseEntities } = require('./helpers/parseEntities');
 const { getForeignKeys } = require('./helpers/foreignKeyHelper');
 const { getWorkloadManagementStatements } = require('./helpers/getWorkloadManagementStatements');
+const { getIsPkOrFkConstraintAvailable } = require('./helpers/constraintHelper');
 
 const generateContainerScript = (data, logger, callback, app) => {
 	try {
@@ -25,7 +26,7 @@ const generateContainerScript = (data, logger, callback, app) => {
 		);
 		const relatedSchemas = parseEntities(data.relatedEntities ?? [], data.relatedSchemas);
 		const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
-		const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith('1');
+		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
 		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 
 		if (data.isUpdateScript) {
@@ -68,17 +69,12 @@ const generateContainerScript = (data, logger, callback, app) => {
 			];
 
 			return result.concat([
-				getTableStatement(
-					...args,
-					null,
-					areColumnConstraintsAvailable,
-					areForeignPrimaryKeyConstraintsAvailable,
-				),
+				getTableStatement(...args, null, areColumnConstraintsAvailable, isPkOrFkConstraintAvailable),
 				getIndexes(...args, areColumnConstraintsAvailable),
 			]);
 		}, []);
 
-		const foreignKeys = getForeignKeys(data, foreignKeyHashTable, areForeignPrimaryKeyConstraintsAvailable);
+		const foreignKeys = getForeignKeys(data, foreignKeyHashTable, isPkOrFkConstraintAvailable);
 
 		callback(
 			null,

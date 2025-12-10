@@ -190,6 +190,10 @@ const getColumnConstraints = ({ columnDefinition, jsonSchema }) => {
 	return [primaryKeyConstraint, uniqueKeyConstraint, checkConstraint].filter(Boolean);
 };
 
+const getIsPkOrFkConstraintAvailable = data => {
+	return !data?.modelData?.[0]?.dbVersion?.startsWith('1');
+};
+
 module.exports = {
 	getConstraintOpts,
 	getUniqueKeyStatement,
@@ -197,4 +201,5 @@ module.exports = {
 	getCompositeUniqueKeys,
 	getCompositePrimaryKeys,
 	getColumnConstraints,
+	getIsPkOrFkConstraintAvailable,
 };

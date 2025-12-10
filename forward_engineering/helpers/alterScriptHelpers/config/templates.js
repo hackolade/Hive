@@ -50,4 +50,9 @@ module.exports = {
 	dropSkewByStoredAsDirection: 'ALTER TABLE ${name} NOT STORED AS DIRECTORIES;',
 
 	setTableLocation: 'ALTER TABLE ${name} SET LOCATION "${location}";',
+
+	addPkConstraint:
+		'ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} PRIMARY KEY (${columnNames}) DISABLE${noValidate}${rely};',
+
+	dropPkConstraint: 'ALTER TABLE ${tableName} DROP CONSTRAINT ${constraintName};',
 };

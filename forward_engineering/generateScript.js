@@ -5,6 +5,7 @@ const { getDatabaseStatement } = require('./helpers/databaseHelper');
 const { getTableStatement } = require('./helpers/tableHelper');
 const { getIndexes } = require('./helpers/indexHelper');
 const { buildScript } = require('./helpers/buildScript');
+const { getIsPkOrFkConstraintAvailable } = require('./helpers/constraintHelper');
 
 const generateScript = (data, logger, callback, app) => {
 	try {
@@ -15,7 +16,7 @@ const generateScript = (data, logger, callback, app) => {
 		const containerData = data.containerData;
 		const entityData = data.entityData;
 		const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
-		const areForeignPrimaryKeyConstraintsAvailable = !data.modelData[0].dbVersion.startsWith('1');
+		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
 		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 
 		if (data.isUpdateScript) {
@@ -36,7 +37,7 @@ const generateScript = (data, logger, callback, app) => {
 					[modelDefinitions, internalDefinitions, externalDefinitions],
 					null,
 					areColumnConstraintsAvailable,
-					areForeignPrimaryKeyConstraintsAvailable,
+					isPkOrFkConstraintAvailable,
 				),
 				getIndexes(
 					containerData,

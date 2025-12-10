@@ -3,6 +3,9 @@ const templates = require('./config/templates');
 module.exports = app => {
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
 	return {
+		assignTemplates(...args) {
+			return assignTemplates(...args);
+		},
 		dropView({ name, isMaterialized }) {
 			const dropTemplate = isMaterialized ? templates.dropMaterializedView : templates.dropView;
 			return assignTemplates(dropTemplate, { name });

@@ -357,8 +357,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -912,8 +943,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -1238,8 +1300,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -1639,8 +1732,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -2156,8 +2280,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -2673,8 +2828,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -3189,8 +3375,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -3703,8 +3920,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -4194,8 +4442,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",
@@ -4643,8 +4922,39 @@ making sure that you maintain a proper JSON format.
 					"type": "or",
 					"values": [
 						{
-							"key": "required",
-							"value": true
+							"type": "and",
+							"values": [
+								{
+									"key": "required",
+									"value": true
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "primaryKey",
+											"value": false
+										},
+										{
+											"key": "primaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								}
+							]
 						},
 						{
 							"type": "and",

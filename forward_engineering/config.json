@@ -27,5 +27,60 @@
 	"compMode": {
 		"entity": true,
 		"container": true
-	}
+	},
+	"scriptGenerationOptions": [
+		{
+			"keyword": "primaryKeys",
+			"label": "FE_SCRIPT_GENERATION_OPTIONS___PRIMARY_KEYS",
+			"disabled": false,
+			"value": {
+				"inline": {
+					"default": true,
+					"disabled": false,
+					"disabledLabel": ""
+				},
+				"separate": {
+					"default": false,
+					"disabled": false,
+					"disabledLabel": ""
+				},
+				"ignore": {
+					"default": false,
+					"disabled": false,
+					"disabledLabel": ""
+				}
+			},
+			"adapters": [
+				{
+					"dependency": {
+						"key": "primaryKey",
+						"valueType": "array"
+					},
+					"defaultValue": {
+						"primaryKey": []
+					}
+				},
+				{
+					"dependency": {
+						"type": "or",
+						"values": [
+							{
+								"key": "primaryKey",
+								"value": true
+							},
+							{
+								"key": "compositePrimaryKey",
+								"value": true
+							}
+						]
+					},
+					"defaultValue": {
+						"primaryKey": false,
+						"compositePrimaryKey": false,
+						"required": false
+					}
+				}
+			]
+		}
+	]
 }

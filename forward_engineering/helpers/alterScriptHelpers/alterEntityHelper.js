@@ -15,6 +15,8 @@ const {
 } = require('./generalHelper');
 const { hydrateKeys } = require('./tableKeysHelper');
 const { replaceSpaceWithUnderscore } = require('../generalHelper');
+const { getModifyPkConstraintsScripts } = require('./primaryKeyHelper');
+const { getIsPkOrFkConstraintAvailable } = require('../constraintHelper');
 
 const tableProperties = [
 	'compositePartitionKey',
@@ -136,11 +138,12 @@ const generateModifyCollectionScript = (entity, definitions, provider) => {
 	return { type: 'modified', script: provider.alterTable(hydratedAlterTable) };
 };
 
-const getAddCollectionsScripts = definitions => entity => {
+const getAddCollectionsScripts = (definitions, data) => entity => {
 	const properties = getEntityProperties(entity);
 	const indexes = _.get(entity, 'role.SecIndxs', []);
 	const hydratedCollection = hydrateCollection(entity, definitions);
-	const collectionScript = getTableStatement(...hydratedCollection, null, true);
+	const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
+	const collectionScript = getTableStatement(...hydratedCollection, null, true, isPkOrFkConstraintAvailable);
 	const indexScript = getIndexes(...hydrateAddIndexes(entity, indexes, properties, definitions));
 
 	return prepareScript(collectionScript, indexScript);
@@ -155,14 +158,17 @@ const getDeleteCollectionsScripts = provider => entity => {
 	return prepareScript(...indexScript, collectionScript);
 };
 
-const getModifyCollectionsScripts = (definitions, provider) => entity => {
+const getModifyCollectionsScripts = (definitions, provider, data) => entity => {
 	const properties = getEntityProperties(entity);
 	const { script } = generateModifyCollectionScript(entity, definitions, provider);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);
+	const modifyPKConstraintScripts = getIsPkOrFkConstraintAvailable(data)
+		? getModifyPkConstraintsScripts({ collection: entity, provider })
+		: [];
 
-	return prepareScript(...dropIndexScript, ...script, addIndexScript);
+	return prepareScript(...dropIndexScript, ...script, addIndexScript, ...modifyPKConstraintScripts);
 };
 
 const getAddColumnsScripts = (definitions, provider) => entity => {

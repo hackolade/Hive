@@ -508,6 +508,26 @@ making sure that you maintain a proper JSON format.
 				],
 				"structure": [
 					{
+						"propertyName": "Constraint name",
+						"propertyKeyword": "constraintName",
+						"propertyTooltip": "",
+						"propertyType": "text",
+						"shouldValidate": false,
+						"validation": {
+							"required": false
+						},
+						"dependency": {
+							"type": "not",
+							"values": [
+								{
+									"level": "model",
+									"key": "dbVersion",
+									"value": "1.x"
+								}
+							]
+						}
+					},
+					{
 						"propertyName": "Key",
 						"propertyKeyword": "compositePrimaryKey",
 						"propertyType": "primaryKeySetter",
