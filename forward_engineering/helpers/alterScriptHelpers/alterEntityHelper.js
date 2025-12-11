@@ -16,7 +16,7 @@ const {
 const { hydrateKeys } = require('./tableKeysHelper');
 const { replaceSpaceWithUnderscore } = require('../generalHelper');
 const { getModifyPkConstraintsScripts } = require('./primaryKeyHelper');
-const { getIsPkOrFkConstraintAvailable } = require('../constraintHelper');
+const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('../constraintHelper');
 const { getModifyUkConstraintsScripts } = require('./uniqueKeyHelper');
 
 const tableProperties = [
@@ -183,7 +183,7 @@ const getModifyCollectionsScripts = (definitions, provider, data) => entity => {
 	const modifyPKConstraintScripts = getIsPkOrFkConstraintAvailable(data)
 		? getModifyPkConstraintsScripts({ collection: entity, provider })
 		: [];
-	const modifyUKConstraintScripts = getIsPkOrFkConstraintAvailable(data)
+	const modifyUKConstraintScripts = getIsConstraintAvailable(data)
 		? getModifyUkConstraintsScripts({ collection: entity, provider })
 		: [];
 

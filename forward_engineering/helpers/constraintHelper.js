@@ -194,6 +194,13 @@ const getIsPkOrFkConstraintAvailable = data => {
 	return !data?.modelData?.[0]?.dbVersion?.startsWith('1');
 };
 
+/**
+ * UNIQUE, NOT NULL, DEFAULT and CHECK constraints are available from DB version 3
+ */
+const getIsConstraintAvailable = data => {
+	return !data?.modelData?.[0]?.dbVersion?.startsWith('1') && !data?.modelData?.[0]?.dbVersion?.startsWith('2');
+};
+
 module.exports = {
 	getConstraintOpts,
 	getUniqueKeyStatement,
@@ -202,4 +209,5 @@ module.exports = {
 	getCompositePrimaryKeys,
 	getColumnConstraints,
 	getIsPkOrFkConstraintAvailable,
+	getIsConstraintAvailable,
 };
