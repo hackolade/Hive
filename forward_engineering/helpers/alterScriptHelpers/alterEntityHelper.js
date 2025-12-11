@@ -221,8 +221,8 @@ const getDeleteColumnsScripts = (definitions, provider) => entity => {
 const getModifyColumnsScripts = (definitions, provider) => entity => {
 	const properties = _.get(entity, 'properties', {});
 
-	const hydratedAlterColumnName = hydrateAlterColumns(entity, definitions, properties);
-	const alterColumnScripts = provider.alterTableColumns(hydratedAlterColumnName);
+	const hydratedAlterColumns = hydrateAlterColumns(entity, definitions, properties);
+	const alterColumnScripts = provider.alterTableColumns(hydratedAlterColumns);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);
