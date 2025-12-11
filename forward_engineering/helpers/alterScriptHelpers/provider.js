@@ -24,7 +24,7 @@ module.exports = app => {
 		alterTable(data) {
 			const { alterTableName, tableProperties, serDeProperties, keys } = data;
 			let script = [this.alterTableName(alterTableName || {})];
-			script = script.concat(this.alterTableProperties(tableProperties || {}));
+			script = script.concat(...this.alterTableProperties(tableProperties || {}));
 			script = script.concat(this.alterSerDeProperties(serDeProperties || {}));
 			script = script.concat(this.alterTableKeys(keys || {}));
 			script = script.concat(this.alterTableSkewedBy(keys || {}));
@@ -35,7 +35,7 @@ module.exports = app => {
 			return !oldName || !newName ? '' : assignTemplates(templates.alterTableName, { oldName, newName });
 		},
 
-		alterTableColumnName({ collectionName, columns } = {}) {
+		alterTableColumns({ collectionName, columns } = {}) {
 			if (!collectionName) {
 				return [];
 			}
@@ -43,7 +43,7 @@ module.exports = app => {
 				if (!oldName && !newName && !type) {
 					return '';
 				}
-				return comment
+				return typeof comment === 'string'
 					? assignTemplates(templates.alterTableColumnNameWithComment, {
 							collectionName,
 							oldName,
@@ -58,12 +58,17 @@ module.exports = app => {
 
 		alterTableProperties({ dataProperties, name }) {
 			if (!name) {
-				return '';
+				return [];
 			}
-			const { add: addProperties = '' } = dataProperties;
-			return addProperties.length
-				? assignTemplates(templates.setTableProperties, { name, properties: addProperties })
+			const { add = '', drop = '' } = dataProperties;
+			const addScript = add.length
+				? assignTemplates(templates.setTableProperties, { name, properties: add })
 				: '';
+			const dropScript = drop.length
+				? assignTemplates(templates.unsetTableProperties, { name, properties: drop })
+				: '';
+
+			return [addScript, dropScript].filter(Boolean);
 		},
 
 		setTableProperties({ name, properties } = {}) {
@@ -99,15 +104,6 @@ module.exports = app => {
 			}
 
 			return script;
-		},
-
-		alterView({ dataProperties, name }) {
-			const { add: properties = '' } = dataProperties || {};
-			if (!name) {
-				return '';
-			}
-
-			return properties.length ? assignTemplates(templates.setViewProperties, { name, properties }) : '';
 		},
 
 		alterTableKeys(data) {

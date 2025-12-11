@@ -8,26 +8,34 @@ const getDifferentItems = (newItems = [], oldItems = []) => {
 	};
 };
 
-const hydrateTableProperties = ({ new: newItems, old: oldItems }, name, comment) => {
+const hydrateTableProperties = ({ new: newItems, old: oldItems }, name, commentState) => {
 	const hydrateProperties = properties => (properties || '').split(',').map(prop => prop.trim());
 	const prepareProperties = properties =>
 		properties
 			.filter(Boolean)
-			.map(property => property.replace(/(\S+)=(\S+)/, `'$1'='$2'`))
+			.map(property => property.replace(/(\S+)=((\S|\s)+)/, `'$1'='$2'`))
 			.join(',\n');
-	const commentNew = comment?.new && !_.isEqual(comment?.new, comment?.old) && comment.new;
+
+	const isCommentChanged = !_.isEqual(commentState?.new, commentState?.old);
+	const addCommentProp = isCommentChanged && commentState?.new ? `comment=${commentState?.new}` : '';
+	const dropCommentProp = isCommentChanged && !commentState?.new ? `comment` : '';
+
 	const preparePropertiesName = properties =>
 		properties
-			.map(prop => prop.replace(/(=\S+)/, ''))
-			.map(property => `'${property}'`)
+			.filter(Boolean)
+			.map(prop => `'${prop.replace(/(=\S+)/, '')}'`)
 			.join(', ');
+
 	const newHydrateItems = hydrateProperties(newItems);
 	const oldHydrateItems = hydrateProperties(oldItems);
+
 	const { add, drop } = getDifferentItems(newHydrateItems, oldHydrateItems);
+
 	const dataProperties = {
-		add: prepareProperties([...add, commentNew]),
-		drop: preparePropertiesName(drop),
+		add: prepareProperties([...add, addCommentProp]),
+		drop: preparePropertiesName([...drop, dropCommentProp]),
 	};
+
 	return { dataProperties, name };
 };
 
