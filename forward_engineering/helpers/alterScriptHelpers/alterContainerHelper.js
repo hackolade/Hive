@@ -72,15 +72,15 @@ const getModifyContainerScript = provider => container => {
 		new: getName('new'),
 		old: getName('old'),
 	};
-	const modifyContainerPropertiesScripts = getModifyContainerPropertiesScripts({ provider, container });
 	if (name.new === name.old) {
+		const modifyContainerPropertiesScripts = getModifyContainerPropertiesScripts({ provider, container });
 		return modifyContainerPropertiesScripts.length ? modifyContainerPropertiesScripts : [];
 	}
 	const hydratedDrop = hydrateDrop({ role: { ...(container?.role || {}), name: name.old } });
 	const deletedScript = provider.dropDatabase(hydratedDrop);
 	const addedScript = getAddContainerScript({ role: { ...(container?.role || {}), name: name.new } });
 
-	return [deletedScript, addedScript, ...modifyContainerPropertiesScripts];
+	return [deletedScript, addedScript];
 };
 
 module.exports = {
