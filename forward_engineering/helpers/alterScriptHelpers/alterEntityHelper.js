@@ -79,16 +79,31 @@ const hydrateAlterTable = (collection, fullCollectionName, definition) => {
 	};
 };
 
-const hydrateAlterColumnName = (entity, definitions, properties = {}) => {
+const hydrateAlterColumns = (entity, definitions, properties = {}) => {
 	const collectionName = generateFullEntityName(entity);
 	const columns = Object.values(properties).map(property => {
 		const compMod = _.get(property, 'compMod', {});
 		const { newField = {}, oldField = {} } = compMod;
+
 		const newType = getTypeByProperty(definitions)({ ...property, ...newField });
 		const oldType = getTypeByProperty(definitions)({ ...property, ...oldField });
+
 		const oldName = oldField.name;
 		const newName = newField.name;
-		return oldName !== newName || newType !== oldType ? { type: newType, oldName, newName } : null;
+
+		const newComment = property.description || '';
+		const oldComment = entity.role.properties[oldName]?.description || '';
+
+		const isCommentChanged = newComment !== oldComment;
+		const isColumnChanged = oldName !== newName || newType !== oldType || isCommentChanged;
+
+		const column = isColumnChanged ? { type: newType, oldName, newName, comment: newComment } : null;
+
+		if (column && isCommentChanged) {
+			return { ...column, comment: newComment };
+		}
+
+		return column;
 	});
 	return { collectionName, columns: columns.filter(Boolean) };
 };
@@ -206,8 +221,8 @@ const getDeleteColumnsScripts = (definitions, provider) => entity => {
 const getModifyColumnsScripts = (definitions, provider) => entity => {
 	const properties = _.get(entity, 'properties', {});
 
-	const hydratedAlterColumnName = hydrateAlterColumnName(entity, definitions, properties);
-	const alterColumnScripts = provider.alterTableColumnName(hydratedAlterColumnName);
+	const hydratedAlterColumns = hydrateAlterColumns(entity, definitions, properties);
+	const alterColumnScripts = provider.alterTableColumns(hydratedAlterColumns);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);
