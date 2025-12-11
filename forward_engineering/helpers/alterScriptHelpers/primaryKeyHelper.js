@@ -49,7 +49,7 @@ const getDropCompositePkScripts = ({ collection, provider }) => {
 		const pkConstraintName = oldPk.constraintName || getDefaultPkConstraintName(collection);
 		const constraintName = prepareName(pkConstraintName);
 
-		return provider.assignTemplates(templates.dropPkConstraint, {
+		return provider.assignTemplates(templates.dropConstraint, {
 			tableName,
 			constraintName,
 		});
@@ -107,7 +107,7 @@ const getDropPkScripts = ({ collection, provider }) => {
 			return wasTheFieldARegularPrimaryKey && isNotAPrimaryKey;
 		})
 		.map(([name, jsonSchema]) => {
-			return provider.assignTemplates(templates.dropPkConstraint, {
+			return provider.assignTemplates(templates.dropConstraint, {
 				tableName,
 				constraintName,
 			});
