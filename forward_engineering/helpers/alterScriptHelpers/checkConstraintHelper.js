@@ -3,7 +3,7 @@ const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
 
-const postfix = 'nn';
+const postfix = 'check';
 
 const didCompositeCheckConstraintsChange = collection => {
 	const checkConstraintsDto = collection?.role?.compMod?.chkConstr || {};

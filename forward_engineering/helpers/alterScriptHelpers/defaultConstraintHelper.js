@@ -3,7 +3,7 @@ const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
 
-const postfix = 'nn';
+const postfix = 'default';
 
 const getModifyDefaultValueConstraintsScripts = ({ collection, provider, definitions }) => {
 	const tableName = generateFullEntityName(collection);
