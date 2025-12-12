@@ -71,34 +71,30 @@ const getCreateStatement = ({
 	)(true, ';')();
 };
 
-const getPrimaryKeyStatement = (
-	jsonSchema,
-	keysNames,
-	deactivatedColumnNames,
-	isParentItemActivated,
-	areColumnConstraintsAvailable,
-) => {
-	const getStatement = (keys, constraintOptsStatement) => `PRIMARY KEY (${keys})${constraintOptsStatement}`;
+const getPrimaryKeyStatement = (jsonSchema, keysNames, deactivatedColumnNames, isParentItemActivated) => {
 	const options = (jsonSchema.primaryKey || [])[0] || {};
-	const { rely, noValidateSpecification } = options;
+	const { rely, noValidateSpecification, constraintName } = options;
 	const constraintOptsStatement = constraintHelper.getConstraintOpts({
-		noValidateSpecification: areColumnConstraintsAvailable ? noValidateSpecification : 'NOVALIDATE',
+		noValidateSpecification,
 		rely,
 		enableSpecification: 'DISABLE',
 	});
+	const constraintNameStatement = constraintName ? `CONSTRAINT ${constraintName} ` : '';
+
+	const getStatement = keys => `${constraintNameStatement}PRIMARY KEY (${keys})${constraintOptsStatement}`;
 
 	if (!Array.isArray(keysNames) || !keysNames.length) {
 		return '';
 	}
 	if (!isParentItemActivated) {
-		return getStatement(keysNames.join(', '), constraintOptsStatement);
+		return getStatement(keysNames.join(', '));
 	}
 
 	const { isAllKeysDeactivated, keysString } = commentDeactivatedInlineKeys(keysNames, deactivatedColumnNames);
 	if (isAllKeysDeactivated) {
-		return '-- ' + getStatement(keysString, constraintOptsStatement);
+		return '-- ' + getStatement(keysString);
 	}
-	return getStatement(keysString, constraintOptsStatement);
+	return getStatement(keysString);
 };
 
 const getClusteringKeys = (clusteredKeys, deactivatedColumnNames, isParentItemActivated) => {
@@ -244,7 +240,7 @@ const getTableStatement = (
 	definitions,
 	foreignKeyStatement,
 	areColumnConstraintsAvailable,
-	areForeignPrimaryKeyConstraintsAvailable,
+	isPkOrFkConstraintAvailable,
 ) => {
 	const dbName = replaceSpaceWithUnderscore(getName(getTab(0, containerData)));
 	const tableData = getTab(0, entityData);
@@ -264,20 +260,14 @@ const getTableStatement = (
 			removePartitions(columns, keyNames.compositePartitionKey),
 			isTableActivated,
 		),
-		primaryKeyStatement: areForeignPrimaryKeyConstraintsAvailable
-			? getPrimaryKeyStatement(
-					jsonSchema,
-					keyNames.primaryKeys,
-					deactivatedColumnNames,
-					isTableActivated,
-					areColumnConstraintsAvailable,
-				)
+		primaryKeyStatement: isPkOrFkConstraintAvailable
+			? getPrimaryKeyStatement(jsonSchema, keyNames.primaryKeys, deactivatedColumnNames, isTableActivated)
 			: null,
 		uniqueKeyStatement: areColumnConstraintsAvailable
 			? constraintHelper.getUniqueKeyStatement(jsonSchema, deactivatedColumnNames, isTableActivated)
 			: null,
 		checkStatement: areColumnConstraintsAvailable ? constraintHelper.getCheckConstraint(jsonSchema) : null,
-		foreignKeyStatement: areForeignPrimaryKeyConstraintsAvailable ? foreignKeyStatement : null,
+		foreignKeyStatement: isPkOrFkConstraintAvailable ? foreignKeyStatement : null,
 		comment: tableData.description,
 		partitionedByKeys: getPartitionKeyStatement(getPartitionsKeys(columns, keyNames.compositePartitionKey)),
 		clusteredKeys: getClusteringKeys(keyNames.compositeClusteringKey, deactivatedColumnNames, isTableActivated),

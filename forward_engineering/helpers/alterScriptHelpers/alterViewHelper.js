@@ -7,6 +7,7 @@ const {
 	generateFullEntityName,
 	getEntityName,
 } = require('./generalHelper');
+const templates = require('./config/templates');
 
 const viewProperties = ['tableProperties', 'viewTemporary', 'viewOrReplace', 'isGlobal', 'description', 'name', 'code'];
 
@@ -66,15 +67,65 @@ const getDeleteViewsScripts = provider => view => {
 	return provider.dropView({ name, isMaterialized });
 };
 
+const getModifyViewPropertiesScripts = ({ provider, view }) => {
+	const compMod = view.role?.compMod || {};
+	const { newName: viewName } = getEntityName(compMod, 'name');
+	const viewProperties = ['description'];
+
+	const { addProperties, dropProperties } = viewProperties.reduce(
+		(acc, property) => {
+			const oldPropValue = compMod[property]?.old;
+			const newPropValue = compMod[property]?.new;
+
+			if (_.isEqual(oldPropValue, newPropValue)) {
+				return acc;
+			}
+
+			let propName = property;
+
+			if (property === 'description') {
+				propName = 'comment';
+			}
+
+			if (newPropValue) {
+				acc.addProperties.push(`'${propName}'='${newPropValue}'`);
+			} else {
+				acc.dropProperties.push(`'${propName}'`);
+			}
+
+			return acc;
+		},
+		{ addProperties: [], dropProperties: [] },
+	);
+
+	const addScript = addProperties.length
+		? provider.assignTemplates(templates.setViewProperties, {
+				name: viewName,
+				properties: addProperties.join(', '),
+			})
+		: '';
+	const dropScript = dropProperties.length
+		? provider.assignTemplates(templates.unsetViewProperties, {
+				name: viewName,
+				properties: dropProperties.join(', '),
+			})
+		: '';
+
+	return [dropScript, addScript].filter(Boolean);
+};
+
 const getModifyViewsScripts = provider => view => {
 	const compMod = view.role?.compMod || {};
 	const viewName = getEntityName(compMod, 'name');
+
 	if (viewName.newName === viewName.oldName) {
-		return;
+		const modifyViewPropertiesScripts = getModifyViewPropertiesScripts({ provider, view });
+		return modifyViewPropertiesScripts.length ? modifyViewPropertiesScripts : [];
 	}
 	const dropViewScript = getDeleteViewsScripts(provider)(hydrateAlterView(view, viewName.oldName));
 	const hydratedView = hydrateView(hydrateAlterView(view, viewName.newName));
 	const addViewScript = getViewScript(hydratedView);
+
 	return [dropViewScript, addViewScript];
 };
 

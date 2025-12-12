@@ -22,11 +22,13 @@ module.exports = {
 	alterTableColumnName: 'ALTER TABLE ${collectionName} CHANGE ${oldName} ${newName} ${type};',
 
 	alterTableColumnNameWithComment:
-		'ALTER TABLE ${collectionName} CHANGE ${oldName} ${newName} ${type} COMMENT "${comment}";',
+		"ALTER TABLE ${collectionName} CHANGE ${oldName} ${newName} ${type} COMMENT '${comment}';",
 
 	addTableColumns: 'ALTER TABLE ${name} ADD COLUMNS (${columns});',
 
 	setTableProperties: 'ALTER TABLE ${name} SET TBLPROPERTIES (${properties});',
+
+	unsetTableProperties: 'ALTER TABLE ${name} UNSET TBLPROPERTIES IF EXISTS (${properties});',
 
 	alterSerDeProperties: 'ALTER TABLE ${name} SET SERDE ${serDe} WITH SERDEPROPERTIES (${properties});',
 
@@ -50,4 +52,16 @@ module.exports = {
 	dropSkewByStoredAsDirection: 'ALTER TABLE ${name} NOT STORED AS DIRECTORIES;',
 
 	setTableLocation: 'ALTER TABLE ${name} SET LOCATION "${location}";',
+
+	addPkConstraint:
+		'ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} PRIMARY KEY (${columnNames}) DISABLE${noValidate}${rely};',
+
+	dropConstraint: 'ALTER TABLE ${tableName} DROP CONSTRAINT ${constraintName};',
+
+	setContainerProperties: 'ALTER DATABASE ${name} SET DBPROPERTIES (${properties});',
+
+	unsetContainerProperties: 'ALTER DATABASE ${name} UNSET DBPROPERTIES IF EXISTS (${properties});',
+
+	addUkConstraint:
+		'ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} UNIQUE (${columnNames}) DISABLE${noValidate}${rely};',
 };

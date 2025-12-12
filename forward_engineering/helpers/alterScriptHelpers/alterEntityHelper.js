@@ -15,6 +15,9 @@ const {
 } = require('./generalHelper');
 const { hydrateKeys } = require('./tableKeysHelper');
 const { replaceSpaceWithUnderscore } = require('../generalHelper');
+const { getModifyPkConstraintsScripts } = require('./primaryKeyHelper');
+const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('../constraintHelper');
+const { getModifyUkConstraintsScripts } = require('./uniqueKeyHelper');
 
 const tableProperties = [
 	'compositePartitionKey',
@@ -77,16 +80,31 @@ const hydrateAlterTable = (collection, fullCollectionName, definition) => {
 	};
 };
 
-const hydrateAlterColumnName = (entity, definitions, properties = {}) => {
+const hydrateAlterColumns = (entity, definitions) => {
 	const collectionName = generateFullEntityName(entity);
-	const columns = Object.values(properties).map(property => {
+	const columns = Object.values(entity.properties).map(property => {
 		const compMod = _.get(property, 'compMod', {});
 		const { newField = {}, oldField = {} } = compMod;
+
 		const newType = getTypeByProperty(definitions)({ ...property, ...newField });
 		const oldType = getTypeByProperty(definitions)({ ...property, ...oldField });
+
 		const oldName = oldField.name;
 		const newName = newField.name;
-		return oldName !== newName || newType !== oldType ? { type: newType, oldName, newName } : null;
+
+		const newComment = property.description || '';
+		const oldComment = entity.role.properties[oldName]?.description || '';
+
+		const isCommentChanged = newComment !== oldComment;
+		const isColumnChanged = oldName !== newName || newType !== oldType || isCommentChanged;
+
+		const column = isColumnChanged ? { type: newType, oldName, newName } : null;
+
+		if (column && isCommentChanged) {
+			return { ...column, comment: newComment };
+		}
+
+		return column;
 	});
 	return { collectionName, columns: columns.filter(Boolean) };
 };
@@ -136,11 +154,12 @@ const generateModifyCollectionScript = (entity, definitions, provider) => {
 	return { type: 'modified', script: provider.alterTable(hydratedAlterTable) };
 };
 
-const getAddCollectionsScripts = definitions => entity => {
+const getAddCollectionsScripts = (definitions, data) => entity => {
 	const properties = getEntityProperties(entity);
 	const indexes = _.get(entity, 'role.SecIndxs', []);
 	const hydratedCollection = hydrateCollection(entity, definitions);
-	const collectionScript = getTableStatement(...hydratedCollection, null, true);
+	const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
+	const collectionScript = getTableStatement(...hydratedCollection, null, true, isPkOrFkConstraintAvailable);
 	const indexScript = getIndexes(...hydrateAddIndexes(entity, indexes, properties, definitions));
 
 	return prepareScript(collectionScript, indexScript);
@@ -155,14 +174,26 @@ const getDeleteCollectionsScripts = provider => entity => {
 	return prepareScript(...indexScript, collectionScript);
 };
 
-const getModifyCollectionsScripts = (definitions, provider) => entity => {
+const getModifyCollectionsScripts = (definitions, provider, data) => entity => {
 	const properties = getEntityProperties(entity);
 	const { script } = generateModifyCollectionScript(entity, definitions, provider);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);
+	const modifyPKConstraintScripts = getIsPkOrFkConstraintAvailable(data)
+		? getModifyPkConstraintsScripts({ collection: entity, provider })
+		: [];
+	const modifyUKConstraintScripts = getIsConstraintAvailable(data)
+		? getModifyUkConstraintsScripts({ collection: entity, provider })
+		: [];
 
-	return prepareScript(...dropIndexScript, ...script, addIndexScript);
+	return prepareScript(
+		...dropIndexScript,
+		...script,
+		addIndexScript,
+		...modifyPKConstraintScripts,
+		...modifyUKConstraintScripts,
+	);
 };
 
 const getAddColumnsScripts = (definitions, provider) => entity => {
@@ -200,8 +231,8 @@ const getDeleteColumnsScripts = (definitions, provider) => entity => {
 const getModifyColumnsScripts = (definitions, provider) => entity => {
 	const properties = _.get(entity, 'properties', {});
 
-	const hydratedAlterColumnName = hydrateAlterColumnName(entity, definitions, properties);
-	const alterColumnScripts = provider.alterTableColumnName(hydratedAlterColumnName);
+	const hydratedAlterColumns = hydrateAlterColumns(entity, definitions);
+	const alterColumnScripts = provider.alterTableColumns(hydratedAlterColumns);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);

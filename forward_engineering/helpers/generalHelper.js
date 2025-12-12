@@ -51,7 +51,15 @@ const prepareName = (name = '') => {
 const replaceSpaceWithUnderscore = (name = '') => {
 	return name.replace(/\s/g, '_');
 };
-const getName = entity => entity.code || entity.collectionName || entity.name || '';
+const getName = entity =>
+	entity.compMod?.code?.new ||
+	entity.code ||
+	entity.compMod?.collectionName?.new ||
+	entity.collectionName ||
+	entity.compMod?.name?.new ||
+	entity.name ||
+	'';
+
 const getTab = (tabNum, configData) => (Array.isArray(configData) ? configData[tabNum] || {} : {});
 const indentString = (str, tab = 4) =>
 	(str || '')

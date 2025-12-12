@@ -38,35 +38,30 @@ const getAlterContainersScripts = (schema, provider) => {
 	};
 };
 
-const getAlterCollectionsScripts = (schema, definitions, provider) => {
-	const getCollectionScripts = (items, compMode, getScript) =>
-		items.filter(item => item.compMod?.[compMode]).flatMap(getScript);
-
+const getAlterCollectionsScripts = (schema, definitions, provider, data) => {
 	const getColumnScripts = (items, getScript) => items.filter(item => item.properties).flatMap(getScript);
 
-	const addedCollectionsScripts = getCollectionScripts(
-		getItems(schema, 'entities', 'added'),
-		'created',
-		getAddCollectionsScripts(definitions),
-	);
-	const deletedCollectionsScripts = getCollectionScripts(
-		getItems(schema, 'entities', 'deleted'),
-		'deleted',
-		getDeleteCollectionsScripts(provider),
-	);
-	const modifiedCollectionsScripts = getCollectionScripts(
-		getItems(schema, 'entities', 'modified'),
-		'modified',
-		getModifyCollectionsScripts(definitions, provider),
+	const addedCollectionsItems = getItems(schema, 'entities', 'added');
+	const deletedCollectionsItems = getItems(schema, 'entities', 'deleted');
+	const modifiedCollectionsItems = getItems(schema, 'entities', 'modified');
+
+	const addedCollectionsScripts = addedCollectionsItems
+		.filter(item => item.compMod?.created)
+		.flatMap(getAddCollectionsScripts(definitions, data));
+	const deletedCollectionsScripts = deletedCollectionsItems
+		.filter(item => item.compMod?.deleted)
+		.flatMap(getDeleteCollectionsScripts(provider));
+	const modifiedCollectionsScripts = modifiedCollectionsItems.flatMap(
+		getModifyCollectionsScripts(definitions, provider, data),
 	);
 
-	const addedColumnsItems = getItems(schema, 'entities', 'added').filter(item => !item.compMod.created);
+	const addedColumnsItems = addedCollectionsItems.filter(item => !item.compMod?.created);
+	const deletedColumnsItems = deletedCollectionsItems.filter(item => !item.compMod?.deleted);
+
 	const addedColumnsScripts = getColumnScripts(addedColumnsItems, getAddColumnsScripts(definitions, provider));
-
-	const deletedColumnsItems = getItems(schema, 'entities', 'deleted').filter(item => !item.compMod.deleted);
 	const deletedColumnsScripts = getColumnScripts(deletedColumnsItems, getDeleteColumnsScripts(definitions, provider));
 	const modifiedColumnsScripts = getColumnScripts(
-		getItems(schema, 'entities', 'modified'),
+		modifiedCollectionsItems,
 		getModifyColumnsScripts(definitions, provider),
 	);
 
@@ -115,7 +110,7 @@ const getAlterScript = (schema, definitions, data, app, needMinify, sqlFormatter
 	const provider = require('./alterScriptHelpers/provider')(app);
 	let scripts = {
 		...getAlterContainersScripts(schema, provider),
-		...getAlterCollectionsScripts(schema, definitions, provider),
+		...getAlterCollectionsScripts(schema, definitions, provider, data),
 		...getAlterViewsScripts(schema, provider),
 	};
 
