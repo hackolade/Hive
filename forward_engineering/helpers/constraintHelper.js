@@ -199,7 +199,7 @@ const getIsPkOrFkConstraintAvailable = data => {
  */
 const getIsConstraintAvailable = data => {
 	const dbVersion = data?.modelData?.[0]?.dbVersion;
-	return dbVersion && !dbVersion.startsWith('1') && !dbVersion.startsWith('2');
+	return Boolean(dbVersion) && !dbVersion.startsWith('1') && !dbVersion.startsWith('2');
 };
 
 module.exports = {
