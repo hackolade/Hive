@@ -198,7 +198,8 @@ const getIsPkOrFkConstraintAvailable = data => {
  * UNIQUE, NOT NULL, DEFAULT and CHECK constraints are available from DB version 3
  */
 const getIsConstraintAvailable = data => {
-	return !data?.modelData?.[0]?.dbVersion?.startsWith('1') && !data?.modelData?.[0]?.dbVersion?.startsWith('2');
+	const dbVersion = data?.modelData?.[0]?.dbVersion;
+	return dbVersion && !dbVersion.startsWith('1') && !dbVersion.startsWith('2');
 };
 
 module.exports = {
