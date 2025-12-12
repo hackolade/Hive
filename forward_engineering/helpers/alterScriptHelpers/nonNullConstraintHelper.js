@@ -29,6 +29,7 @@ const getModifyNonNullColumnsScripts = ({ collection, provider, definitions }) =
 			columnName,
 			constraintName,
 			type,
+			enable,
 			noValidate,
 			rely,
 		};
