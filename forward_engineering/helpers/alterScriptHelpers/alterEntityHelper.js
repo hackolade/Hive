@@ -80,9 +80,9 @@ const hydrateAlterTable = (collection, fullCollectionName, definition) => {
 	};
 };
 
-const hydrateAlterColumns = (entity, definitions, properties = {}) => {
+const hydrateAlterColumns = (entity, definitions) => {
 	const collectionName = generateFullEntityName(entity);
-	const columns = Object.values(properties).map(property => {
+	const columns = Object.values(entity.properties).map(property => {
 		const compMod = _.get(property, 'compMod', {});
 		const { newField = {}, oldField = {} } = compMod;
 
@@ -98,7 +98,7 @@ const hydrateAlterColumns = (entity, definitions, properties = {}) => {
 		const isCommentChanged = newComment !== oldComment;
 		const isColumnChanged = oldName !== newName || newType !== oldType || isCommentChanged;
 
-		const column = isColumnChanged ? { type: newType, oldName, newName, comment: newComment } : null;
+		const column = isColumnChanged ? { type: newType, oldName, newName } : null;
 
 		if (column && isCommentChanged) {
 			return { ...column, comment: newComment };
@@ -231,7 +231,7 @@ const getDeleteColumnsScripts = (definitions, provider) => entity => {
 const getModifyColumnsScripts = (definitions, provider) => entity => {
 	const properties = _.get(entity, 'properties', {});
 
-	const hydratedAlterColumns = hydrateAlterColumns(entity, definitions, properties);
+	const hydratedAlterColumns = hydrateAlterColumns(entity, definitions);
 	const alterColumnScripts = provider.alterTableColumns(hydratedAlterColumns);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
