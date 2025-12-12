@@ -49,8 +49,15 @@ const compareProperties = ({ new: newProperty, old: oldProperty }) => {
 const getIsChangeProperties = (compMod, properties) =>
 	properties.some(property => compareProperties(compMod[property] || {}));
 
+const getItems = (entity, nameProperty, modify) =>
+	[]
+		.concat(entity.properties?.[nameProperty]?.properties?.[modify]?.items)
+		.filter(Boolean)
+		.map(items => Object.values(items.properties)[0]);
+
 module.exports = {
 	hydrateTableProperties,
 	getDifferentItems,
 	getIsChangeProperties,
+	getItems,
 };

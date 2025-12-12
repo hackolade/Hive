@@ -64,4 +64,9 @@ module.exports = {
 
 	addUkConstraint:
 		'ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} UNIQUE (${columnNames}) DISABLE${noValidate}${rely};',
+
+	addFkConstraint:
+		'ALTER TABLE ${childTableName} ADD CONSTRAINT ${constraintName} FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns})${disableNoValidate};',
+
+	useSchema: 'USE ${schemaName};',
 };
