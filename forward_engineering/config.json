@@ -148,6 +148,114 @@
 			]
 		},
 		{
+			"keyword": "columnNotNullConstraints",
+			"label": "FE_SCRIPT_GENERATION_OPTIONS___COLUMN_NOT_NULL",
+			"disabled": false,
+			"value": {
+				"inline": {
+					"default": true,
+					"disabled": false,
+					"disabledLabel": ""
+				},
+				"separate": {
+					"default": false,
+					"disabled": false,
+					"disabledLabel": ""
+				},
+				"ignore": {
+					"default": false,
+					"disabled": false,
+					"disabledLabel": ""
+				}
+			},
+			"adapters": [
+				{
+					"dependency": {
+						"key": "required",
+						"value": true
+					},
+					"defaultValue": {
+						"required": false
+					}
+				}
+			]
+		},
+		{
+			"keyword": "checkConstraints",
+			"label": "FE_SCRIPT_GENERATION_OPTIONS___CHECK_CONSTRAINTS",
+			"disabled": false,
+			"value": {
+				"inline": {
+					"default": true,
+					"disabled": false,
+					"disabledLabel": ""
+				},
+				"separate": {
+					"default": false,
+					"disabled": false,
+					"disabledLabel": ""
+				},
+				"ignore": {
+					"default": false,
+					"disabled": false,
+					"disabledLabel": ""
+				}
+			},
+			"adapters": [
+				{
+					"dependency": {
+						"key": "check",
+						"exist": true
+					},
+					"defaultValue": {
+						"check": ""
+					}
+				},
+				{
+					"dependency": {
+						"key": "chkConstr",
+						"valueType": "array"
+					},
+					"defaultValue": {
+						"chkConstr": []
+					}
+				}
+			]
+		},
+		{
+			"keyword": "columnDefaultValues",
+			"label": "FE_SCRIPT_GENERATION_OPTIONS___COLUMN_DEFAULT_VALUES",
+			"disabled": false,
+			"value": {
+				"inline": {
+					"default": true,
+					"disabled": false,
+					"disabledLabel": ""
+				},
+				"separate": {
+					"default": false,
+					"disabled": false,
+					"disabledLabel": ""
+				},
+				"ignore": {
+					"default": false,
+					"disabled": false,
+					"disabledLabel": ""
+				}
+			},
+			"adapters": [
+				{
+					"dependency": {
+						"key": "default",
+						"exist": true
+					},
+					"defaultValue": {
+						"default": ""
+					}
+				}
+			]
+		},
+		{
 			"keyword": "schemaComments",
 			"label": "FE_SCRIPT_GENERATION_OPTIONS___SCHEMA_COMMENTS",
 			"disabled": false,
