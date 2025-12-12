@@ -1,15 +1,9 @@
 const _ = require('lodash');
 const { replaceSpaceWithUnderscore, getName, prepareName, commentDeactivatedStatements } = require('../generalHelper');
 const templates = require('./config/templates');
+const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 
-const getEntityNameFromCollection = collection => {
-	const entityData = collection?.role || {};
-	return replaceSpaceWithUnderscore(getName(entityData));
-};
-
-const getDefaultUkConstraintName = collection => {
-	return getEntityNameFromCollection(collection) + '_uk';
-};
+const postfix = 'uk';
 
 const getPropertyNameByGuid = (collection, guid) => {
 	const property = _.toPairs(collection?.role?.properties).find(([name, jsonSchema]) => jsonSchema.GUID === guid);
@@ -41,12 +35,12 @@ const getDropCompositeUkScripts = ({ collection, provider }) => {
 		return [];
 	}
 
-	const tableName = getEntityNameFromCollection(collection);
+	const tableName = generateFullEntityName(collection);
 	const pkDto = collection?.role?.compMod?.uniqueKey || {};
 	const oldUniqueKeys = pkDto.old || [];
 
 	return oldUniqueKeys.map(oldUk => {
-		const pkConstraintName = oldUk.constraintName || getDefaultUkConstraintName(collection);
+		const pkConstraintName = oldUk.constraintName || getDefaultConstraintName(collection, postfix);
 		const constraintName = prepareName(pkConstraintName);
 
 		return provider.assignTemplates(templates.dropConstraint, {
@@ -63,7 +57,7 @@ const getAddCompositeUkScripts = ({ collection, provider }) => {
 		return [];
 	}
 
-	const tableName = getEntityNameFromCollection(collection);
+	const tableName = generateFullEntityName(collection);
 	const pkDto = collection?.role?.compMod?.uniqueKey || {};
 	const newUniqueKeys = pkDto.new || [];
 
@@ -71,7 +65,7 @@ const getAddCompositeUkScripts = ({ collection, provider }) => {
 		const compositeUniqueKey = newUk.compositeUniqueKey || [];
 		const guidsOfColumnsInUk = compositeUniqueKey.map(compositeUkEntry => compositeUkEntry.keyId);
 		const columnNames = getPropertiesNamesByGUIDs(collection, guidsOfColumnsInUk);
-		const pkConstraintName = newUk.constraintName || getDefaultUkConstraintName(collection);
+		const pkConstraintName = newUk.constraintName || getDefaultConstraintName(collection, postfix);
 		const constraintName = prepareName(pkConstraintName);
 		const noValidate = newUk.noValidateSpecification ? ` ${newUk.noValidateSpecification}` : '';
 		const rely = newUk.rely ? ` ${newUk.rely}` : '';
@@ -94,8 +88,8 @@ const getModifyCompositeUkScripts = ({ collection, provider }) => {
 };
 
 const getDropUkScripts = ({ collection, provider }) => {
-	const tableName = getEntityNameFromCollection(collection);
-	const constraintName = getDefaultUkConstraintName(collection);
+	const tableName = generateFullEntityName(collection);
+	const constraintName = getDefaultConstraintName(collection, postfix);
 
 	return _.toPairs(collection.properties)
 		.filter(([name, jsonSchema]) => {
@@ -115,8 +109,8 @@ const getDropUkScripts = ({ collection, provider }) => {
 };
 
 const getAddUkScripts = ({ collection, provider }) => {
-	const tableName = getEntityNameFromCollection(collection);
-	const constraintName = getDefaultUkConstraintName(collection);
+	const tableName = generateFullEntityName(collection);
+	const constraintName = getDefaultConstraintName(collection, postfix);
 
 	return _.toPairs(collection.properties)
 		.filter(([name, jsonSchema]) => {

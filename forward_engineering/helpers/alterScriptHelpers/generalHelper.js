@@ -46,6 +46,12 @@ const hydrateProperty = (entity, compMod, nameProperty) => {
 	return !isEqualProperty(compMod, nameProperty) ? entity?.role?.[nameProperty] : null;
 };
 
+const getDefaultConstraintName = (collection, postfix) => {
+	const entityData = collection?.role || {};
+	const entityName = replaceSpaceWithUnderscore(getName(entityData));
+	return `${entityName}_${postfix}`;
+};
+
 module.exports = {
 	getEntityData,
 	getFullEntityName,
@@ -56,4 +62,5 @@ module.exports = {
 	prepareScript,
 	isEqualProperty,
 	hydrateProperty,
+	getDefaultConstraintName,
 };
