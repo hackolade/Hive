@@ -36,7 +36,7 @@ const getModifyNonNullColumnsScripts = ({ collection, provider, definitions }) =
 
 		const scripts = [];
 
-		if (isNewRequired && !isOldRequired) {
+		if (isNewRequired && !isOldRequired && !jsonSchema.primaryKey) {
 			scripts.push(provider.assignTemplates(templates.addNotNullConstraint, scriptParams));
 		}
 
