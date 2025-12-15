@@ -2,6 +2,7 @@ const _ = require('lodash');
 const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
+const { commentDeactivatedStatements } = require('../generalHelper');
 
 const postfix = 'check';
 
@@ -82,6 +83,7 @@ const getModifyCompositeCheckConstraintsScripts = ({ collection, provider }) => 
 const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definitions }) => {
 	const tableName = generateFullEntityName(collection);
 	const constraintName = getDefaultConstraintName(collection, postfix);
+	const isActivated = collection.role.isActivated;
 
 	const addCheckConstraintsScript = _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
 		const oldName = jsonSchema.compMod.oldField.name;
@@ -116,7 +118,7 @@ const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definiti
 			);
 		}
 
-		return scripts;
+		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
 
 	return addCheckConstraintsScript;

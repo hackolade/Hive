@@ -2,12 +2,14 @@ const _ = require('lodash');
 const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
+const { commentDeactivatedStatements } = require('../generalHelper');
 
 const postfix = 'nn';
 
 const getModifyNonNullColumnsScripts = ({ collection, provider, definitions }) => {
 	const tableName = generateFullEntityName(collection);
 	const constraintName = getDefaultConstraintName(collection, postfix);
+	const isActivated = collection.role.isActivated;
 
 	const currentRequiredColumnNames = collection.required || [];
 	const previousRequiredColumnNames = collection.role.required || [];
@@ -40,7 +42,7 @@ const getModifyNonNullColumnsScripts = ({ collection, provider, definitions }) =
 			scripts.push(provider.assignTemplates(templates.addNotNullConstraint, scriptParams));
 		}
 
-		return scripts;
+		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
 
 	return addNotNullConstraintsScript;
