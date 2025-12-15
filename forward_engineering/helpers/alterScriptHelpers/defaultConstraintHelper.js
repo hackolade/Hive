@@ -9,7 +9,7 @@ const getModifyDefaultValueConstraintsScripts = ({ collection, provider, definit
 	const tableName = generateFullEntityName(collection);
 	const constraintName = getDefaultConstraintName(collection, postfix);
 
-	const addNotNullConstraintsScript = _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
+	const addDefaultConstraintsScript = _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
 		const oldName = jsonSchema.compMod.oldField.name;
 		const newField = jsonSchema.compMod.newField;
 
@@ -45,7 +45,7 @@ const getModifyDefaultValueConstraintsScripts = ({ collection, provider, definit
 		return scripts;
 	});
 
-	return addNotNullConstraintsScript;
+	return addDefaultConstraintsScript;
 };
 
 module.exports = {

@@ -83,7 +83,7 @@ const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definiti
 	const tableName = generateFullEntityName(collection);
 	const constraintName = getDefaultConstraintName(collection, postfix);
 
-	const addNotNullConstraintsScript = _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
+	const addCheckConstraintsScript = _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
 		const oldName = jsonSchema.compMod.oldField.name;
 		const newField = jsonSchema.compMod.newField;
 
@@ -119,7 +119,7 @@ const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definiti
 		return scripts;
 	});
 
-	return addNotNullConstraintsScript;
+	return addCheckConstraintsScript;
 };
 
 const getModifyCheckConstraintsScripts = ({ collection, provider, definitions }) => {
