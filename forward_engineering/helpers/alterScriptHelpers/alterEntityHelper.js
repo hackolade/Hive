@@ -18,6 +18,9 @@ const { replaceSpaceWithUnderscore } = require('../generalHelper');
 const { getModifyPkConstraintsScripts } = require('./primaryKeyHelper');
 const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('../constraintHelper');
 const { getModifyUkConstraintsScripts } = require('./uniqueKeyHelper');
+const { getModifyNonNullColumnsScripts } = require('./nonNullConstraintHelper');
+const { getModifyDefaultValueConstraintsScripts } = require('./defaultConstraintHelper');
+const { getModifyCheckConstraintsScripts } = require('./checkConstraintHelper');
 
 const tableProperties = [
 	'compositePartitionKey',
@@ -236,8 +239,30 @@ const getModifyColumnsScripts = (definitions, provider) => entity => {
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);
+	const modifyNotNullConstraintsScripts = getModifyNonNullColumnsScripts({
+		collection: entity,
+		provider,
+		definitions,
+	});
+	const modifyDefaultValueConstraintsScripts = getModifyDefaultValueConstraintsScripts({
+		collection: entity,
+		provider,
+		definitions,
+	});
+	const modifyCheckConstraintsScripts = getModifyCheckConstraintsScripts({
+		collection: entity,
+		provider,
+		definitions,
+	});
 
-	return prepareScript(...dropIndexScript, ...alterColumnScripts, addIndexScript);
+	return prepareScript(
+		...dropIndexScript,
+		...alterColumnScripts,
+		addIndexScript,
+		...modifyNotNullConstraintsScripts,
+		...modifyDefaultValueConstraintsScripts,
+		...modifyCheckConstraintsScripts,
+	);
 };
 
 module.exports = {

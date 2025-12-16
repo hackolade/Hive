@@ -65,6 +65,18 @@ module.exports = {
 	addUkConstraint:
 		'ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} UNIQUE (${columnNames}) DISABLE${noValidate}${rely};',
 
+	addCheckConstraint:
+		'ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} CHECK (${expression}) ${enable}${noValidate}${rely};',
+
+	addNotNullConstraint:
+		'ALTER TABLE ${tableName} CHANGE ${columnName} ${columnName} ${type} CONSTRAINT ${constraintName} NOT NULL ${enable}${noValidate}${rely};',
+
+	addColumnCheckConstraint:
+		'ALTER TABLE ${tableName} CHANGE ${columnName} ${columnName} ${type} CONSTRAINT ${constraintName} CHECK (${expression}) ${enable}${noValidate}${rely};',
+
+	addDefaultValueConstraint:
+		'ALTER TABLE ${tableName} CHANGE ${columnName} ${columnName} ${type} CONSTRAINT ${constraintName} DEFAULT ${defaultValue} ${enable}${noValidate}${rely};',
+
 	addFkConstraint:
 		'ALTER TABLE ${childTableName} ADD CONSTRAINT ${constraintName} FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns})${disableNoValidate};',
 
