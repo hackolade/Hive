@@ -124,7 +124,7 @@ const getModifyForeignKeyScript = provider => relationship => {
 	);
 };
 
-const getAlterRelationshipsScripts = (schema, provider, initialSchemaName) => {
+const getAlterForeignKeyScripts = (schema, provider, initialSchemaName) => {
 	let currentSchemaName = initialSchemaName;
 
 	const generateAddFkScripts = (addedRelationships, getScript) => {
@@ -184,5 +184,5 @@ const getAlterRelationshipsScripts = (schema, provider, initialSchemaName) => {
 };
 
 module.exports = {
-	getAlterRelationshipsScripts,
+	getAlterForeignKeyScripts,
 };

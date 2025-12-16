@@ -11,7 +11,7 @@ const {
 	getAddColumnsScripts,
 	getModifyColumnsScripts,
 } = require('./alterScriptHelpers/alterEntityHelper');
-const { getAlterRelationshipsScripts } = require('./alterScriptHelpers/alterRelationshipsHelper');
+const { getAlterForeignKeyScripts } = require('./alterScriptHelpers/foreignKeyHelper');
 const {
 	getAddViewsScripts,
 	getDeleteViewsScripts,
@@ -122,13 +122,13 @@ const getAlterScript = (schema, definitions, data, app, needMinify, sqlFormatter
 	const containerScripts = getAlterContainersScripts(schema, provider);
 	const { currentSchemaName, ...collectionScripts } = getAlterCollectionsScripts(schema, definitions, provider, data);
 	const viewScripts = getAlterViewsScripts(schema, provider);
-	const relationshipScripts = getAlterRelationshipsScripts(schema, provider, currentSchemaName);
+	const foreignKeyScripts = getAlterForeignKeyScripts(schema, provider, currentSchemaName);
 
 	let scripts = {
 		...containerScripts,
 		...collectionScripts,
 		...viewScripts,
-		...relationshipScripts,
+		...foreignKeyScripts,
 	};
 
 	scripts = [

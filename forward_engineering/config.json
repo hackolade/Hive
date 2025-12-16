@@ -88,12 +88,12 @@
 			"disabled": false,
 			"value": {
 				"inline": {
-					"default": false,
-					"disabled": true,
+					"default": true,
+					"disabled": false,
 					"disabledLabel": ""
 				},
 				"separate": {
-					"default": true,
+					"default": false,
 					"disabled": false,
 					"disabledLabel": ""
 				},
