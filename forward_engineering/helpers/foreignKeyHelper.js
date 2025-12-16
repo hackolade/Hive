@@ -113,6 +113,18 @@ const getForeignKeyHashTable = ({
 	}, {});
 };
 
+const getForeignKeyConstraint = ({
+	constraintName,
+	childColumns,
+	parentTableName,
+	parentColumns,
+	disableNoValidate,
+}) => {
+	const constraintNameStatement = constraintName ? `CONSTRAINT ${constraintName} ` : '';
+	const statement = `,${constraintNameStatement}FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns}) ${disableNoValidate ? 'DISABLE NOVALIDATE' : ''}`;
+	return statement;
+};
+
 const getForeignKeyStatementsByHashItem = hashItem => {
 	return Object.keys(hashItem || {})
 		.map(groupKey => {
@@ -125,9 +137,14 @@ const getForeignKeyStatementsByHashItem = hashItem => {
 			const childColumns = keys.map(item => item.childColumn).join(', ');
 			const parentColumns = keys.map(item => item.parentColumn).join(', ');
 			const isActivated = firstKey.isActivated;
-			const constraintNameStatement = constraintName ? `CONSTRAINT ${constraintName} ` : '';
 
-			const statement = `,${constraintNameStatement}FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns}) ${disableNoValidate ? 'DISABLE NOVALIDATE' : ''}`;
+			const statement = getForeignKeyConstraint({
+				constraintName,
+				childColumns,
+				parentTableName,
+				parentColumns,
+				disableNoValidate,
+			});
 
 			return commentDeactivatedStatements(statement, isActivated);
 		})
@@ -147,4 +164,5 @@ const getPreparedForeignColumns = (columnsPaths, idToNameHashTable) => {
 module.exports = {
 	getForeignKeyHashTable,
 	getForeignKeyStatementsByHashItem,
+	getForeignKeyConstraint,
 };

@@ -21,6 +21,7 @@ const { getModifyUkConstraintsScripts } = require('./uniqueKeyHelper');
 const { getModifyNonNullColumnsScripts } = require('./nonNullConstraintHelper');
 const { getModifyDefaultValueConstraintsScripts } = require('./defaultConstraintHelper');
 const { getModifyCheckConstraintsScripts } = require('./checkConstraintHelper');
+const { getForeignKeyConstraint } = require('../foreignKeyHelper');
 
 const tableProperties = [
 	'compositePartitionKey',
@@ -157,16 +158,48 @@ const generateModifyCollectionScript = (entity, definitions, provider) => {
 	return { type: 'modified', script: provider.alterTable(hydratedAlterTable) };
 };
 
-const getAddCollectionsScripts = (definitions, data) => entity => {
-	const properties = getEntityProperties(entity);
-	const indexes = _.get(entity, 'role.SecIndxs', []);
-	const hydratedCollection = hydrateCollection(entity, definitions);
-	const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
-	const collectionScript = getTableStatement(...hydratedCollection, null, true, isPkOrFkConstraintAvailable);
-	const indexScript = getIndexes(...hydrateAddIndexes(entity, indexes, properties, definitions));
+const getAddCollectionsScripts =
+	(definitions, data, inlineDeltaRelationships = []) =>
+	entity => {
+		const properties = getEntityProperties(entity);
+		const indexes = _.get(entity, 'role.SecIndxs', []);
+		const hydratedCollection = hydrateCollection(entity, definitions);
+		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
 
-	return prepareScript(collectionScript, indexScript);
-};
+		const foreignKeyConstraints = inlineDeltaRelationships
+			.filter(relationship => relationship.role.childCollection === entity.role.id)
+			.map(relationship => {
+				const compMod = relationship.role.compMod;
+				const relationshipName =
+					compMod.code?.new || compMod.name?.new || relationship.role.code || relationship.role.name || '';
+				const constraintName = relationshipName.includes(' ') ? `\`${relationshipName}\`` : relationshipName;
+				const parentTableName = compMod.parent.collection.name;
+				const childColumns = compMod.child.collection.fkFields.map(field => field.name).join(', ');
+				const parentColumns = compMod.parent.collection.fkFields.map(field => field.name).join(', ');
+				const disableNoValidate = relationship.role?.customProperties?.disableNoValidate;
+
+				const statement = getForeignKeyConstraint({
+					constraintName,
+					childColumns,
+					parentTableName,
+					parentColumns,
+					disableNoValidate,
+				});
+
+				return statement;
+			})
+			.join('\n');
+
+		const collectionScript = getTableStatement(
+			...hydratedCollection,
+			foreignKeyConstraints,
+			true,
+			isPkOrFkConstraintAvailable,
+		);
+		const indexScript = getIndexes(...hydrateAddIndexes(entity, indexes, properties, definitions));
+
+		return prepareScript(collectionScript, indexScript);
+	};
 
 const getDeleteCollectionsScripts = provider => entity => {
 	const entityData = { ...entity, ..._.get(entity, 'role', {}) };
