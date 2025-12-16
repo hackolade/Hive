@@ -14,7 +14,7 @@ const {
 	hydrateProperty,
 } = require('./generalHelper');
 const { hydrateKeys } = require('./tableKeysHelper');
-const { replaceSpaceWithUnderscore } = require('../generalHelper');
+const { prepareName } = require('../generalHelper');
 const { getModifyPkConstraintsScripts } = require('./primaryKeyHelper');
 const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('../constraintHelper');
 const { getModifyUkConstraintsScripts } = require('./uniqueKeyHelper');
@@ -116,7 +116,7 @@ const hydrateAlterColumns = (entity, definitions) => {
 const hydrateDropIndexes = entity => {
 	const indexes = _.get(entity, 'SecIndxs', []);
 	const name = generateFullEntityName(entity);
-	return indexes.map(index => ({ name, indexName: replaceSpaceWithUnderscore(index.name) }));
+	return indexes.map(index => ({ name, indexName: prepareName(index.name) }));
 };
 
 const hydrateAddIndexes = (entity, SecIndxs, properties, definitions) => {

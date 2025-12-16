@@ -8,7 +8,7 @@ const {
 	prepareScript,
 	hydrateProperty,
 } = require('./generalHelper');
-const { replaceSpaceWithUnderscore, prepareName, commentDeactivatedStatements } = require('../generalHelper');
+const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
 
 const templates = require('./config/templates');
 const { getItems } = require('./common');
@@ -20,8 +20,8 @@ const getRelationshipName = relationship => {
 const getFullParentTableName = relationship => {
 	const compMod = relationship.role.compMod;
 
-	const parentDBName = replaceSpaceWithUnderscore(prepareName(compMod.parent.bucket.name));
-	const parentEntityName = replaceSpaceWithUnderscore(compMod.parent.collection.name);
+	const parentDBName = prepareName(compMod.parent.bucket.name);
+	const parentEntityName = prepareName(compMod.parent.collection.name);
 
 	return getFullEntityName(parentDBName, parentEntityName);
 };
@@ -29,8 +29,8 @@ const getFullParentTableName = relationship => {
 const getFullChildTableName = relationship => {
 	const compMod = relationship.role.compMod;
 
-	const childDBName = replaceSpaceWithUnderscore(prepareName(compMod.child.bucket.name));
-	const childEntityName = replaceSpaceWithUnderscore(compMod.child.collection.name);
+	const childDBName = prepareName(compMod.child.bucket.name);
+	const childEntityName = prepareName(compMod.child.collection.name);
 	return getFullEntityName(childDBName, childEntityName);
 };
 
@@ -143,9 +143,7 @@ const getAlterForeignKeyScripts = ({ schema, provider, currentSchemaName, ignore
 				return [];
 			}
 
-			const schemaName = replaceSpaceWithUnderscore(
-				prepareName(relationship.role.compMod.child.bucket?.name || ''),
-			);
+			const schemaName = prepareName(relationship.role.compMod.child.bucket?.name || '');
 
 			if (currentSchemaName === schemaName) {
 				return [script];

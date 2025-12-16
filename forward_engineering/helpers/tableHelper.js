@@ -3,7 +3,7 @@ const {
 	buildStatement,
 	getName,
 	getTab,
-	replaceSpaceWithUnderscore,
+	prepareName,
 	commentDeactivatedInlineKeys,
 	removeRedundantTrailingCommaFromStatement,
 	encodeStringLiteral,
@@ -242,12 +242,12 @@ const getTableStatement = (
 	areColumnConstraintsAvailable,
 	isPkOrFkConstraintAvailable,
 ) => {
-	const dbName = replaceSpaceWithUnderscore(getName(getTab(0, containerData)));
+	const dbName = prepareName(getName(getTab(0, containerData)));
 	const tableData = getTab(0, entityData);
 	const container = getTab(0, containerData);
 	const isTableActivated =
 		tableData.isActivated && (typeof container.isActivated === 'boolean' ? container.isActivated : true);
-	const tableName = replaceSpaceWithUnderscore(getName(tableData));
+	const tableName = prepareName(getName(tableData));
 	const { columns, deactivatedColumnNames } = getColumns(jsonSchema, areColumnConstraintsAvailable, definitions);
 	const keyNames = keyHelper.getKeyNames(tableData, jsonSchema, definitions, areColumnConstraintsAvailable);
 

@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const schemaHelper = require('./jsonSchemaHelper');
-const { getName, getTab, commentDeactivatedStatements, replaceSpaceWithUnderscore } = require('./generalHelper');
+const { getName, getTab, commentDeactivatedStatements, prepareName } = require('./generalHelper');
 
 const getIdToNameHashTable = (
 	relationships,
@@ -57,21 +57,17 @@ const getForeignKeyHashTable = ({
 		}
 
 		const constraintName = relationship.code || relationship.name;
-		const parentDifferentSchemaName =
-			replaceSpaceWithUnderscore(relatedSchemas[relationship.parentCollection]?.bucketName) || '';
+		const parentDifferentSchemaName = prepareName(relatedSchemas[relationship.parentCollection]?.bucketName) || '';
 		const parentTableData = getTab(0, entityData[relationship.parentCollection]);
 		const parentTableSingleName =
-			replaceSpaceWithUnderscore(
-				getName(parentTableData) || relatedSchemas[relationship.parentCollection]?.collectionName,
-			) || '';
+			prepareName(getName(parentTableData) || relatedSchemas[relationship.parentCollection]?.collectionName) ||
+			'';
 		const parentTableName = parentDifferentSchemaName
 			? `${parentDifferentSchemaName}.${parentTableSingleName}`
 			: parentTableSingleName;
 		const childTableData = getTab(0, entityData[relationship.childCollection]);
 		const childTableName =
-			replaceSpaceWithUnderscore(
-				getName(childTableData) || relatedSchemas[relationship.childCollection]?.collectionName,
-			) || '';
+			prepareName(getName(childTableData) || relatedSchemas[relationship.childCollection]?.collectionName) || '';
 		const groupKey = parentTableName + constraintName;
 		const childFieldActivated = relationship.childField.reduce((isActivated, field) => {
 			const fieldData = schemaHelper.getItemByPath(

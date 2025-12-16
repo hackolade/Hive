@@ -20,9 +20,9 @@ const {
 const { getItems } = require('./alterScriptHelpers/common');
 const { getContainerName } = require('./alterScriptHelpers/generalHelper');
 const { DROP_STATEMENTS } = require('./constants');
-const { commentDeactivatedStatements, replaceSpaceWithUnderscore, prepareName } = require('./generalHelper');
+const { commentDeactivatedStatements, prepareName } = require('./generalHelper');
 
-const getSchemaName = collection => replaceSpaceWithUnderscore(prepareName(getContainerName(collection.role?.compMod)));
+const getSchemaName = collection => prepareName(getContainerName(collection.role?.compMod));
 
 const getAlterContainersScripts = (schema, provider) => {
 	const addedContainerScripts = getItems(schema, 'containers', 'added').map(getAddContainerScript);

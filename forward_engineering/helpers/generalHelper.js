@@ -48,9 +48,7 @@ const prepareName = (name = '') => {
 	}
 	return name;
 };
-const replaceSpaceWithUnderscore = (name = '') => {
-	return name.replace(/\s/g, '_');
-};
+
 const getName = entity =>
 	entity.compMod?.code?.new ||
 	entity.code ||
@@ -143,7 +141,6 @@ module.exports = {
 	indentString,
 	getTypeDescriptor,
 	prepareName,
-	replaceSpaceWithUnderscore,
 	commentDeactivatedStatements,
 	commentDeactivatedInlineKeys,
 	removeRedundantTrailingCommaFromStatement,
