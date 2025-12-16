@@ -37,6 +37,57 @@ const getAlterContainersScripts = (schema, provider) => {
 	};
 };
 
+const sortCollectionsByRelationships = (collections, relationships) => {
+	const collectionToChildren = new Map(); // Map of collection IDs to their children
+	const collectionParentCount = new Map(); // Track how many parents each collection has
+
+	// Initialize maps
+	for (const collection of collections) {
+		collectionToChildren.set(collection.role.id, []);
+		collectionParentCount.set(collection.role.id, 0);
+	}
+
+	for (const relationship of relationships) {
+		const parent = relationship.role.parentCollection;
+		const child = relationship.role.childCollection;
+		if (collectionToChildren.has(parent)) {
+			collectionToChildren.get(parent).push(child);
+		}
+		collectionParentCount.set(child, (collectionParentCount.get(child) || 0) + 1);
+	}
+
+	// Find collections with no parents
+	const queue = collections
+		.filter(collection => collectionParentCount.get(collection.role.id) === 0)
+		.map(collection => collection.role.id);
+
+	const sortedIds = [];
+
+	// Sort collections
+	while (queue.length > 0) {
+		const current = queue.shift();
+		sortedIds.push(current);
+
+		for (const child of collectionToChildren.get(current) || []) {
+			collectionParentCount.set(child, collectionParentCount.get(child) - 1);
+			if (collectionParentCount.get(child) <= 0) {
+				queue.push(child);
+			}
+		}
+	}
+
+	// Add any unvisited collection
+	for (const collection of collections) {
+		if (!sortedIds.includes(collection.role.id)) {
+			sortedIds.unshift(collection.role.id);
+		}
+	}
+
+	// Map back to collection objects in sorted order
+	const idToCollection = Object.fromEntries(collections.map(c => [c.role.id, c]));
+	return sortedIds.map(id => idToCollection[id]);
+};
+
 const getAlterCollectionsScripts = ({ schema, definitions, provider, data, inlineDeltaRelationships }) => {
 	let currentSchemaName = '';
 
@@ -55,11 +106,13 @@ const getAlterCollectionsScripts = ({ schema, definitions, provider, data, inlin
 	const deletedCollectionsItems = getItems(schema, 'entities', 'deleted');
 	const modifiedCollectionsItems = getItems(schema, 'entities', 'modified');
 
-	const addedCollectionsScripts = addedCollectionsItems
-		.filter(item => item.compMod?.created)
-		.flatMap(item =>
-			setCurrentSchemaName(item, getAddCollectionsScripts(definitions, data, inlineDeltaRelationships)),
-		);
+	const addedCollectionsScripts = sortCollectionsByRelationships(
+		addedCollectionsItems.filter(collection => collection.compMod?.created),
+		inlineDeltaRelationships,
+	).flatMap(item =>
+		setCurrentSchemaName(item, getAddCollectionsScripts(definitions, data, inlineDeltaRelationships)),
+	);
+
 	const deletedCollectionsScripts = deletedCollectionsItems
 		.filter(item => item.compMod?.deleted)
 		.flatMap(getDeleteCollectionsScripts(provider));
