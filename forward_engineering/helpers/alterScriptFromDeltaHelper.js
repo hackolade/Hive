@@ -11,7 +11,7 @@ const {
 	getAddColumnsScripts,
 	getModifyColumnsScripts,
 } = require('./alterScriptHelpers/alterEntityHelper');
-const { getAlterRelationshipsScripts } = require('./alterScriptHelpers/alterRelationshipsHelper');
+const { getAlterForeignKeyScripts } = require('./alterScriptHelpers/alterForeignKeyHelper');
 const {
 	getAddViewsScripts,
 	getDeleteViewsScripts,
@@ -37,7 +37,7 @@ const getAlterContainersScripts = (schema, provider) => {
 	};
 };
 
-const getAlterCollectionsScripts = (schema, definitions, provider, data) => {
+const getAlterCollectionsScripts = ({ schema, definitions, provider, data, inlineDeltaRelationships }) => {
 	let currentSchemaName = '';
 
 	const setCurrentSchemaName = (entity, getScript) => {
@@ -57,7 +57,9 @@ const getAlterCollectionsScripts = (schema, definitions, provider, data) => {
 
 	const addedCollectionsScripts = addedCollectionsItems
 		.filter(item => item.compMod?.created)
-		.flatMap(item => setCurrentSchemaName(item, getAddCollectionsScripts(definitions, data)));
+		.flatMap(item =>
+			setCurrentSchemaName(item, getAddCollectionsScripts(definitions, data, inlineDeltaRelationships)),
+		);
 	const deletedCollectionsScripts = deletedCollectionsItems
 		.filter(item => item.compMod?.deleted)
 		.flatMap(getDeleteCollectionsScripts(provider));
@@ -117,18 +119,46 @@ const getAlterViewsScripts = (schema, provider) => {
 	};
 };
 
+const getInlineRelationships = ({ schema, options }) => {
+	if (options?.scriptGenerationOptions?.feActiveOptions?.foreignKeys !== 'inline') {
+		return [];
+	}
+
+	const addedCollectionIDs = []
+		.concat(schema.properties?.entities?.properties?.added?.items)
+		.filter(item => item && Object.values(item.properties)?.[0]?.compMod?.created)
+		.map(item => Object.values(item.properties)[0].role.id);
+
+	const addedRelationships = []
+		.concat(schema.properties?.relationships?.properties?.added?.items)
+		.map(item => item && Object.values(item.properties)[0])
+		.filter(r => r?.role?.compMod?.created && addedCollectionIDs.includes(r?.role?.childCollection));
+
+	return addedRelationships;
+};
+
 const getAlterScript = (schema, definitions, data, app, needMinify, sqlFormatter) => {
 	const provider = require('./alterScriptHelpers/provider')(app);
+
+	const inlineDeltaRelationships = getInlineRelationships({ schema, options: data.options });
+	const ignoreRelationshipIDs = inlineDeltaRelationships.map(relationship => relationship.role.id);
+
 	const containerScripts = getAlterContainersScripts(schema, provider);
-	const { currentSchemaName, ...collectionScripts } = getAlterCollectionsScripts(schema, definitions, provider, data);
+	const { currentSchemaName, ...collectionScripts } = getAlterCollectionsScripts({
+		schema,
+		definitions,
+		provider,
+		data,
+		inlineDeltaRelationships,
+	});
 	const viewScripts = getAlterViewsScripts(schema, provider);
-	const relationshipScripts = getAlterRelationshipsScripts(schema, provider, currentSchemaName);
+	const foreignKeyScripts = getAlterForeignKeyScripts({ schema, provider, currentSchemaName, ignoreRelationshipIDs });
 
 	let scripts = {
 		...containerScripts,
 		...collectionScripts,
 		...viewScripts,
-		...relationshipScripts,
+		...foreignKeyScripts,
 	};
 
 	scripts = [

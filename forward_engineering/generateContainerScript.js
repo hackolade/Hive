@@ -8,7 +8,6 @@ const { getTableStatement } = require('./helpers/tableHelper');
 const { getIndexes } = require('./helpers/indexHelper');
 const { buildScript } = require('./helpers/buildScript');
 const { parseEntities } = require('./helpers/parseEntities');
-const { getForeignKeys } = require('./helpers/foreignKeyHelper');
 const { getWorkloadManagementStatements } = require('./helpers/getWorkloadManagementStatements');
 const { getIsPkOrFkConstraintAvailable } = require('./helpers/constraintHelper');
 
@@ -61,6 +60,8 @@ const generateContainerScript = (data, logger, callback, app) => {
 		});
 
 		const entities = data.entities.reduce((result, entityId) => {
+			const foreignKeys = foreignKeyHelper.getForeignKeyStatementsByHashItem(foreignKeyHashTable[entityId] || {});
+
 			const args = [
 				containerData,
 				data.entityData[entityId],
@@ -69,22 +70,14 @@ const generateContainerScript = (data, logger, callback, app) => {
 			];
 
 			return result.concat([
-				getTableStatement(...args, null, areColumnConstraintsAvailable, isPkOrFkConstraintAvailable),
+				getTableStatement(...args, foreignKeys, areColumnConstraintsAvailable, isPkOrFkConstraintAvailable),
 				getIndexes(...args, areColumnConstraintsAvailable),
 			]);
 		}, []);
 
-		const foreignKeys = getForeignKeys(data, foreignKeyHashTable, isPkOrFkConstraintAvailable);
-
 		callback(
 			null,
-			buildScript(needMinify)(
-				...workloadManagementStatements,
-				databaseStatement,
-				...entities,
-				...viewsScripts,
-				foreignKeys,
-			),
+			buildScript(needMinify)(...workloadManagementStatements, databaseStatement, ...entities, ...viewsScripts),
 		);
 	} catch (e) {
 		logger.log('error', { message: e.message, stack: e.stack }, 'Hive Forward-Engineering Error');

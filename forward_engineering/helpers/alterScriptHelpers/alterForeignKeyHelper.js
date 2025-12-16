@@ -124,9 +124,7 @@ const getModifyForeignKeyScript = provider => relationship => {
 	);
 };
 
-const getAlterRelationshipsScripts = (schema, provider, initialSchemaName) => {
-	let currentSchemaName = initialSchemaName;
-
+const getAlterForeignKeyScripts = ({ schema, provider, currentSchemaName, ignoreRelationshipIDs = [] }) => {
 	const generateAddFkScripts = (addedRelationships, getScript) => {
 		return addedRelationships.filter(relationship => canRelationshipBeAdded(relationship)).flatMap(getScript);
 	};
@@ -162,10 +160,10 @@ const getAlterRelationshipsScripts = (schema, provider, initialSchemaName) => {
 	};
 
 	const deletedRelationships = getItems(schema, 'relationships', 'deleted').filter(
-		relationship => relationship.role?.compMod?.deleted,
+		relationship => relationship.role?.compMod?.deleted && !ignoreRelationshipIDs.includes(relationship?.role?.id),
 	);
 	const addedRelationships = getItems(schema, 'relationships', 'added').filter(
-		relationship => relationship.role?.compMod?.created,
+		relationship => relationship.role?.compMod?.created && !ignoreRelationshipIDs.includes(relationship?.role?.id),
 	);
 	const modifiedRelationships = getItems(schema, 'relationships', 'modified');
 
@@ -184,5 +182,5 @@ const getAlterRelationshipsScripts = (schema, provider, initialSchemaName) => {
 };
 
 module.exports = {
-	getAlterRelationshipsScripts,
+	getAlterForeignKeyScripts,
 };

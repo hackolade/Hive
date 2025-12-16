@@ -113,6 +113,18 @@ const getForeignKeyHashTable = ({
 	}, {});
 };
 
+const getForeignKeyConstraint = ({
+	constraintName,
+	childColumns,
+	parentTableName,
+	parentColumns,
+	disableNoValidate,
+}) => {
+	const constraintNameStatement = constraintName ? `CONSTRAINT ${constraintName} ` : '';
+	const statement = `,${constraintNameStatement}FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns}) ${disableNoValidate ? 'DISABLE NOVALIDATE' : ''}`;
+	return statement;
+};
+
 const getForeignKeyStatementsByHashItem = hashItem => {
 	return Object.keys(hashItem || {})
 		.map(groupKey => {
@@ -121,13 +133,18 @@ const getForeignKeyStatementsByHashItem = hashItem => {
 			const keyName = firstKey.code || firstKey.name || '';
 			const constraintName = keyName.includes(' ') ? `\`${keyName}\`` : keyName;
 			const parentTableName = firstKey.parentTableName;
-			const childTableName = firstKey.childTableName;
 			const disableNoValidate = keys.some(item => item?.disableNoValidate);
 			const childColumns = keys.map(item => item.childColumn).join(', ');
 			const parentColumns = keys.map(item => item.parentColumn).join(', ');
 			const isActivated = firstKey.isActivated;
 
-			const statement = `ALTER TABLE ${childTableName} ADD CONSTRAINT ${constraintName} FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns}) ${disableNoValidate ? 'DISABLE NOVALIDATE' : ''};`;
+			const statement = getForeignKeyConstraint({
+				constraintName,
+				childColumns,
+				parentTableName,
+				parentColumns,
+				disableNoValidate,
+			});
 
 			return commentDeactivatedStatements(statement, isActivated);
 		})
@@ -144,29 +161,8 @@ const getPreparedForeignColumns = (columnsPaths, idToNameHashTable) => {
 	}
 };
 
-const getForeignKeys = (data, foreignKeyHashTable, areForeignPrimaryKeyConstraintsAvailable) => {
-	if (!areForeignPrimaryKeyConstraintsAvailable) {
-		return null;
-	}
-
-	const dbName = replaceSpaceWithUnderscore(getName(getTab(0, data.containerData)));
-
-	const foreignKeysStatements = data.entities
-		.reduce((result, entityId) => {
-			const foreignKeyStatement = getForeignKeyStatementsByHashItem(foreignKeyHashTable[entityId] || {});
-
-			if (foreignKeyStatement) {
-				return [...result, foreignKeyStatement];
-			}
-
-			return result;
-		}, [])
-		.join('\n');
-
-	return foreignKeysStatements ? `\nUSE ${dbName};${foreignKeysStatements}` : '';
-};
-
 module.exports = {
 	getForeignKeyHashTable,
-	getForeignKeys,
+	getForeignKeyStatementsByHashItem,
+	getForeignKeyConstraint,
 };
