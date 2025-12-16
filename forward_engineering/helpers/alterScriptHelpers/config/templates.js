@@ -76,4 +76,9 @@ module.exports = {
 
 	addDefaultValueConstraint:
 		'ALTER TABLE ${tableName} CHANGE ${columnName} ${columnName} ${type} CONSTRAINT ${constraintName} DEFAULT ${defaultValue} ${enable}${noValidate}${rely};',
+
+	addFkConstraint:
+		'ALTER TABLE ${childTableName} ADD CONSTRAINT ${constraintName} FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns})${disableNoValidate};',
+
+	useSchema: 'USE ${schemaName};',
 };

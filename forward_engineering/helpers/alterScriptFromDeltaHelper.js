@@ -11,19 +11,18 @@ const {
 	getAddColumnsScripts,
 	getModifyColumnsScripts,
 } = require('./alterScriptHelpers/alterEntityHelper');
+const { getAlterRelationshipsScripts } = require('./alterScriptHelpers/alterRelationshipsHelper');
 const {
 	getAddViewsScripts,
 	getDeleteViewsScripts,
 	getModifyViewsScripts,
 } = require('./alterScriptHelpers/alterViewHelper');
+const { getItems } = require('./alterScriptHelpers/common');
+const { getContainerName } = require('./alterScriptHelpers/generalHelper');
 const { DROP_STATEMENTS } = require('./constants');
-const { commentDeactivatedStatements } = require('./generalHelper');
+const { commentDeactivatedStatements, replaceSpaceWithUnderscore, prepareName } = require('./generalHelper');
 
-const getItems = (entity, nameProperty, modify) =>
-	[]
-		.concat(entity.properties?.[nameProperty]?.properties?.[modify]?.items)
-		.filter(Boolean)
-		.map(items => Object.values(items.properties)[0]);
+const getSchemaName = collection => replaceSpaceWithUnderscore(prepareName(getContainerName(collection.role?.compMod)));
 
 const getAlterContainersScripts = (schema, provider) => {
 	const addedContainerScripts = getItems(schema, 'containers', 'added').map(getAddContainerScript);
@@ -39,7 +38,18 @@ const getAlterContainersScripts = (schema, provider) => {
 };
 
 const getAlterCollectionsScripts = (schema, definitions, provider, data) => {
-	const getColumnScripts = (items, getScript) => items.filter(item => item.properties).flatMap(getScript);
+	let currentSchemaName = '';
+
+	const setCurrentSchemaName = (entity, getScript) => {
+		const script = getScript(entity);
+
+		currentSchemaName = getSchemaName(entity);
+
+		return script;
+	};
+
+	const getColumnScripts = (items, getScript) =>
+		items.filter(item => item.properties).flatMap(item => setCurrentSchemaName(item, getScript));
 
 	const addedCollectionsItems = getItems(schema, 'entities', 'added');
 	const deletedCollectionsItems = getItems(schema, 'entities', 'deleted');
@@ -47,12 +57,12 @@ const getAlterCollectionsScripts = (schema, definitions, provider, data) => {
 
 	const addedCollectionsScripts = addedCollectionsItems
 		.filter(item => item.compMod?.created)
-		.flatMap(getAddCollectionsScripts(definitions, data));
+		.flatMap(item => setCurrentSchemaName(item, getAddCollectionsScripts(definitions, data)));
 	const deletedCollectionsScripts = deletedCollectionsItems
 		.filter(item => item.compMod?.deleted)
 		.flatMap(getDeleteCollectionsScripts(provider));
-	const modifiedCollectionsScripts = modifiedCollectionsItems.flatMap(
-		getModifyCollectionsScripts(definitions, provider, data),
+	const modifiedCollectionsScripts = modifiedCollectionsItems.flatMap(item =>
+		setCurrentSchemaName(item, getModifyCollectionsScripts(definitions, provider, data)),
 	);
 
 	const addedColumnsItems = addedCollectionsItems.filter(item => !item.compMod?.created);
@@ -72,6 +82,7 @@ const getAlterCollectionsScripts = (schema, definitions, provider, data) => {
 		addedColumnsScripts,
 		deletedColumnsScripts,
 		modifiedColumnsScripts,
+		currentSchemaName,
 	};
 };
 
@@ -108,10 +119,16 @@ const getAlterViewsScripts = (schema, provider) => {
 
 const getAlterScript = (schema, definitions, data, app, needMinify, sqlFormatter) => {
 	const provider = require('./alterScriptHelpers/provider')(app);
+	const containerScripts = getAlterContainersScripts(schema, provider);
+	const { currentSchemaName, ...collectionScripts } = getAlterCollectionsScripts(schema, definitions, provider, data);
+	const viewScripts = getAlterViewsScripts(schema, provider);
+	const relationshipScripts = getAlterRelationshipsScripts(schema, provider, currentSchemaName);
+
 	let scripts = {
-		...getAlterContainersScripts(schema, provider),
-		...getAlterCollectionsScripts(schema, definitions, provider, data),
-		...getAlterViewsScripts(schema, provider),
+		...containerScripts,
+		...collectionScripts,
+		...viewScripts,
+		...relationshipScripts,
 	};
 
 	scripts = [
@@ -127,6 +144,9 @@ const getAlterScript = (schema, definitions, data, app, needMinify, sqlFormatter
 		'addedViewScripts',
 		'modifiedViewScripts',
 		'deletedContainerScripts',
+		'deleteFkScripts',
+		'addFkScripts',
+		'modifiedFkScripts',
 	]
 		.flatMap(name => scripts[name] || [])
 		.filter(Boolean)
