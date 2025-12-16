@@ -124,17 +124,7 @@ const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definiti
 	return addCheckConstraintsScript;
 };
 
-const getModifyCheckConstraintsScripts = ({ collection, provider, definitions }) => {
-	const modifyColumnCheckConstraintsScripts = getModifyColumnCheckConstraintsScripts({
-		collection,
-		provider,
-		definitions,
-	});
-	const modifyTableCheckConstraintsScripts = getModifyCompositeCheckConstraintsScripts({ collection, provider });
-
-	return [...modifyColumnCheckConstraintsScripts, ...modifyTableCheckConstraintsScripts];
-};
-
 module.exports = {
-	getModifyCheckConstraintsScripts,
+	getModifyColumnCheckConstraintsScripts,
+	getModifyCompositeCheckConstraintsScripts,
 };
