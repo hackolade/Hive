@@ -106,13 +106,13 @@ const getAlterCollectionsScripts = ({ schema, definitions, provider, data, inlin
 	const deletedCollectionsItems = getItems(schema, 'entities', 'deleted');
 	const modifiedCollectionsItems = getItems(schema, 'entities', 'modified');
 
-	const addedCollectionsScripts = addedCollectionsItems;
-	sortCollectionsByRelationships(
+	const addedCollectionsScripts = sortCollectionsByRelationships(
 		addedCollectionsItems.filter(collection => collection.compMod?.created),
 		inlineDeltaRelationships,
 	).flatMap(item =>
 		setCurrentSchemaName(item, getAddCollectionsScripts(definitions, data, inlineDeltaRelationships)),
 	);
+
 	const deletedCollectionsScripts = deletedCollectionsItems
 		.filter(item => item.compMod?.deleted)
 		.flatMap(getDeleteCollectionsScripts(provider));
