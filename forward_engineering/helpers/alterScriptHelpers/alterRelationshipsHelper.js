@@ -1,0 +1,188 @@
+const {
+	getFullEntityName,
+	generateFullEntityName,
+	getEntityProperties,
+	getContainerName,
+	getEntityData,
+	getEntityName,
+	prepareScript,
+	hydrateProperty,
+} = require('./generalHelper');
+const { replaceSpaceWithUnderscore, prepareName, commentDeactivatedStatements } = require('../generalHelper');
+
+const templates = require('./config/templates');
+const { getItems } = require('./common');
+
+const getRelationshipName = relationship => {
+	return relationship.role.code || relationship.role.name;
+};
+
+const getFullParentTableName = relationship => {
+	const compMod = relationship.role.compMod;
+
+	const parentDBName = replaceSpaceWithUnderscore(prepareName(compMod.parent.bucket.name));
+	const parentEntityName = replaceSpaceWithUnderscore(compMod.parent.collection.name);
+
+	return getFullEntityName(parentDBName, parentEntityName);
+};
+
+const getFullChildTableName = relationship => {
+	const compMod = relationship.role.compMod;
+
+	const childDBName = replaceSpaceWithUnderscore(prepareName(compMod.child.bucket.name));
+	const childEntityName = replaceSpaceWithUnderscore(compMod.child.collection.name);
+	return getFullEntityName(childDBName, childEntityName);
+};
+
+const getAddSingleForeignKeyScript = provider => relationship => {
+	const compMod = relationship.role.compMod;
+	const parentTableName = getFullParentTableName(relationship);
+	const childTableName = getFullChildTableName(relationship);
+
+	const relationshipName = compMod.code?.new || compMod.name?.new || getRelationshipName(relationship) || '';
+	const constraintName = relationshipName.includes(' ') ? `\`${relationshipName}\`` : relationshipName;
+	const childColumns = compMod.child.collection.fkFields.map(field => prepareName(field.name));
+	const parentColumns = compMod.parent.collection.fkFields.map(field => prepareName(field.name));
+	const disableNoValidate = relationship.role?.compMod?.customProperties?.new?.disableNoValidate;
+	const disableNoValidateClause = disableNoValidate ? ' DISABLE NOVALIDATE' : '';
+
+	return provider.assignTemplates(templates.addFkConstraint, {
+		childTableName,
+		constraintName,
+		childColumns,
+		parentTableName,
+		parentColumns,
+		disableNoValidate: disableNoValidateClause,
+	});
+};
+
+const canRelationshipBeAdded = relationship => {
+	const compMod = relationship.role.compMod;
+	if (!compMod) {
+		return false;
+	}
+	return [
+		compMod.code?.new || compMod.name?.new || getRelationshipName(relationship),
+		compMod.parent?.bucket,
+		compMod.parent?.collection,
+		compMod.parent?.collection?.fkFields?.length,
+		compMod.child?.bucket,
+		compMod.child?.collection,
+		compMod.child?.collection?.fkFields?.length,
+	].every(property => Boolean(property));
+};
+
+const getAddForeignKeyScript = provider => relationship => {
+	const script = getAddSingleForeignKeyScript(provider)(relationship);
+	const isActivated = Boolean(relationship.role?.compMod?.isActivated?.new);
+
+	return commentDeactivatedStatements(script, isActivated);
+};
+
+const getDeleteSingleForeignKeyScript = provider => relationship => {
+	const compMod = relationship.role.compMod;
+	const tableName = getFullChildTableName(relationship);
+	const relationshipName = compMod.code?.old || compMod.name?.old || getRelationshipName(relationship) || '';
+	const constraintName = prepareName(relationshipName);
+
+	return provider.assignTemplates(templates.dropConstraint, {
+		tableName,
+		constraintName,
+	});
+};
+
+const canRelationshipBeDeleted = relationship => {
+	const compMod = relationship.role.compMod;
+	if (!compMod) {
+		return false;
+	}
+	return [
+		compMod.code?.old || compMod.name?.old || getRelationshipName(relationship),
+		compMod.child?.bucket,
+		compMod.child?.collection,
+	].every(property => Boolean(property));
+};
+
+const getDeleteForeignKeyScripts = provider => deletedRelationships => {
+	return deletedRelationships
+		.filter(relationship => canRelationshipBeDeleted(relationship))
+		.map(relationship => {
+			const script = getDeleteSingleForeignKeyScript(provider)(relationship);
+			const isActivated = Boolean(relationship.role?.compMod?.isActivated?.new);
+
+			return commentDeactivatedStatements(script, isActivated);
+		});
+};
+
+const getModifyForeignKeyScript = provider => relationship => {
+	const deleteScript = getDeleteSingleForeignKeyScript(provider)(relationship);
+	const addScript = getAddSingleForeignKeyScript(provider)(relationship);
+	const isActivated = Boolean(relationship.role?.compMod?.isActivated?.new);
+
+	return (
+		commentDeactivatedStatements(deleteScript, isActivated) + commentDeactivatedStatements(addScript, isActivated)
+	);
+};
+
+const getAlterRelationshipsScripts = (schema, provider, initialSchemaName) => {
+	let currentSchemaName = initialSchemaName;
+
+	const generateAddFkScripts = (addedRelationships, getScript) => {
+		return addedRelationships.filter(relationship => canRelationshipBeAdded(relationship)).flatMap(getScript);
+	};
+
+	const generateModifyFkScripts = (modifiedRelationships, getScript) => {
+		return modifiedRelationships
+			.filter(relationship => canRelationshipBeAdded(relationship) && canRelationshipBeDeleted(relationship))
+			.flatMap(getScript);
+	};
+
+	const getRelationshipsScriptsWithUseSchema = (relationships, processRelationships, getScript) => {
+		return processRelationships(relationships, relationship => {
+			const script = getScript(provider)(relationship);
+
+			if (!script) {
+				return [];
+			}
+
+			const schemaName = replaceSpaceWithUnderscore(
+				prepareName(relationship.role.compMod.child.bucket?.name || ''),
+			);
+
+			if (currentSchemaName === schemaName) {
+				return [script];
+			}
+
+			currentSchemaName = schemaName;
+
+			const useSchemaScript = provider.assignTemplates(templates.useSchema, { schemaName });
+
+			return [useSchemaScript, script];
+		});
+	};
+
+	const deletedRelationships = getItems(schema, 'relationships', 'deleted').filter(
+		relationship => relationship.role?.compMod?.deleted,
+	);
+	const addedRelationships = getItems(schema, 'relationships', 'added').filter(
+		relationship => relationship.role?.compMod?.created,
+	);
+	const modifiedRelationships = getItems(schema, 'relationships', 'modified');
+
+	const deleteFkScripts = getDeleteForeignKeyScripts(provider)(deletedRelationships);
+	const addFkScripts = getRelationshipsScriptsWithUseSchema(
+		addedRelationships,
+		generateAddFkScripts,
+		getAddForeignKeyScript,
+	);
+	const modifiedFkScripts = getRelationshipsScriptsWithUseSchema(
+		modifiedRelationships,
+		generateModifyFkScripts,
+		getModifyForeignKeyScript,
+	);
+	return { deleteFkScripts, addFkScripts, modifiedFkScripts };
+};
+
+module.exports = {
+	getAlterRelationshipsScripts,
+};
