@@ -1,4 +1,4 @@
-const { buildStatement, getName, getTab, replaceSpaceWithUnderscore, encodeStringLiteral } = require('./generalHelper');
+const { buildStatement, getName, getTab, prepareName, encodeStringLiteral } = require('./generalHelper');
 
 const getCreateStatement = ({ name, comment, location, dbProperties, isActivated, ifNotExist }) =>
 	buildStatement(`CREATE DATABASE ${ifNotExist ? 'IF NOT EXISTS ' : ''}${name}`, isActivated)(
@@ -8,7 +8,7 @@ const getCreateStatement = ({ name, comment, location, dbProperties, isActivated
 
 const getDatabaseStatement = containerData => {
 	const tab = getTab(0, containerData);
-	const name = replaceSpaceWithUnderscore(getName(tab));
+	const name = prepareName(getName(tab));
 	if (!name) {
 		return '';
 	}
