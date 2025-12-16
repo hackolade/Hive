@@ -20,7 +20,10 @@ const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('..
 const { getModifyUkConstraintsScripts } = require('./uniqueKeyHelper');
 const { getModifyNonNullColumnsScripts } = require('./nonNullConstraintHelper');
 const { getModifyDefaultValueConstraintsScripts } = require('./defaultConstraintHelper');
-const { getModifyCheckConstraintsScripts } = require('./checkConstraintHelper');
+const {
+	getModifyColumnCheckConstraintsScripts,
+	getModifyCompositeCheckConstraintsScripts,
+} = require('./checkConstraintHelper');
 const { getForeignKeyConstraint } = require('../foreignKeyHelper');
 
 const tableProperties = [
@@ -222,6 +225,11 @@ const getModifyCollectionsScripts = (definitions, provider, data) => entity => {
 	const modifyUKConstraintScripts = getIsConstraintAvailable(data)
 		? getModifyUkConstraintsScripts({ collection: entity, provider })
 		: [];
+	const modifyCheckConstraintsScripts = getModifyCompositeCheckConstraintsScripts({
+		collection: entity,
+		provider,
+		definitions,
+	});
 
 	return prepareScript(
 		...dropIndexScript,
@@ -229,6 +237,7 @@ const getModifyCollectionsScripts = (definitions, provider, data) => entity => {
 		addIndexScript,
 		...modifyPKConstraintScripts,
 		...modifyUKConstraintScripts,
+		...modifyCheckConstraintsScripts,
 	);
 };
 
@@ -282,7 +291,7 @@ const getModifyColumnsScripts = (definitions, provider) => entity => {
 		provider,
 		definitions,
 	});
-	const modifyCheckConstraintsScripts = getModifyCheckConstraintsScripts({
+	const modifyCheckConstraintsScripts = getModifyColumnCheckConstraintsScripts({
 		collection: entity,
 		provider,
 		definitions,
