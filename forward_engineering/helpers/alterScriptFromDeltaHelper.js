@@ -11,7 +11,7 @@ const {
 	getAddColumnsScripts,
 	getModifyColumnsScripts,
 } = require('./alterScriptHelpers/alterEntityHelper');
-const { getAlterForeignKeyScripts } = require('./alterScriptHelpers/foreignKeyHelper');
+const { getAlterForeignKeyScripts } = require('./alterScriptHelpers/alterForeignKeyHelper');
 const {
 	getAddViewsScripts,
 	getDeleteViewsScripts,
