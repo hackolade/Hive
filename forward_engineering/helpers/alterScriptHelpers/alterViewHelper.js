@@ -8,6 +8,7 @@ const {
 	getEntityName,
 } = require('./generalHelper');
 const templates = require('./config/templates');
+const { prepareName } = require('../generalHelper');
 
 const viewProperties = ['tableProperties', 'viewTemporary', 'viewOrReplace', 'isGlobal', 'description', 'name', 'code'];
 
@@ -69,7 +70,10 @@ const getDeleteViewsScripts = provider => view => {
 
 const getModifyViewPropertiesScripts = ({ provider, view }) => {
 	const compMod = view.role?.compMod || {};
-	const { newName: viewName } = getEntityName(compMod, 'name');
+	const bucketName = prepareName(getContainerName(compMod));
+	const { newName } = getEntityName(compMod, 'name');
+	const viewName = prepareName(newName);
+	const viewFullName = bucketName ? `${bucketName}.${viewName}` : viewName;
 	const viewProperties = ['description'];
 
 	const { addProperties, dropProperties } = viewProperties.reduce(
@@ -100,13 +104,13 @@ const getModifyViewPropertiesScripts = ({ provider, view }) => {
 
 	const addScript = addProperties.length
 		? provider.assignTemplates(templates.setViewProperties, {
-				name: viewName,
+				name: viewFullName,
 				properties: addProperties.join(', '),
 			})
 		: '';
 	const dropScript = dropProperties.length
 		? provider.assignTemplates(templates.unsetViewProperties, {
-				name: viewName,
+				name: viewFullName,
 				properties: dropProperties.join(', '),
 			})
 		: '';
