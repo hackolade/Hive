@@ -8,7 +8,7 @@ const {
 	removeRedundantTrailingCommaFromStatement,
 	encodeStringLiteral,
 } = require('./generalHelper');
-const { getColumnsStatement, getColumnStatement, getColumns } = require('./columnHelper');
+const { getColumnsStatement, getColumnStatementParts, getColumns } = require('./columnHelper');
 const keyHelper = require('./keyHelper');
 const constraintHelper = require('./constraintHelper');
 
@@ -129,7 +129,8 @@ const getSortedKeys = (sortedKeys, deactivatedColumnNames, isParentItemActivated
 };
 
 const getPartitionKeyStatement = (keys, isParentActivated) => {
-	const getKeysStatement = keys => keys.map(getColumnStatement).join(',');
+	const getKeysStatement = keys =>
+		keys.map(key => getColumnStatementParts({ column: key }).columnStatement).join(',');
 
 	if (!Array.isArray(keys) || !keys.length) {
 		return '';
@@ -256,10 +257,11 @@ const getTableStatement = (
 		tableName,
 		isTemporary: tableData.temporaryTable,
 		isExternal: tableData.externalTable,
-		columnStatement: getColumnsStatement(
-			removePartitions(columns, keyNames.compositePartitionKey),
-			isTableActivated,
-		),
+		columnStatement: getColumnsStatement({
+			collection: tableData,
+			columns: removePartitions(columns, keyNames.compositePartitionKey),
+			isParentActivated: isTableActivated,
+		}),
 		primaryKeyStatement: isPkOrFkConstraintAvailable
 			? getPrimaryKeyStatement(jsonSchema, keyNames.primaryKeys, deactivatedColumnNames, isTableActivated)
 			: null,

@@ -49,6 +49,7 @@ const getConstraintOpts = ({ noValidateSpecification, enableSpecification, rely 
 const getUniqueKeyStatement = (jsonSchema, isParentItemActivated) => {
 	const getStatement = ({ keys, name, constraintOptsStatement }) =>
 		`CONSTRAINT ${name} UNIQUE (${keys})${constraintOptsStatement}`;
+
 	const getColumnsName = columns => columns.map(column => column.name).join(', ');
 	const hydratedUniqueKeys = hydrateUniqueKeys(jsonSchema);
 
