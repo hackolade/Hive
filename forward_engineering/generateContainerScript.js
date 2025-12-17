@@ -9,7 +9,7 @@ const { getIndexes } = require('./helpers/indexHelper');
 const { buildScript } = require('./helpers/buildScript');
 const { parseEntities } = require('./helpers/parseEntities');
 const { getWorkloadManagementStatements } = require('./helpers/getWorkloadManagementStatements');
-const { getIsPkOrFkConstraintAvailable } = require('./helpers/constraintHelper');
+const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('./helpers/constraintHelper');
 
 const sortEntitiesByForeignKeyDependencies = ({ entities, relationships }) => {
 	const entitySet = new Set(entities);
@@ -62,7 +62,7 @@ const generateContainerScript = (data, logger, callback, app) => {
 			data.internalDefinitions,
 		);
 		const relatedSchemas = parseEntities(data.relatedEntities ?? [], data.relatedSchemas);
-		const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
+		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
 		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 
