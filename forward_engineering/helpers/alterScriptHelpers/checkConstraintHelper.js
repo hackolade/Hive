@@ -3,8 +3,7 @@ const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
 const { commentDeactivatedStatements } = require('../generalHelper');
-
-const postfix = 'check';
+const { CONSTRAINT_POSTFIX } = require('../constants');
 
 const didCompositeCheckConstraintsChange = collection => {
 	const checkConstraintsDto = collection?.role?.compMod?.chkConstr || {};
@@ -33,7 +32,9 @@ const getDropCompositeCheckConstraintsScripts = ({ collection, provider }) => {
 	const oldCheckConstraints = checkConstraintsDto.old || [];
 
 	return oldCheckConstraints.map(oldCheckConstraint => {
-		const constraintName = oldCheckConstraint.constraintName || getDefaultConstraintName(collection, postfix);
+		const constraintName =
+			oldCheckConstraint.constraintName ||
+			getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.check });
 
 		return provider.assignTemplates(templates.dropConstraint, {
 			tableName,
@@ -54,7 +55,9 @@ const getAddCompositeCheckConstraintsScripts = ({ collection, provider }) => {
 	const newCheckConstraints = checkConstraintsDto.new || [];
 
 	return newCheckConstraints.map(newCheckConstraint => {
-		const constraintName = newCheckConstraint.constraintName || getDefaultConstraintName(collection, postfix);
+		const constraintName =
+			newCheckConstraint.constraintName ||
+			getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.check });
 		const expression = newCheckConstraint.checkExpression || '';
 		const enable = newCheckConstraint.enableSpecification ? ` ${newCheckConstraint.enableSpecification}` : '';
 		const noValidate = newCheckConstraint.noValidateSpecification
@@ -82,10 +85,10 @@ const getModifyCompositeCheckConstraintsScripts = ({ collection, provider }) => 
 
 const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definitions }) => {
 	const tableName = generateFullEntityName(collection);
-	const constraintName = getDefaultConstraintName(collection, postfix);
+	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.check });
 	const isActivated = collection.role.isActivated;
 
-	const addCheckConstraintsScript = _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
+	return _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
 		const oldName = jsonSchema.compMod.oldField.name;
 		const newField = jsonSchema.compMod.newField;
 
@@ -120,8 +123,6 @@ const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definiti
 
 		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
-
-	return addCheckConstraintsScript;
 };
 
 module.exports = {

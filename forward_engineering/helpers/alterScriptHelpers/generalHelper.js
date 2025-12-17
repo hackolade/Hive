@@ -25,7 +25,7 @@ const generateFullEntityName = entity => {
 const getEntityProperties = entity => {
 	const propertiesInRole = _.get(entity, 'role.properties', {});
 	const propertiesInEntity = _.get(entity, 'properties', {});
-	return { ...(propertiesInEntity || {}), ...propertiesInRole };
+	return { ...propertiesInEntity, ...propertiesInRole };
 };
 
 const getEntityName = (compMod = {}, type = 'collectionName') => {
@@ -43,13 +43,14 @@ const isEqualProperty = (compMod, nameProperty) => {
 };
 
 const hydrateProperty = (entity, compMod, nameProperty) => {
-	return !isEqualProperty(compMod, nameProperty) ? entity?.role?.[nameProperty] : null;
+	return isEqualProperty(compMod, nameProperty) ? null : entity?.role?.[nameProperty];
 };
 
-const getDefaultConstraintName = (collection, postfix) => {
+const getDefaultConstraintName = ({ collection, column = {}, postfix }) => {
 	const entityData = collection?.role || {};
 	const entityName = prepareName(getName(entityData));
-	return `${entityName}_${postfix}`;
+	const columnName = prepareName(getName(column));
+	return [entityName, columnName, postfix].filter(Boolean).join('_');
 };
 
 module.exports = {

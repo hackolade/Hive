@@ -1,13 +1,4 @@
-const {
-	getFullEntityName,
-	generateFullEntityName,
-	getEntityProperties,
-	getContainerName,
-	getEntityData,
-	getEntityName,
-	prepareScript,
-	hydrateProperty,
-} = require('./generalHelper');
+const { getFullEntityName } = require('./generalHelper');
 const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
 
 const templates = require('./config/templates');
@@ -69,7 +60,7 @@ const canRelationshipBeAdded = relationship => {
 		compMod.child?.bucket,
 		compMod.child?.collection,
 		compMod.child?.collection?.fkFields?.length,
-	].every(property => Boolean(property));
+	].every(Boolean);
 };
 
 const getAddForeignKeyScript = provider => relationship => {
@@ -100,7 +91,7 @@ const canRelationshipBeDeleted = relationship => {
 		compMod.code?.old || compMod.name?.old || getRelationshipName(relationship),
 		compMod.child?.bucket,
 		compMod.child?.collection,
-	].every(property => Boolean(property));
+	].every(Boolean);
 };
 
 const getDeleteForeignKeyScripts = provider => deletedRelationships => {
