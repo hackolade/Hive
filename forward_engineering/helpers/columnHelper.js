@@ -394,7 +394,7 @@ const getColumnConstraintsStatement = ({ collection, column }) => {
 
 	const getConstraint = ({ statement, postfix, noValidate, skipName = false }) => {
 		const constraintName = getDefaultConstraintName({ collection, column, postfix });
-		const columnName = skipName ? '' : ` ${column.name}`;
+		const columnName = skipName ? '' : ` (${column.name})`;
 		return `CONSTRAINT ${constraintName} ${statement}${columnName} ${noValidate}`;
 	};
 
