@@ -432,8 +432,7 @@ const getColumnConstraintsStatement = ({ collection, column }) => {
 	}
 
 	if (defaultValue) {
-		const value = typeof defaultValue === 'string' ? `'${defaultValue}'` : defaultValue;
-		result.inline = ` DEFAULT ${value}`;
+		result.inline = ` DEFAULT ${defaultValue}`;
 	}
 
 	if (check) {
