@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { replaceSpaceWithUnderscore, getName } = require('../generalHelper');
+const { getName, prepareName } = require('../generalHelper');
 
 const getContainerName = compMod => compMod.keyspaceName;
 
@@ -17,8 +17,8 @@ const getFullEntityName = (dbName, entityName) => (dbName ? `${dbName}.${entityN
 const generateFullEntityName = entity => {
 	const compMod = _.get(entity, 'role.compMod', {});
 	const entityData = _.get(entity, 'role', {});
-	const dbName = replaceSpaceWithUnderscore(getContainerName(compMod));
-	const entityName = replaceSpaceWithUnderscore(getName(entityData));
+	const dbName = prepareName(getContainerName(compMod));
+	const entityName = prepareName(getName(entityData));
 	return getFullEntityName(dbName, entityName);
 };
 
@@ -30,8 +30,8 @@ const getEntityProperties = entity => {
 
 const getEntityName = (compMod = {}, type = 'collectionName') => {
 	return {
-		oldName: replaceSpaceWithUnderscore(compMod.code?.old || compMod[type]?.old),
-		newName: replaceSpaceWithUnderscore(compMod.code?.new || compMod[type]?.new),
+		oldName: prepareName(compMod.code?.old || compMod[type]?.old),
+		newName: prepareName(compMod.code?.new || compMod[type]?.new),
 	};
 };
 
@@ -48,7 +48,7 @@ const hydrateProperty = (entity, compMod, nameProperty) => {
 
 const getDefaultConstraintName = (collection, postfix) => {
 	const entityData = collection?.role || {};
-	const entityName = replaceSpaceWithUnderscore(getName(entityData));
+	const entityName = prepareName(getName(entityData));
 	return `${entityName}_${postfix}`;
 };
 

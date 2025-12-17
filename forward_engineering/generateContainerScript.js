@@ -9,7 +9,45 @@ const { getIndexes } = require('./helpers/indexHelper');
 const { buildScript } = require('./helpers/buildScript');
 const { parseEntities } = require('./helpers/parseEntities');
 const { getWorkloadManagementStatements } = require('./helpers/getWorkloadManagementStatements');
-const { getIsPkOrFkConstraintAvailable } = require('./helpers/constraintHelper');
+const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('./helpers/constraintHelper');
+
+const sortEntitiesByForeignKeyDependencies = ({ entities, relationships }) => {
+	const entitySet = new Set(entities);
+	const childrenMap = new Map();
+	const inDegree = new Map();
+
+	entities.forEach(entityId => {
+		inDegree.set(entityId, 0);
+		childrenMap.set(entityId, []);
+	});
+
+	relationships.forEach(relationship => {
+		const { parentCollection, childCollection } = relationship;
+		if (entitySet.has(parentCollection) && entitySet.has(childCollection) && parentCollection !== childCollection) {
+			childrenMap.get(parentCollection).push(childCollection);
+			inDegree.set(childCollection, (inDegree.get(childCollection) || 0) + 1);
+		}
+	});
+
+	const queue = entities.filter(entityId => (inDegree.get(entityId) || 0) === 0);
+	const sorted = [];
+
+	while (queue.length > 0) {
+		const current = queue.shift();
+		sorted.push(current);
+
+		childrenMap.get(current).forEach(child => {
+			const newDegree = (inDegree.get(child) || 0) - 1;
+			inDegree.set(child, newDegree);
+			if (newDegree === 0) {
+				queue.push(child);
+			}
+		});
+	}
+
+	const remaining = entities.filter(entityId => !sorted.includes(entityId));
+	return sorted.concat(remaining);
+};
 
 const generateContainerScript = (data, logger, callback, app) => {
 	try {
@@ -24,7 +62,7 @@ const generateContainerScript = (data, logger, callback, app) => {
 			data.internalDefinitions,
 		);
 		const relatedSchemas = parseEntities(data.relatedEntities ?? [], data.relatedSchemas);
-		const areColumnConstraintsAvailable = data.modelData[0].dbVersion.startsWith('3');
+		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
 		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 
@@ -59,7 +97,12 @@ const generateContainerScript = (data, logger, callback, app) => {
 			relatedSchemas: relatedSchemas,
 		});
 
-		const entities = data.entities.reduce((result, entityId) => {
+		const sortedEntities = sortEntitiesByForeignKeyDependencies({
+			entities: data.entities,
+			relationships: data.relationships,
+		});
+
+		const entities = sortedEntities.reduce((result, entityId) => {
 			const foreignKeys = foreignKeyHelper.getForeignKeyStatementsByHashItem(foreignKeyHashTable[entityId] || {});
 
 			const args = [

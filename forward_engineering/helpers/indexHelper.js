@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { getTab, buildStatement, getName, replaceSpaceWithUnderscore, encodeStringLiteral } = require('./generalHelper');
+const { getTab, buildStatement, getName, prepareName, encodeStringLiteral } = require('./generalHelper');
 const schemaHelper = require('./jsonSchemaHelper');
 const { getItemByPath } = require('./jsonSchemaHelper');
 
@@ -63,17 +63,17 @@ const getIndexes = (containerData, entityData, jsonSchema, definitions, areColum
 		return '';
 	}
 	const dbData = getTab(0, containerData);
-	const dbName = replaceSpaceWithUnderscore(getName(dbData));
+	const dbName = prepareName(getName(dbData));
 	const tableData = getTab(0, entityData);
 	const indexesData = getTab(2, entityData).SecIndxs || [];
-	const tableName = replaceSpaceWithUnderscore(getName(tableData));
+	const tableName = prepareName(getName(tableData));
 
 	return indexesData
 		.map(indexData => {
 			const { columns, isIndexActivated = true } = getIndexKeys(indexData.SecIndxKey, jsonSchema, definitions);
 
 			return getIndexStatement({
-				name: replaceSpaceWithUnderscore(indexData.name),
+				name: prepareName(indexData.name),
 				dbName: dbName,
 				tableName: tableName,
 				columns,

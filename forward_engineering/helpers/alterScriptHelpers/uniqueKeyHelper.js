@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { replaceSpaceWithUnderscore, getName, prepareName, commentDeactivatedStatements } = require('../generalHelper');
+const { getName, prepareName, commentDeactivatedStatements } = require('../generalHelper');
 const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 

@@ -14,13 +14,16 @@ const {
 	hydrateProperty,
 } = require('./generalHelper');
 const { hydrateKeys } = require('./tableKeysHelper');
-const { replaceSpaceWithUnderscore } = require('../generalHelper');
+const { prepareName } = require('../generalHelper');
 const { getModifyPkConstraintsScripts } = require('./primaryKeyHelper');
 const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('../constraintHelper');
 const { getModifyUkConstraintsScripts } = require('./uniqueKeyHelper');
 const { getModifyNonNullColumnsScripts } = require('./nonNullConstraintHelper');
 const { getModifyDefaultValueConstraintsScripts } = require('./defaultConstraintHelper');
-const { getModifyCheckConstraintsScripts } = require('./checkConstraintHelper');
+const {
+	getModifyColumnCheckConstraintsScripts,
+	getModifyCompositeCheckConstraintsScripts,
+} = require('./checkConstraintHelper');
 const { getForeignKeyConstraint } = require('../foreignKeyHelper');
 
 const tableProperties = [
@@ -116,7 +119,7 @@ const hydrateAlterColumns = (entity, definitions) => {
 const hydrateDropIndexes = entity => {
 	const indexes = _.get(entity, 'SecIndxs', []);
 	const name = generateFullEntityName(entity);
-	return indexes.map(index => ({ name, indexName: replaceSpaceWithUnderscore(index.name) }));
+	return indexes.map(index => ({ name, indexName: prepareName(index.name) }));
 };
 
 const hydrateAddIndexes = (entity, SecIndxs, properties, definitions) => {
@@ -222,6 +225,11 @@ const getModifyCollectionsScripts = (definitions, provider, data) => entity => {
 	const modifyUKConstraintScripts = getIsConstraintAvailable(data)
 		? getModifyUkConstraintsScripts({ collection: entity, provider })
 		: [];
+	const modifyCheckConstraintsScripts = getModifyCompositeCheckConstraintsScripts({
+		collection: entity,
+		provider,
+		definitions,
+	});
 
 	return prepareScript(
 		...dropIndexScript,
@@ -229,6 +237,7 @@ const getModifyCollectionsScripts = (definitions, provider, data) => entity => {
 		addIndexScript,
 		...modifyPKConstraintScripts,
 		...modifyUKConstraintScripts,
+		...modifyCheckConstraintsScripts,
 	);
 };
 
@@ -282,7 +291,7 @@ const getModifyColumnsScripts = (definitions, provider) => entity => {
 		provider,
 		definitions,
 	});
-	const modifyCheckConstraintsScripts = getModifyCheckConstraintsScripts({
+	const modifyCheckConstraintsScripts = getModifyColumnCheckConstraintsScripts({
 		collection: entity,
 		provider,
 		definitions,
