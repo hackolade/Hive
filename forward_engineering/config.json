@@ -289,7 +289,7 @@
 				},
 				"separate": {
 					"default": false,
-					"disabled": false,
+					"disabled": true,
 					"disabledLabel": ""
 				},
 				"ignore": {
