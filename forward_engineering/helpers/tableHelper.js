@@ -79,7 +79,7 @@ const getPrimaryKeyStatement = (jsonSchema, keysNames, deactivatedColumnNames, i
 		rely,
 		enableSpecification: 'DISABLE',
 	});
-	const constraintNameStatement = constraintName ? `CONSTRAINT ${constraintName} ` : '';
+	const constraintNameStatement = constraintName ? `CONSTRAINT ${prepareName(constraintName)} ` : '';
 
 	const getStatement = keys => `${constraintNameStatement}PRIMARY KEY (${keys})${constraintOptsStatement}`;
 

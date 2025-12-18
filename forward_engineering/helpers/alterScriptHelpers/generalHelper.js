@@ -47,7 +47,7 @@ const hydrateProperty = (entity, compMod, nameProperty) => {
 };
 
 const getDefaultConstraintName = ({ collection, column = {}, postfix }) => {
-	const entityData = collection?.role || {};
+	const entityData = collection?.role || collection || {};
 	const entityName = getName(entityData);
 	const columnName = getName(column);
 	return prepareName([entityName, columnName, postfix].filter(Boolean).join('_'));
