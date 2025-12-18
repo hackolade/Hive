@@ -36,9 +36,9 @@ const buildStatement = (mainStatement, isActivated) => {
 	return chain;
 };
 
-const isEscaped = name => /\`[\s\S]*\`/.test(name);
+const isEscaped = name => /`[\s\S]*`/.test(name);
 
-const checkNameNeedBackticks = name => !/^[a-zA-Z0-9_]*$/.test(name) || name.startsWith('_');
+const checkNameNeedBackticks = name => !/^\w*$/.test(name) || name.startsWith('_');
 
 const isReserved = name => RESERVED_WORDS.includes(name.toLowerCase());
 

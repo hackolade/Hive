@@ -43,7 +43,7 @@ const getQueries = (script = '') => {
 		.split(';')
 		.map(script => script.trim())
 		.filter(query => {
-			if (Boolean(query)) {
+			if (query) {
 				return !isDeactivatedStatement(query);
 			}
 
