@@ -30,7 +30,7 @@ const getIndexStatement = ({
 
 const getIndexKeys = (keys, jsonSchema, definitions) => {
 	if (!Array.isArray(keys)) {
-		return '';
+		return { isIndexActivated: false, columns: '' };
 	}
 
 	const paths = schemaHelper.getPathsByIds(

@@ -5,7 +5,7 @@ const { isEqualProperty } = require('./generalHelper');
 
 const hydrateKeys = (hydratedCollectionData, collection, definitions, fullCollectionName) => {
 	const compMod = _.get(collection, 'role.compMod', {});
-	const [__, entityData, jsonSchema] = hydratedCollectionData;
+	const [_, entityData, jsonSchema] = hydratedCollectionData;
 	const keys = getKeyNames(getTab(0, entityData), jsonSchema, definitions);
 	const skewedBy = collection?.role?.skewedBy;
 	const skewedOn = collection?.role?.skewedOn;

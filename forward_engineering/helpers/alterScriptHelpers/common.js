@@ -13,7 +13,7 @@ const hydrateTableProperties = ({ new: newItems, old: oldItems }, name, commentS
 	const prepareProperties = properties =>
 		properties
 			.filter(Boolean)
-			.map(property => property.replace(/(\S+)=((\S|\s)+)/, `'$1'='$2'`))
+			.map(property => property.replace(/(\S+)=([\s\S]+)/, `'$1'='$2'`))
 			.join(',\n');
 
 	const isCommentChanged = !_.isEqual(commentState?.new, commentState?.old);

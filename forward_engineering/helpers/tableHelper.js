@@ -41,7 +41,7 @@ const getCreateStatement = ({
 	const tempExtStatement =
 		' ' +
 		[temporary, external]
-			.filter(d => d)
+			.filter(Boolean)
 			.map(item => item + ' ')
 			.join('');
 	const fullTableName = dbName ? `${dbName}.${tableName}` : tableName;
@@ -152,7 +152,7 @@ const getPartitionsKeys = (columns, partitions) => {
 		.map(keyName => {
 			return { ...(columns[keyName] || { type: 'string' }), name: keyName, constraints: {} };
 		})
-		.filter(key => key);
+		.filter(Boolean);
 };
 
 const removePartitions = (columns, partitions) => {
@@ -167,7 +167,9 @@ const removePartitions = (columns, partitions) => {
 };
 
 const prepareTableProperties = (tableProperties = '') => {
-	const properties = tableProperties.match(/^\((?<properties>[\s\S]*)\)$/)?.groups.properties || '';
+	const regex = /^\((?<properties>[\s\S]*)\)$/;
+	const match = regex.exec(tableProperties);
+	const properties = match?.groups.properties || '';
 	return properties.trim() ? tableProperties : '';
 };
 
@@ -221,8 +223,10 @@ const getStoredAsStatement = tableData => {
 	if (tableData.storedAsTable === 'input/output format') {
 		let statement = [];
 
-		statement.push(`STORED AS INPUTFORMAT '${tableData.inputFormatClassname}'`);
-		statement.push(`OUTPUTFORMAT '${tableData.outputFormatClassname}'`);
+		statement.push(
+			`STORED AS INPUTFORMAT '${tableData.inputFormatClassname}'`,
+			`OUTPUTFORMAT '${tableData.outputFormatClassname}'`,
+		);
 
 		return statement.join('\n');
 	}
