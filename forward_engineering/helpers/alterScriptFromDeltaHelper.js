@@ -19,6 +19,7 @@ const {
 } = require('./alterScriptHelpers/alterViewHelper');
 const { getItems } = require('./alterScriptHelpers/common');
 const { getContainerName } = require('./alterScriptHelpers/generalHelper');
+const { buildScript } = require('./buildScript');
 const { DROP_STATEMENTS } = require('./constants');
 const { commentDeactivatedStatements, prepareName } = require('./generalHelper');
 
@@ -190,7 +191,7 @@ const getInlineRelationships = ({ schema, options }) => {
 	return addedRelationships;
 };
 
-const getAlterScript = (schema, definitions, data, app, needMinify, sqlFormatter) => {
+const getAlterScript = (schema, definitions, data, app, needMinify) => {
 	const provider = require('./alterScriptHelpers/provider')(app);
 
 	const inlineDeltaRelationships = getInlineRelationships({ schema, options: data.options });
@@ -235,7 +236,7 @@ const getAlterScript = (schema, definitions, data, app, needMinify, sqlFormatter
 		.filter(Boolean)
 		.map(script => script.trim());
 	scripts = getCommentedDropScript(scripts, data);
-	return builds(scripts, needMinify, sqlFormatter);
+	return buildScript(needMinify)(...scripts);
 };
 
 const getCommentedDropScript = (scripts, data) => {
@@ -248,18 +249,6 @@ const getCommentedDropScript = (scripts, data) => {
 		const isDrop = DROP_STATEMENTS.some(statement => script.includes(statement));
 		return !isDrop ? script : commentDeactivatedStatements(script, false);
 	});
-};
-
-const builds = (scripts, needMinify, sqlFormatter) => {
-	const prepareScripts = scripts.filter(Boolean).join('\n\n');
-	if (needMinify) {
-		return prepareScripts;
-	}
-	const formatScripts = sqlFormatter.format(scripts.filter(Boolean).join('\n\n'), { indent: '    ' });
-	return formatScripts
-		.split(';')
-		.map(script => script.trim())
-		.join(';\n\n');
 };
 
 module.exports = {

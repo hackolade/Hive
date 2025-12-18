@@ -1,14 +1,24 @@
 const sqlFormatter = require('sql-formatter');
 
+const tryFormat = statement => {
+	try {
+		// Fails for complex types https://github.com/sql-formatter-org/sql-formatter/issues/735
+		return sqlFormatter.format(statement, { language: 'spark', tabWidth: 4, linesBetweenQueries: 2 });
+	} catch {
+		return statement;
+	}
+};
+
 const buildScript =
 	needMinify =>
 	(...statements) => {
-		const script = statements.filter(statement => statement).join('\n\n');
 		if (needMinify) {
-			return script;
+			return statements.filter(Boolean).join('\n\n');
 		}
 
-		return sqlFormatter.format(script, { language: 'spark', indent: '    ', linesBetweenQueries: 2 }) + '\n';
+		const script = statements.filter(Boolean).map(tryFormat).join('\n\n');
+
+		return script + '\n';
 	};
 
 module.exports = {
