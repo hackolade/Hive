@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const sqlFormatter = require('sql-formatter');
 const foreignKeyHelper = require('./helpers/foreignKeyHelper');
 const { getDatabaseStatement } = require('./helpers/databaseHelper');
 const { getAlterScript } = require('./helpers/alterScriptFromDeltaHelper');
@@ -69,7 +68,7 @@ const generateContainerScript = (data, logger, callback, app) => {
 		if (data.isUpdateScript) {
 			const deltaModelSchema = _.first(Object.values(jsonSchema)) || {};
 			const definitions = [modelDefinitions, internalDefinitions, externalDefinitions];
-			const scripts = getAlterScript(deltaModelSchema, definitions, data, app, needMinify, sqlFormatter);
+			const scripts = getAlterScript(deltaModelSchema, definitions, data, app, needMinify);
 			callback(null, scripts);
 			return;
 		}

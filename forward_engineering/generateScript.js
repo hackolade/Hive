@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const sqlFormatter = require('sql-formatter');
 const { getAlterScript } = require('./helpers/alterScriptFromDeltaHelper');
 const { getDatabaseStatement } = require('./helpers/databaseHelper');
 const { getTableStatement } = require('./helpers/tableHelper');
@@ -21,7 +20,7 @@ const generateScript = (data, logger, callback, app) => {
 
 		if (data.isUpdateScript) {
 			const definitions = [modelDefinitions, internalDefinitions, externalDefinitions];
-			const scripts = getAlterScript(jsonSchema, definitions, data, app, needMinify, sqlFormatter);
+			const scripts = getAlterScript(jsonSchema, definitions, data, app, needMinify);
 			callback(null, scripts);
 			return;
 		}
