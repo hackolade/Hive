@@ -48,9 +48,9 @@ const hydrateProperty = (entity, compMod, nameProperty) => {
 
 const getDefaultConstraintName = ({ collection, column = {}, postfix }) => {
 	const entityData = collection?.role || {};
-	const entityName = prepareName(getName(entityData));
-	const columnName = prepareName(getName(column));
-	return [entityName, columnName, postfix].filter(Boolean).join('_');
+	const entityName = getName(entityData);
+	const columnName = getName(column);
+	return prepareName([entityName, columnName, postfix].filter(Boolean).join('_'));
 };
 
 module.exports = {
