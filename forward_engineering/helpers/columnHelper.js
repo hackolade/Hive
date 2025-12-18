@@ -140,7 +140,7 @@ const getMap = getTypeByProperty => property => {
 const getText = property => {
 	const mode = property.mode;
 
-	if (['char', 'varchar'].includes(mode)) {
+	if (!['char', 'varchar'].includes(mode)) {
 		return 'string';
 	} else if (property.maxLength) {
 		return mode + `(${property.maxLength})`;
