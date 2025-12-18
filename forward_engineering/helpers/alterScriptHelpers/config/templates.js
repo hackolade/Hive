@@ -58,10 +58,6 @@ module.exports = {
 
 	dropConstraint: 'ALTER TABLE ${tableName} DROP CONSTRAINT ${constraintName};',
 
-	setContainerProperties: 'ALTER DATABASE ${name} SET DBPROPERTIES (${properties});',
-
-	unsetContainerProperties: 'ALTER DATABASE ${name} UNSET DBPROPERTIES IF EXISTS (${properties});',
-
 	addUkConstraint:
 		'ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} UNIQUE (${columnNames}) DISABLE${noValidate}${rely};',
 

@@ -8,7 +8,7 @@ const {
 	removeRedundantTrailingCommaFromStatement,
 	encodeStringLiteral,
 } = require('./generalHelper');
-const { getColumnsStatement, getColumnStatement, getColumns } = require('./columnHelper');
+const { getColumnsStatement, getColumnStatementParts, getColumns } = require('./columnHelper');
 const keyHelper = require('./keyHelper');
 const constraintHelper = require('./constraintHelper');
 
@@ -41,7 +41,7 @@ const getCreateStatement = ({
 	const tempExtStatement =
 		' ' +
 		[temporary, external]
-			.filter(d => d)
+			.filter(Boolean)
 			.map(item => item + ' ')
 			.join('');
 	const fullTableName = dbName ? `${dbName}.${tableName}` : tableName;
@@ -129,7 +129,8 @@ const getSortedKeys = (sortedKeys, deactivatedColumnNames, isParentItemActivated
 };
 
 const getPartitionKeyStatement = (keys, isParentActivated) => {
-	const getKeysStatement = keys => keys.map(getColumnStatement).join(',');
+	const getKeysStatement = keys =>
+		keys.map(key => getColumnStatementParts({ column: key }).columnStatement).join(',');
 
 	if (!Array.isArray(keys) || !keys.length) {
 		return '';
@@ -151,7 +152,7 @@ const getPartitionsKeys = (columns, partitions) => {
 		.map(keyName => {
 			return { ...(columns[keyName] || { type: 'string' }), name: keyName, constraints: {} };
 		})
-		.filter(key => key);
+		.filter(Boolean);
 };
 
 const removePartitions = (columns, partitions) => {
@@ -166,7 +167,9 @@ const removePartitions = (columns, partitions) => {
 };
 
 const prepareTableProperties = (tableProperties = '') => {
-	const properties = tableProperties.match(/^\((?<properties>[\s\S]*)\)$/)?.groups.properties || '';
+	const regex = /^\((?<properties>[\s\S]*)\)$/;
+	const match = regex.exec(tableProperties);
+	const properties = match?.groups.properties || '';
 	return properties.trim() ? tableProperties : '';
 };
 
@@ -220,8 +223,10 @@ const getStoredAsStatement = tableData => {
 	if (tableData.storedAsTable === 'input/output format') {
 		let statement = [];
 
-		statement.push(`STORED AS INPUTFORMAT '${tableData.inputFormatClassname}'`);
-		statement.push(`OUTPUTFORMAT '${tableData.outputFormatClassname}'`);
+		statement.push(
+			`STORED AS INPUTFORMAT '${tableData.inputFormatClassname}'`,
+			`OUTPUTFORMAT '${tableData.outputFormatClassname}'`,
+		);
 
 		return statement.join('\n');
 	}
@@ -256,10 +261,11 @@ const getTableStatement = (
 		tableName,
 		isTemporary: tableData.temporaryTable,
 		isExternal: tableData.externalTable,
-		columnStatement: getColumnsStatement(
-			removePartitions(columns, keyNames.compositePartitionKey),
-			isTableActivated,
-		),
+		columnStatement: getColumnsStatement({
+			collection: tableData,
+			columns: removePartitions(columns, keyNames.compositePartitionKey),
+			isParentActivated: isTableActivated,
+		}),
 		primaryKeyStatement: isPkOrFkConstraintAvailable
 			? getPrimaryKeyStatement(jsonSchema, keyNames.primaryKeys, deactivatedColumnNames, isTableActivated)
 			: null,

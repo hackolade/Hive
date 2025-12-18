@@ -245,7 +245,7 @@ const getAddColumnsScripts = (definitions, provider) => entity => {
 	const entityData = { ...entity, ..._.omit(entity.role, ['properties']) };
 	const { columns } = getColumns(entityData, true, definitions);
 	const properties = getEntityProperties(entity);
-	const columnStatement = getColumnsStatement(columns, null, entityData.disableNoValidate);
+	const columnStatement = getColumnsStatement({ columns, isAlterScript: true });
 	const fullCollectionName = generateFullEntityName(entity);
 	const { hydratedAddIndexes, hydratedDropIndexes } = hydrateIndex(entity, properties, definitions);
 	const modifyScript = generateModifyCollectionScript(entity, definitions, provider);

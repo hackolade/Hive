@@ -46,6 +46,7 @@
 			"disableMultipleTypes": false,
 			"enableReverseEngineering": true,
 			"enableComplexTypesNormalization": true,
+			"enableManyToManyRelationshipsNormalization": true,
 			"disableChoices": false,
 			"enableJsonType": true,
 			"relationships": {

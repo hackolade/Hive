@@ -3,18 +3,17 @@ const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
 const { commentDeactivatedStatements } = require('../generalHelper');
-
-const postfix = 'nn';
+const { CONSTRAINT_POSTFIX } = require('../constants');
 
 const getModifyNonNullColumnsScripts = ({ collection, provider, definitions }) => {
 	const tableName = generateFullEntityName(collection);
-	const constraintName = getDefaultConstraintName(collection, postfix);
+	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.notNull });
 	const isActivated = collection.role.isActivated;
 
 	const currentRequiredColumnNames = collection.required || [];
 	const previousRequiredColumnNames = collection.role.required || [];
 
-	const addNotNullConstraintsScript = _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
+	return _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
 		const oldName = jsonSchema.compMod.oldField.name;
 		const newField = jsonSchema.compMod.newField;
 
@@ -44,8 +43,6 @@ const getModifyNonNullColumnsScripts = ({ collection, provider, definitions }) =
 
 		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
-
-	return addNotNullConstraintsScript;
 };
 
 module.exports = {

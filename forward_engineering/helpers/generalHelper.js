@@ -36,14 +36,14 @@ const buildStatement = (mainStatement, isActivated) => {
 	return chain;
 };
 
-const isEscaped = name => /\`[\s\S]*\`/.test(name);
+const isEscaped = name => /`[\s\S]*`/.test(name);
 
-const checkNameNeedBackticks = name => !/^[a-zA-Z0-9_]*$/.test(name) || name.startsWith('_');
+const checkNameNeedBackticks = name => !/^\w*$/.test(name) || name.startsWith('_');
+
+const isReserved = name => RESERVED_WORDS.includes(name.toLowerCase());
 
 const prepareName = (name = '') => {
-	if (checkNameNeedBackticks(name) && !isEscaped(name)) {
-		return `\`${name}\``;
-	} else if (RESERVED_WORDS.includes(name.toLowerCase())) {
+	if ((checkNameNeedBackticks(name) && !isEscaped(name)) || isReserved(name)) {
 		return `\`${name}\``;
 	}
 	return name;
@@ -75,7 +75,7 @@ const getTypeDescriptor = typeName => {
 		descriptors[typeName] = require(`../../types/${typeName}.json`);
 
 		return descriptors[typeName];
-	} catch (e) {
+	} catch {
 		return {};
 	}
 };

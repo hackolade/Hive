@@ -49,6 +49,7 @@ const getConstraintOpts = ({ noValidateSpecification, enableSpecification, rely 
 const getUniqueKeyStatement = (jsonSchema, isParentItemActivated) => {
 	const getStatement = ({ keys, name, constraintOptsStatement }) =>
 		`CONSTRAINT ${name} UNIQUE (${keys})${constraintOptsStatement}`;
+
 	const getColumnsName = columns => columns.map(column => column.name).join(', ');
 	const hydratedUniqueKeys = hydrateUniqueKeys(jsonSchema);
 
@@ -83,7 +84,7 @@ const getUniqueKeyStatement = (jsonSchema, isParentItemActivated) => {
 const getCheckConstraint = jsonSchema => {
 	const checks = jsonSchema.chkConstr || [];
 	const createCheckStatement = ({ constraintName, checkExpression, constraintOptsStatement }) =>
-		`CONSTRAINT ${constraintName} CHECK ${checkExpression}${constraintOptsStatement}`;
+		`CONSTRAINT ${constraintName} CHECK (${checkExpression})${constraintOptsStatement}`;
 
 	const checkConstraint = checks.map(check => {
 		const { constraintName, rely, noValidateSpecification, enableSpecification, checkExpression } = check || {};
