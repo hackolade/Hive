@@ -283,12 +283,13 @@ const getTypeByProperty =
 		}
 	};
 
-const getColumn = (name, type, comment, constraints, isActivated) => ({
-	[name]: { type, comment, constraints, isActivated },
+const getColumn = (name, type, comment, constraints, isActivated, originalName) => ({
+	[name]: { type, comment, constraints, isActivated, originalName },
 });
 
 const getColumns = (jsonSchema, areColumnConstraintsAvailable, definitions) => {
 	const deactivatedColumnNames = new Set();
+
 	let columns = Object.keys(jsonSchema.properties || {}).reduce((hash, columnName) => {
 		const property = jsonSchema.properties[columnName];
 		const isRequired = (jsonSchema.required || []).includes(columnName);
@@ -319,6 +320,7 @@ const getColumns = (jsonSchema, areColumnConstraintsAvailable, definitions) => {
 						}
 					: {},
 				property.isActivated,
+				name,
 			),
 		};
 	}, {});
@@ -394,7 +396,11 @@ const getColumnConstraintsStatement = ({ collection, column, isAlterScript }) =>
 		getConstraintOpts({ rely, enableSpecification, noValidateSpecification });
 
 	const getConstraint = ({ statement, postfix, noValidate, skipName = false }) => {
-		const constraintName = getDefaultConstraintName({ collection, column, postfix });
+		const constraintName = getDefaultConstraintName({
+			collection,
+			column: { ...column, name: column.originalName },
+			postfix,
+		});
 		const columnName = skipName ? '' : ` (${column.name})`;
 		return `CONSTRAINT ${constraintName} ${statement}${columnName} ${noValidate}`;
 	};
