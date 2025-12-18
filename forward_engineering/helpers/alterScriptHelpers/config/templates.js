@@ -75,6 +75,4 @@ module.exports = {
 
 	addFkConstraint:
 		'ALTER TABLE ${childTableName} ADD CONSTRAINT ${constraintName} FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns})${disableNoValidate};',
-
-	useSchema: 'USE ${schemaName};',
 };

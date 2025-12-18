@@ -126,28 +126,6 @@ const getAlterForeignKeyScripts = ({ schema, provider, currentSchemaName, ignore
 			.flatMap(getScript);
 	};
 
-	const getRelationshipsScriptsWithUseSchema = (relationships, processRelationships, getScript) => {
-		return processRelationships(relationships, relationship => {
-			const script = getScript(provider)(relationship);
-
-			if (!script) {
-				return [];
-			}
-
-			const schemaName = prepareName(relationship.role.compMod.child.bucket?.name || '');
-
-			if (currentSchemaName === schemaName) {
-				return [script];
-			}
-
-			currentSchemaName = schemaName;
-
-			const useSchemaScript = provider.assignTemplates(templates.useSchema, { schemaName });
-
-			return [useSchemaScript, script];
-		});
-	};
-
 	const deletedRelationships = getItems(schema, 'relationships', 'deleted').filter(
 		relationship => relationship.role?.compMod?.deleted && !ignoreRelationshipIDs.includes(relationship?.role?.id),
 	);
@@ -157,16 +135,8 @@ const getAlterForeignKeyScripts = ({ schema, provider, currentSchemaName, ignore
 	const modifiedRelationships = getItems(schema, 'relationships', 'modified');
 
 	const deleteFkScripts = getDeleteForeignKeyScripts(provider)(deletedRelationships);
-	const addFkScripts = getRelationshipsScriptsWithUseSchema(
-		addedRelationships,
-		generateAddFkScripts,
-		getAddForeignKeyScript,
-	);
-	const modifiedFkScripts = getRelationshipsScriptsWithUseSchema(
-		modifiedRelationships,
-		generateModifyFkScripts,
-		getModifyForeignKeyScript,
-	);
+	const addFkScripts = generateAddFkScripts(addedRelationships, getAddForeignKeyScript(provider));
+	const modifiedFkScripts = generateModifyFkScripts(modifiedRelationships, getModifyForeignKeyScript(provider));
 	return { deleteFkScripts, addFkScripts, modifiedFkScripts };
 };
 
