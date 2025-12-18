@@ -116,7 +116,7 @@ const getForeignKeyConstraint = ({
 	parentColumns,
 	disableNoValidate,
 }) => {
-	const constraintNameStatement = constraintName ? `CONSTRAINT ${constraintName} ` : '';
+	const constraintNameStatement = constraintName ? `CONSTRAINT ${prepareName(constraintName)} ` : '';
 	const statement = `,${constraintNameStatement}FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns}) ${disableNoValidate ? 'DISABLE NOVALIDATE' : ''}`;
 	return statement;
 };

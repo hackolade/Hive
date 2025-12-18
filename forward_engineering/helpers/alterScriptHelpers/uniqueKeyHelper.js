@@ -39,9 +39,9 @@ const getDropCompositeUkScripts = ({ collection, provider }) => {
 	const oldUniqueKeys = pkDto.old || [];
 
 	return oldUniqueKeys.map(oldUk => {
-		const pkConstraintName =
+		const ukConstraintName =
 			oldUk.constraintName || getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.uniqueKey });
-		const constraintName = prepareName(pkConstraintName);
+		const constraintName = prepareName(ukConstraintName);
 
 		return provider.assignTemplates(templates.dropConstraint, {
 			tableName,
@@ -65,9 +65,9 @@ const getAddCompositeUkScripts = ({ collection, provider }) => {
 		const compositeUniqueKey = newUk.compositeUniqueKey || [];
 		const guidsOfColumnsInUk = compositeUniqueKey.map(compositeUkEntry => compositeUkEntry.keyId);
 		const columnNames = getPropertiesNamesByGUIDs(collection, guidsOfColumnsInUk);
-		const pkConstraintName =
+		const ukConstraintName =
 			newUk.constraintName || getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.uniqueKey });
-		const constraintName = prepareName(pkConstraintName);
+		const constraintName = prepareName(ukConstraintName);
 		const noValidate = newUk.noValidateSpecification ? ` ${newUk.noValidateSpecification}` : '';
 		const rely = newUk.rely ? ` ${newUk.rely}` : '';
 
