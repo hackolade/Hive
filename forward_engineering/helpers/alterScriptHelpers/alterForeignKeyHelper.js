@@ -31,7 +31,7 @@ const getAddSingleForeignKeyScript = provider => relationship => {
 	const childTableName = getFullChildTableName(relationship);
 
 	const relationshipName = compMod.code?.new || compMod.name?.new || getRelationshipName(relationship) || '';
-	const constraintName = relationshipName.includes(' ') ? `\`${relationshipName}\`` : relationshipName;
+	const constraintName = prepareName(relationshipName);
 	const childColumns = compMod.child.collection.fkFields.map(field => prepareName(field.name));
 	const parentColumns = compMod.parent.collection.fkFields.map(field => prepareName(field.name));
 	const disableNoValidate = relationship.role?.compMod?.customProperties?.new?.disableNoValidate;
