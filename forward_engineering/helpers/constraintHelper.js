@@ -112,8 +112,8 @@ const getCompositePrimaryKeys = ({ jsonSchema }) => {
 		.filter(primaryKey => primaryKey.compositePrimaryKey?.length)
 		.map(primaryKey => ({
 			keyType: 'PRIMARY KEY',
-			name: prepareName(primaryKey.constraintName),
 			columns: getKeys(primaryKey.compositePrimaryKey, jsonSchema),
+			...(primaryKey.constraintName && { name: prepareName(primaryKey.constraintName) }),
 		}));
 };
 
@@ -130,8 +130,8 @@ const getCompositeUniqueKeys = ({ jsonSchema }) => {
 		.filter(uniqueKey => uniqueKey.compositeUniqueKey?.length)
 		.map(uniqueKey => ({
 			keyType: 'UNIQUE',
-			name: prepareName(uniqueKey.constraintName),
 			columns: getKeys(uniqueKey.compositeUniqueKey, jsonSchema),
+			...(uniqueKey.constraintName && { name: prepareName(uniqueKey.constraintName) }),
 		}));
 };
 

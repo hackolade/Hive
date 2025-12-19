@@ -46,6 +46,7 @@ const prepareName = (name = '') => {
 	if ((checkNameNeedBackticks(name) && !isEscaped(name)) || isReserved(name)) {
 		return `\`${name}\``;
 	}
+
 	return name;
 };
 
