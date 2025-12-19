@@ -7,6 +7,7 @@ const {
 	commentDeactivatedInlineKeys,
 	removeRedundantTrailingCommaFromStatement,
 	encodeStringLiteral,
+	stripParentheses,
 } = require('./generalHelper');
 const { getColumnsStatement, getColumnStatementParts, getColumns } = require('./columnHelper');
 const keyHelper = require('./keyHelper');
@@ -65,7 +66,7 @@ const getCreateStatement = ({
 	)(skewedStatement, skewedStatement)(rowFormatStatement, `ROW FORMAT ${rowFormatStatement}`)(
 		storedAsStatement,
 		storedAsStatement,
-	)(location, `LOCATION "${location}"`)(tableProperties, `TBLPROPERTIES ${tableProperties}`)(
+	)(location, `LOCATION "${location}"`)(tableProperties, `TBLPROPERTIES (${tableProperties})`)(
 		selectStatement,
 		`AS ${selectStatement}`,
 	)(true, ';')();
@@ -164,13 +165,6 @@ const removePartitions = (columns, partitions) => {
 		},
 		{ ...columns },
 	);
-};
-
-const prepareTableProperties = (tableProperties = '') => {
-	const regex = /^\((?<properties>[\s\S]*)\)$/;
-	const match = regex.exec(tableProperties);
-	const properties = match?.groups.properties || '';
-	return properties.trim() ? tableProperties : '';
 };
 
 const getSkewedKeyStatement = (skewedKeys, skewedOn, asDirectories, deactivatedColumnNames, isParentItemActivated) => {
@@ -289,7 +283,7 @@ const getTableStatement = (
 		rowFormatStatement: getRowFormat(tableData),
 		storedAsStatement: getStoredAsStatement(tableData),
 		location: tableData.location,
-		tableProperties: prepareTableProperties(tableData.tableProperties),
+		tableProperties: stripParentheses(tableData.tableProperties),
 		selectStatement: '',
 		isActivated: isTableActivated,
 		ifNotExist: tableData.ifNotExist,
