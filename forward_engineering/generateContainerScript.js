@@ -9,6 +9,7 @@ const { buildScript } = require('./helpers/buildScript');
 const { parseEntities } = require('./helpers/parseEntities');
 const { getWorkloadManagementStatements } = require('./helpers/getWorkloadManagementStatements');
 const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('./helpers/constraintHelper');
+const { setMinify } = require('./helpers/generalHelper');
 
 const sortEntitiesByForeignKeyDependencies = ({ entities, relationships }) => {
 	const entitySet = new Set(entities);
@@ -63,6 +64,8 @@ const generateContainerScript = (data, logger, callback, app) => {
 		const relatedSchemas = parseEntities(data.relatedEntities ?? [], data.relatedSchemas);
 		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
+		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
+		setMinify(needMinify);
 
 		if (data.isUpdateScript) {
 			const deltaModelSchema = _.first(Object.values(jsonSchema)) || {};

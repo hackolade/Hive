@@ -149,6 +149,18 @@ const stripParentheses = str => {
 	return result.trim();
 };
 
+const minifyState = {
+	enabled: false,
+};
+
+const setMinify = enabled => {
+	minifyState.enabled = enabled;
+};
+
+const shouldMinify = () => {
+	return minifyState.enabled;
+};
+
 module.exports = {
 	buildStatement,
 	getName,
@@ -162,4 +174,6 @@ module.exports = {
 	encodeStringLiteral,
 	isDeactivatedStatement,
 	stripParentheses,
+	setMinify,
+	shouldMinify,
 };

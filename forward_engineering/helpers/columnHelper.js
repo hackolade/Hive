@@ -4,6 +4,8 @@ const {
 	prepareName,
 	commentDeactivatedStatements,
 	encodeStringLiteral,
+	indentString,
+	shouldMinify,
 } = require('./generalHelper');
 const { getConstraintOpts } = require('./constraintHelper');
 const { getDefaultConstraintName } = require('./alterScriptHelpers/generalHelper');
@@ -53,15 +55,22 @@ const getStructChildProperties = (getTypeByProperty, definitions) => property =>
 };
 
 const getStruct = (getTypeByProperty, definitions) => property => {
-	const getStructStatement = propertiesString => `struct<${propertiesString}>`;
+	const minify = shouldMinify();
+
+	const getStructStatement = propertiesString =>
+		minify ? `struct<${propertiesString}>` : `struct<\n${propertiesString}\n>`;
 
 	const { activatedProps, deactivatedProps } = getStructChildProperties(getTypeByProperty, definitions)(property);
+
+	const activePropsString = minify ? activatedProps.join(', ') : indentString(activatedProps.join(',\n'));
+	const deactivatedPropsString = minify ? deactivatedProps.join(', ') : indentString(deactivatedProps.join(',\n'));
+
 	if (deactivatedProps.length === 0) {
-		return getStructStatement(activatedProps.join(', '));
+		return getStructStatement(activePropsString);
 	} else if (activatedProps.length === 0) {
-		return getStructStatement(`/* ${activatedProps.join(', ')} */`);
+		return getStructStatement(`/* ${activePropsString} */`);
 	}
-	return getStructStatement(`${activatedProps.join(', ')} /*, ${deactivatedProps.join(', ')}*/`);
+	return getStructStatement(`${activePropsString} /*, ${deactivatedPropsString}*/`);
 };
 
 const getChildBySubtype = (parentType, subtype) => {

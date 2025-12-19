@@ -95,6 +95,7 @@ module.exports = {
 			ifNotExist ? 'IF NOT EXISTS' : '',
 			name,
 			comment ? `COMMENT '${encodeStringLiteral(comment)}'` : '',
+			'AS',
 		]
 			.filter(Boolean)
 			.join(' ');
@@ -103,11 +104,14 @@ module.exports = {
 
 		if (schema.selectStatement) {
 			let statement = schema.selectStatement;
-			if (!_.trim(statement).toLowerCase().startsWith('as')) {
-				statement = 'AS ' + statement;
+			if (_.trim(statement).toLowerCase().startsWith('as')) {
+				statement = statement
+					.trim()
+					.replace(/\bAS\b/i, '')
+					.trim();
 			}
 
-			return `${createStatement} ${statement};\n\n`;
+			return `${createStatement}\n${statement};`;
 		}
 
 		if (_.isEmpty(columns)) {
@@ -122,7 +126,7 @@ module.exports = {
 		}
 
 		const joinedColumns = indentString(joinLastDeactivatedItem(columnsNames).join(',\n'));
-		statements.push('AS', 'SELECT', joinedColumns, fromStatement);
+		statements.push('SELECT', joinedColumns, fromStatement);
 
 		return commentDeactivatedStatements(statements.join('\n') + ';', view.isActivated);
 	},
