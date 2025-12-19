@@ -402,7 +402,7 @@ const getColumnConstraintsStatement = ({ collection, column, isAlterScript }) =>
 			postfix,
 		});
 		const columnName = skipName ? '' : ` (${column.name})`;
-		return `CONSTRAINT ${constraintName} ${statement}${columnName} ${noValidate}`;
+		return `CONSTRAINT ${constraintName} ${statement}${columnName} ${noValidate}`.trim();
 	};
 
 	const statements = [];

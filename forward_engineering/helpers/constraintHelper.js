@@ -44,7 +44,7 @@ const getConstraintOpts = ({ noValidateSpecification, enableSpecification, rely 
 		return '';
 	}
 
-	return ` ${enableSpecification}${getPartConstraintOpts(noValidateSpecification)}${getPartConstraintOpts(rely)}`;
+	return `${enableSpecification}${getPartConstraintOpts(noValidateSpecification)}${getPartConstraintOpts(rely)}`;
 };
 
 const getUniqueKeyStatement = (jsonSchema, isParentItemActivated) => {
