@@ -42,11 +42,7 @@ const checkNameNeedBackticks = name => !/^\w*$/.test(name) || name.startsWith('_
 
 const isReserved = name => RESERVED_WORDS.includes(name.toLowerCase());
 
-const prepareName = name => {
-	if (!name) {
-		return;
-	}
-
+const prepareName = (name = '') => {
 	if ((checkNameNeedBackticks(name) && !isEscaped(name)) || isReserved(name)) {
 		return `\`${name}\``;
 	}
