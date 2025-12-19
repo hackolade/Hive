@@ -73,7 +73,7 @@ const retrieveContainerName = containerConfig =>
 
 module.exports = {
 	getViewScript({ schema, viewData, containerData, collectionRefsDefinitionsMap }) {
-		let statements = [];
+		const statements = [];
 		const columns = schema.properties || {};
 		const view = _.first(viewData) || {};
 
