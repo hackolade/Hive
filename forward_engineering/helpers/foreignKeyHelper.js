@@ -74,10 +74,7 @@ const getForeignKeyHashTable = ({
 			return isActivated && _.get(fieldData, 'isActivated');
 		}, true);
 		const parentFieldActivated = relationship.parentField.reduce((isActivated, field) => {
-			const fieldData = schemaHelper.getItemByPath(
-				field.slice(1),
-				jsonSchemas[relationship.parentCollection] ?? parentSchema,
-			);
+			const fieldData = schemaHelper.getItemByPath(field.slice(1), parentSchema);
 			return isActivated && _.get(fieldData, 'isActivated');
 		}, true);
 
