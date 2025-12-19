@@ -134,6 +134,20 @@ const encodeStringLiteral = (str = '') => {
 
 const isDeactivatedStatement = statement => statement.startsWith(BEFORE_DEACTIVATED_STATEMENT);
 
+const stripParentheses = str => {
+	if (typeof str !== 'string') {
+		return str;
+	}
+	let result = str.trim();
+	if (result.startsWith('(')) {
+		result = result.slice(1);
+	}
+	if (result.endsWith(')')) {
+		result = result.slice(0, -1);
+	}
+	return result;
+};
+
 module.exports = {
 	buildStatement,
 	getName,
@@ -146,4 +160,5 @@ module.exports = {
 	removeRedundantTrailingCommaFromStatement,
 	encodeStringLiteral,
 	isDeactivatedStatement,
+	stripParentheses,
 };
