@@ -6,7 +6,6 @@ const { buildScript } = require('./helpers/buildScript');
 const generateViewScript = (data, logger, callback, app) => {
 	try {
 		const viewSchema = JSON.parse(data.jsonSchema || '{}');
-		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 
 		const databaseStatement = getDatabaseStatement(data.containerData);
 
@@ -18,7 +17,7 @@ const generateViewScript = (data, logger, callback, app) => {
 			isKeyspaceActivated: true,
 		});
 
-		callback(null, buildScript(needMinify)(databaseStatement, script));
+		callback(null, buildScript(databaseStatement, script));
 	} catch (error) {
 		logger.log('error', { message: error.message, stack: error.stack }, 'Hive Forward-Engineering Error');
 

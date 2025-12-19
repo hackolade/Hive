@@ -16,18 +16,17 @@ const generateScript = (data, logger, callback, app) => {
 		const entityData = data.entityData;
 		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
-		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 
 		if (data.isUpdateScript) {
 			const definitions = [modelDefinitions, internalDefinitions, externalDefinitions];
-			const scripts = getAlterScript(jsonSchema, definitions, data, app, needMinify);
+			const scripts = getAlterScript(jsonSchema, definitions, data, app);
 			callback(null, scripts);
 			return;
 		}
 
 		callback(
 			null,
-			buildScript(needMinify)(
+			buildScript(
 				getDatabaseStatement(containerData),
 				getTableStatement(
 					containerData,

@@ -63,12 +63,11 @@ const generateContainerScript = (data, logger, callback, app) => {
 		const relatedSchemas = parseEntities(data.relatedEntities ?? [], data.relatedSchemas);
 		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
-		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 
 		if (data.isUpdateScript) {
 			const deltaModelSchema = _.first(Object.values(jsonSchema)) || {};
 			const definitions = [modelDefinitions, internalDefinitions, externalDefinitions];
-			const scripts = getAlterScript(deltaModelSchema, definitions, data, app, needMinify);
+			const scripts = getAlterScript(deltaModelSchema, definitions, data, app);
 			callback(null, scripts);
 			return;
 		}
@@ -117,10 +116,7 @@ const generateContainerScript = (data, logger, callback, app) => {
 			]);
 		}, []);
 
-		callback(
-			null,
-			buildScript(needMinify)(...workloadManagementStatements, databaseStatement, ...entities, ...viewsScripts),
-		);
+		callback(null, buildScript(...workloadManagementStatements, databaseStatement, ...entities, ...viewsScripts));
 	} catch (e) {
 		logger.log('error', { message: e.message, stack: e.stack }, 'Hive Forward-Engineering Error');
 
