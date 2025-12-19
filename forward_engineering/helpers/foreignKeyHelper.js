@@ -57,29 +57,26 @@ const getForeignKeyHashTable = ({
 		}
 
 		const constraintName = relationship.code || relationship.name;
-		const parentDifferentSchemaName = prepareName(relatedSchemas[relationship.parentCollection]?.bucketName) || '';
+		const parentSchema =
+			jsonSchemas[relationship.parentCollection] ?? relatedSchemas[relationship.parentCollection];
+		const childSchema = jsonSchemas[relationship.childCollection] ?? relatedSchemas[relationship.childCollection];
+		const parentDifferentSchemaName = prepareName(parentSchema?.bucketName) || '';
 		const parentTableData = getTab(0, entityData[relationship.parentCollection]);
-		const parentTableSingleName =
-			prepareName(getName(parentTableData) || relatedSchemas[relationship.parentCollection]?.collectionName) ||
-			'';
+		const parentTableSingleName = prepareName(getName(parentTableData) || parentSchema?.collectionName) || '';
 		const parentTableName = parentDifferentSchemaName
 			? `${parentDifferentSchemaName}.${parentTableSingleName}`
 			: parentTableSingleName;
 		const childTableData = getTab(0, entityData[relationship.childCollection]);
-		const childTableName =
-			prepareName(getName(childTableData) || relatedSchemas[relationship.childCollection]?.collectionName) || '';
+		const childTableName = prepareName(getName(childTableData) || childSchema?.collectionName) || '';
 		const groupKey = parentTableName + constraintName;
 		const childFieldActivated = relationship.childField.reduce((isActivated, field) => {
-			const fieldData = schemaHelper.getItemByPath(
-				field.slice(1),
-				jsonSchemas[relationship.childCollection] ?? relatedSchemas[relationship.childCollection],
-			);
+			const fieldData = schemaHelper.getItemByPath(field.slice(1), childSchema);
 			return isActivated && _.get(fieldData, 'isActivated');
 		}, true);
 		const parentFieldActivated = relationship.parentField.reduce((isActivated, field) => {
 			const fieldData = schemaHelper.getItemByPath(
 				field.slice(1),
-				jsonSchemas[relationship.parentCollection] ?? relatedSchemas[relationship.parentCollection],
+				jsonSchemas[relationship.parentCollection] ?? parentSchema,
 			);
 			return isActivated && _.get(fieldData, 'isActivated');
 		}, true);
