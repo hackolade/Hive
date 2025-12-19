@@ -3,9 +3,15 @@ const { prepareName, commentDeactivatedStatements } = require('../generalHelper'
 
 const templates = require('./config/templates');
 const { getItems } = require('./common');
+const { CONSTRAINT_POSTFIX } = require('../constants');
 
-const getRelationshipName = relationship => {
-	return relationship.role.code || relationship.role.name;
+const getRelationshipName = (relationship, parentTableName, childTableName) => {
+	const compMod = relationship.role.compMod;
+	const name = compMod.code?.new || compMod.name?.new || relationship.role.code || relationship.role.name;
+	if (name) {
+		return name;
+	}
+	return prepareName([parentTableName, childTableName, CONSTRAINT_POSTFIX.foreignKey].filter(Boolean).join('_'));
 };
 
 const getFullParentTableName = relationship => {
@@ -30,8 +36,7 @@ const getAddSingleForeignKeyScript = provider => relationship => {
 	const parentTableName = getFullParentTableName(relationship);
 	const childTableName = getFullChildTableName(relationship);
 
-	const relationshipName = compMod.code?.new || compMod.name?.new || getRelationshipName(relationship) || '';
-	const constraintName = prepareName(relationshipName);
+	const constraintName = getRelationshipName(relationship, parentTableName, childTableName);
 	const childColumns = compMod.child.collection.fkFields.map(field => prepareName(field.name));
 	const parentColumns = compMod.parent.collection.fkFields.map(field => prepareName(field.name));
 	const disableNoValidate = relationship.role?.compMod?.customProperties?.new?.disableNoValidate;
@@ -53,7 +58,6 @@ const canRelationshipBeAdded = relationship => {
 		return false;
 	}
 	return [
-		compMod.code?.new || compMod.name?.new || getRelationshipName(relationship),
 		compMod.parent?.bucket,
 		compMod.parent?.collection,
 		compMod.parent?.collection?.fkFields?.length,
