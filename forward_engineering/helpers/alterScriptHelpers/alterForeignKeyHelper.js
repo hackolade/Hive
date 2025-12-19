@@ -9,7 +9,7 @@ const getRelationshipName = (relationship, parentTableName, childTableName) => {
 	const compMod = relationship.role.compMod;
 	const name = compMod.code?.new || compMod.name?.new || relationship.role.code || relationship.role.name;
 	if (name) {
-		return name;
+		return prepareName(name);
 	}
 	return prepareName([parentTableName, childTableName, CONSTRAINT_POSTFIX.foreignKey].filter(Boolean).join('_'));
 };
