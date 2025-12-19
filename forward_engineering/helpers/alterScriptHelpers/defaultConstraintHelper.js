@@ -2,7 +2,7 @@ const _ = require('lodash');
 const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
-const { commentDeactivatedStatements } = require('../generalHelper');
+const { commentDeactivatedStatements, prepareName } = require('../generalHelper');
 const { CONSTRAINT_POSTFIX } = require('../constants');
 
 const getModifyDefaultValueConstraintsScripts = ({ collection, provider, definitions }) => {
@@ -24,7 +24,7 @@ const getModifyDefaultValueConstraintsScripts = ({ collection, provider, definit
 
 		const scriptParams = {
 			tableName,
-			columnName,
+			columnName: prepareName(columnName),
 			constraintName,
 			type,
 			enable,
