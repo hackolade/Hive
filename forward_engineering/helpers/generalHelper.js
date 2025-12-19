@@ -137,7 +137,7 @@ const isDeactivatedStatement = statement => statement.startsWith(BEFORE_DEACTIVA
 
 const stripParentheses = str => {
 	if (typeof str !== 'string') {
-		return str;
+		return '';
 	}
 	let result = str.trim();
 	if (result.startsWith('(')) {
@@ -146,7 +146,7 @@ const stripParentheses = str => {
 	if (result.endsWith(')')) {
 		result = result.slice(0, -1);
 	}
-	return result;
+	return result.trim();
 };
 
 module.exports = {
