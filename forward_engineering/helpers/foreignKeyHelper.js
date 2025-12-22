@@ -112,7 +112,7 @@ const getForeignKeyConstraint = ({
 }) => {
 	const constraintNameStatement = constraintName ? `CONSTRAINT ${prepareName(constraintName)} ` : '';
 	const statement = `${constraintNameStatement}FOREIGN KEY (${childColumns}) REFERENCES ${parentTableName}(${parentColumns}) ${disableNoValidate ? 'DISABLE NOVALIDATE' : ''}`;
-	return statement;
+	return statement.trim();
 };
 
 const getForeignKeyStatementsByHashItem = hashItem => {
