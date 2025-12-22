@@ -7,8 +7,9 @@ const {
 	commentDeactivatedInlineKeys,
 	removeRedundantTrailingCommaFromStatement,
 	encodeStringLiteral,
+	stripParentheses,
 } = require('./generalHelper');
-const { getColumnsStatement, getColumnStatement, getColumns } = require('./columnHelper');
+const { getColumnsStatement, getColumnStatementParts, getColumns } = require('./columnHelper');
 const keyHelper = require('./keyHelper');
 const constraintHelper = require('./constraintHelper');
 
@@ -41,22 +42,22 @@ const getCreateStatement = ({
 	const tempExtStatement =
 		' ' +
 		[temporary, external]
-			.filter(d => d)
+			.filter(Boolean)
 			.map(item => item + ' ')
 			.join('');
 	const fullTableName = dbName ? `${dbName}.${tableName}` : tableName;
-	const hasConstraint = primaryKeyStatement || uniqueKeyStatement || checkStatement;
+	const hasConstraint = primaryKeyStatement || uniqueKeyStatement || checkStatement || foreignKeyStatement;
 
 	return buildStatement(
 		`CREATE${tempExtStatement}TABLE ${ifNotExist ? 'IF NOT EXISTS ' : ''}${fullTableName} (`,
 		isActivated,
 	)(columnStatement, columnStatement + (hasConstraint ? ',' : ''))(
 		primaryKeyStatement,
-		primaryKeyStatement + (uniqueKeyStatement || checkStatement ? ',' : ''),
-	)(uniqueKeyStatement, uniqueKeyStatement + (checkStatement ? ',' : ''))(checkStatement, checkStatement)(
-		foreignKeyStatement,
-		foreignKeyStatement,
-	)(true, ')')(comment, `COMMENT '${encodeStringLiteral(comment)}'`)(
+		primaryKeyStatement + (uniqueKeyStatement || checkStatement || foreignKeyStatement ? ',' : ''),
+	)(uniqueKeyStatement, uniqueKeyStatement + (checkStatement || foreignKeyStatement ? ',' : ''))(
+		checkStatement,
+		checkStatement,
+	)(foreignKeyStatement, foreignKeyStatement)(true, ')')(comment, `COMMENT '${encodeStringLiteral(comment)}'`)(
 		partitionedByKeys,
 		`PARTITIONED BY (${partitionedByKeys})`,
 	)(clusteredKeys, `CLUSTERED BY (${clusteredKeys})`)(sortedKeys && clusteredKeys, `SORTED BY (${sortedKeys})`)(
@@ -65,7 +66,7 @@ const getCreateStatement = ({
 	)(skewedStatement, skewedStatement)(rowFormatStatement, `ROW FORMAT ${rowFormatStatement}`)(
 		storedAsStatement,
 		storedAsStatement,
-	)(location, `LOCATION "${location}"`)(tableProperties, `TBLPROPERTIES ${tableProperties}`)(
+	)(location, `LOCATION "${location}"`)(tableProperties, `TBLPROPERTIES (${tableProperties})`)(
 		selectStatement,
 		`AS ${selectStatement}`,
 	)(true, ';')();
@@ -79,9 +80,9 @@ const getPrimaryKeyStatement = (jsonSchema, keysNames, deactivatedColumnNames, i
 		rely,
 		enableSpecification: 'DISABLE',
 	});
-	const constraintNameStatement = constraintName ? `CONSTRAINT ${constraintName} ` : '';
+	const constraintNameStatement = constraintName ? `CONSTRAINT ${prepareName(constraintName)} ` : '';
 
-	const getStatement = keys => `${constraintNameStatement}PRIMARY KEY (${keys})${constraintOptsStatement}`;
+	const getStatement = keys => `${constraintNameStatement}PRIMARY KEY (${keys}) ${constraintOptsStatement}`.trim();
 
 	if (!Array.isArray(keysNames) || !keysNames.length) {
 		return '';
@@ -129,7 +130,8 @@ const getSortedKeys = (sortedKeys, deactivatedColumnNames, isParentItemActivated
 };
 
 const getPartitionKeyStatement = (keys, isParentActivated) => {
-	const getKeysStatement = keys => keys.map(getColumnStatement).join(',');
+	const getKeysStatement = keys =>
+		keys.map(key => getColumnStatementParts({ column: key }).columnStatement).join(',');
 
 	if (!Array.isArray(keys) || !keys.length) {
 		return '';
@@ -151,7 +153,7 @@ const getPartitionsKeys = (columns, partitions) => {
 		.map(keyName => {
 			return { ...(columns[keyName] || { type: 'string' }), name: keyName, constraints: {} };
 		})
-		.filter(key => key);
+		.filter(Boolean);
 };
 
 const removePartitions = (columns, partitions) => {
@@ -163,11 +165,6 @@ const removePartitions = (columns, partitions) => {
 		},
 		{ ...columns },
 	);
-};
-
-const prepareTableProperties = (tableProperties = '') => {
-	const properties = tableProperties.match(/^\((?<properties>[\s\S]*)\)$/)?.groups.properties || '';
-	return properties.trim() ? tableProperties : '';
 };
 
 const getSkewedKeyStatement = (skewedKeys, skewedOn, asDirectories, deactivatedColumnNames, isParentItemActivated) => {
@@ -220,8 +217,10 @@ const getStoredAsStatement = tableData => {
 	if (tableData.storedAsTable === 'input/output format') {
 		let statement = [];
 
-		statement.push(`STORED AS INPUTFORMAT '${tableData.inputFormatClassname}'`);
-		statement.push(`OUTPUTFORMAT '${tableData.outputFormatClassname}'`);
+		statement.push(
+			`STORED AS INPUTFORMAT '${tableData.inputFormatClassname}'`,
+			`OUTPUTFORMAT '${tableData.outputFormatClassname}'`,
+		);
 
 		return statement.join('\n');
 	}
@@ -256,10 +255,11 @@ const getTableStatement = (
 		tableName,
 		isTemporary: tableData.temporaryTable,
 		isExternal: tableData.externalTable,
-		columnStatement: getColumnsStatement(
-			removePartitions(columns, keyNames.compositePartitionKey),
-			isTableActivated,
-		),
+		columnStatement: getColumnsStatement({
+			collection: tableData,
+			columns: removePartitions(columns, keyNames.compositePartitionKey),
+			isParentActivated: isTableActivated,
+		}),
 		primaryKeyStatement: isPkOrFkConstraintAvailable
 			? getPrimaryKeyStatement(jsonSchema, keyNames.primaryKeys, deactivatedColumnNames, isTableActivated)
 			: null,
@@ -283,7 +283,7 @@ const getTableStatement = (
 		rowFormatStatement: getRowFormat(tableData),
 		storedAsStatement: getStoredAsStatement(tableData),
 		location: tableData.location,
-		tableProperties: prepareTableProperties(tableData.tableProperties),
+		tableProperties: stripParentheses(tableData.tableProperties),
 		selectStatement: '',
 		isActivated: isTableActivated,
 		ifNotExist: tableData.ifNotExist,

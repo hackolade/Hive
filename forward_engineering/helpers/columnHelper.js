@@ -4,8 +4,12 @@ const {
 	prepareName,
 	commentDeactivatedStatements,
 	encodeStringLiteral,
+	indentString,
+	shouldMinify,
 } = require('./generalHelper');
 const { getConstraintOpts } = require('./constraintHelper');
+const { getDefaultConstraintName } = require('./alterScriptHelpers/generalHelper');
+const { CONSTRAINT_POSTFIX } = require('./constants');
 
 const getStructChild = (name, type, comment) =>
 	`${prepareName(name)}: ${type}` + (comment ? ` COMMENT '${encodeStringLiteral(comment)}'` : '');
@@ -51,15 +55,22 @@ const getStructChildProperties = (getTypeByProperty, definitions) => property =>
 };
 
 const getStruct = (getTypeByProperty, definitions) => property => {
-	const getStructStatement = propertiesString => `struct<${propertiesString}>`;
+	const minify = shouldMinify();
+
+	const getStructStatement = propertiesString =>
+		minify ? `struct<${propertiesString}>` : `struct<\n${propertiesString}\n>`;
 
 	const { activatedProps, deactivatedProps } = getStructChildProperties(getTypeByProperty, definitions)(property);
+
+	const activePropsString = minify ? activatedProps.join(', ') : indentString(activatedProps.join(',\n'));
+	const deactivatedPropsString = minify ? deactivatedProps.join(', ') : indentString(deactivatedProps.join(',\n'));
+
 	if (deactivatedProps.length === 0) {
-		return getStructStatement(activatedProps.join(', '));
+		return getStructStatement(activePropsString);
 	} else if (activatedProps.length === 0) {
-		return getStructStatement(`/* ${activatedProps.join(', ')} */`);
+		return getStructStatement(`/* ${activePropsString} */`);
 	}
-	return getStructStatement(`${activatedProps.join(', ')} /*, ${deactivatedProps.join(', ')}*/`);
+	return getStructStatement(`${activePropsString} /*, ${deactivatedPropsString}*/`);
 };
 
 const getChildBySubtype = (parentType, subtype) => {
@@ -73,7 +84,7 @@ const getPropertyByType = type => {
 
 	return {
 		type,
-		...(childTypeDescriptor.defaultValues || {}),
+		...childTypeDescriptor.defaultValues,
 	};
 };
 
@@ -102,7 +113,7 @@ const getArray = getTypeByProperty => property => {
 };
 
 const getMapKey = property => {
-	if (['char', 'varchar'].indexOf(property.keySubtype) !== -1) {
+	if (['char', 'varchar'].includes(property.keySubtype)) {
 		return property.keySubtype + '(255)';
 	} else if (property.keySubtype) {
 		return property.keySubtype;
@@ -138,7 +149,7 @@ const getMap = getTypeByProperty => property => {
 const getText = property => {
 	const mode = property.mode;
 
-	if (['char', 'varchar'].indexOf(mode) === -1) {
+	if (!['char', 'varchar'].includes(mode)) {
 		return 'string';
 	} else if (property.maxLength) {
 		return mode + `(${property.maxLength})`;
@@ -237,7 +248,7 @@ const getDefinitionByReference = (definitions, reference) => {
 	const allDefinitions = definitions.reduce(
 		(result, { properties }) => ({
 			...result,
-			...(properties || {}),
+			...properties,
 		}),
 		{},
 	);
@@ -281,12 +292,13 @@ const getTypeByProperty =
 		}
 	};
 
-const getColumn = (name, type, comment, constraints, isActivated) => ({
-	[name]: { type, comment, constraints, isActivated },
+const getColumn = (name, type, comment, constraints, isActivated, originalName) => ({
+	[name]: { type, comment, constraints, isActivated, originalName },
 });
 
 const getColumns = (jsonSchema, areColumnConstraintsAvailable, definitions) => {
 	const deactivatedColumnNames = new Set();
+
 	let columns = Object.keys(jsonSchema.properties || {}).reduce((hash, columnName) => {
 		const property = jsonSchema.properties[columnName];
 		const isRequired = (jsonSchema.required || []).includes(columnName);
@@ -317,6 +329,7 @@ const getColumns = (jsonSchema, areColumnConstraintsAvailable, definitions) => {
 						}
 					: {},
 				property.isActivated,
+				name,
 			),
 		};
 	}, {});
@@ -342,37 +355,118 @@ const getColumns = (jsonSchema, areColumnConstraintsAvailable, definitions) => {
 	return { columns, deactivatedColumnNames };
 };
 
-const getColumnStatement = ({ name, type, comment, constraints, isActivated, isParentActivated }) => {
+const getColumnStatementParts = ({ collection, column, isAlterScript }) => {
+	const { name, type, comment, isActivated, isParentActivated } = column;
 	const commentStatement = comment ? ` COMMENT '${encodeStringLiteral(comment)}'` : '';
-	const constraintsStatement = constraints ? getColumnConstraintsStatement(constraints) : '';
+	const { inline, separate } = getColumnConstraintsStatement({ collection, column, isAlterScript });
 	const isColumnActivated = isParentActivated ? isActivated : true;
-	return commentDeactivatedStatements(`${name} ${type}${constraintsStatement}${commentStatement}`, isColumnActivated);
+
+	return {
+		columnStatement: commentDeactivatedStatements(`${name} ${type}${inline}${commentStatement}`, isColumnActivated),
+		constraintsStatement: separate,
+	};
 };
 
-const getColumnsStatement = (columns, isParentActivated) => {
-	return Object.keys(columns)
-		.map(name => {
-			return getColumnStatement({ ...columns[name], name, isParentActivated });
-		})
-		.join(',\n');
+const getColumnsStatement = ({ collection, columns, isParentActivated, isAlterScript }) => {
+	const columnStatements = [];
+	const constraintStatements = [];
+
+	for (const name of Object.keys(columns)) {
+		const { columnStatement, constraintsStatement } = getColumnStatementParts({
+			collection,
+			column: { ...columns[name], name, isParentActivated },
+			isAlterScript,
+		});
+
+		columnStatements.push(columnStatement);
+
+		if (!isAlterScript && constraintsStatement) {
+			constraintStatements.push(constraintsStatement);
+		}
+	}
+
+	return [...columnStatements, ...constraintStatements].join(',\n');
 };
 
-const getColumnConstraintsStatement = constraint => {
+const getColumnConstraintsStatement = ({ collection, column, isAlterScript }) => {
+	const result = {
+		inline: '',
+		separate: '',
+	};
+
+	if (!column.constraints) {
+		return result;
+	}
+
 	const { notNull, unique, check, defaultValue, primaryKey, rely, noValidateSpecification, enableSpecification } =
-		constraint;
-	const noValidateStatement = enableSpecification =>
-		getConstraintOpts({ rely, enableSpecification, noValidateSpecification });
-	const getColStatement = (statement, noValidateStatement) =>
-		statement ? ` ${statement}${noValidateStatement}` : '';
-	const constraints = [
-		notNull && !unique && !primaryKey ? getColStatement('NOT NULL', noValidateStatement(enableSpecification)) : '',
-		unique ? getColStatement('UNIQUE', noValidateStatement('DISABLE')) : '',
-		defaultValue ? getColStatement(`DEFAULT ${defaultValue}`, noValidateStatement(enableSpecification)) : '',
-		check ? getColStatement(`CHECK ${check}`, noValidateStatement(enableSpecification)) : '',
-		primaryKey ? getColStatement('PRIMARY KEY', noValidateStatement('DISABLE')) : '',
-	].filter(Boolean);
+		column.constraints;
 
-	return constraints[0] || '';
+	const getNoValidateStatement = enableSpecification =>
+		getConstraintOpts({ rely, enableSpecification, noValidateSpecification });
+
+	const getConstraint = ({ statement, postfix, noValidate, skipName = false }) => {
+		const constraintName = getDefaultConstraintName({
+			collection,
+			column: { ...column, name: column.originalName },
+			postfix,
+		});
+		const columnName = skipName ? '' : ` (${column.name})`;
+		return `CONSTRAINT ${constraintName} ${statement}${columnName} ${noValidate}`.trim();
+	};
+
+	const statements = [];
+
+	if (primaryKey) {
+		statements.push(
+			getConstraint({
+				statement: 'PRIMARY KEY',
+				postfix: CONSTRAINT_POSTFIX.primaryKey,
+				noValidate: getNoValidateStatement('DISABLE'),
+			}),
+		);
+	}
+
+	if (unique) {
+		statements.push(
+			getConstraint({
+				statement: 'UNIQUE',
+				postfix: CONSTRAINT_POSTFIX.uniqueKey,
+				noValidate: getNoValidateStatement('DISABLE'),
+			}),
+		);
+	}
+
+	if (notNull) {
+		statements.push(
+			getConstraint({
+				statement: `CHECK (${column.name} IS NOT NULL)`,
+				skipName: true,
+				postfix: CONSTRAINT_POSTFIX.notNull,
+				noValidate: getNoValidateStatement(enableSpecification),
+			}),
+		);
+	}
+
+	if (defaultValue && !isAlterScript) {
+		result.inline = ` DEFAULT ${defaultValue}`;
+	}
+
+	if (check) {
+		statements.push(
+			getConstraint({
+				statement: `CHECK (${check})`,
+				skipName: true,
+				postfix: CONSTRAINT_POSTFIX.check,
+				noValidate: getNoValidateStatement(enableSpecification),
+			}),
+		);
+	}
+
+	if (statements.length) {
+		result.separate = statements.join(',\n');
+	}
+
+	return result;
 };
 
 const getDescription = (definitions, property) => {
@@ -398,7 +492,7 @@ const clearComplexStructure = ({ type }) => {
 		return type;
 	}
 
-	const structureRegExp = /<([\s\S]+)>$/;
+	const structureRegExp = /<([\s\S]+?)>$/;
 	const [, subType] = structureRegExp.exec(type) ?? ['', ''];
 	const structure = isArray ? clearComplexStructure({ type: subType }) : '';
 
@@ -408,7 +502,7 @@ const clearComplexStructure = ({ type }) => {
 module.exports = {
 	getColumns,
 	getColumnsStatement,
-	getColumnStatement,
+	getColumnStatementParts,
 	getTypeByProperty,
 	clearComplexStructure,
 };

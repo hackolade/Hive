@@ -76,7 +76,7 @@ const getPathsByIds = (ids, sources) => {
 				}
 			}
 		})
-		.filter(path => path);
+		.filter(Boolean);
 };
 
 const eachProperty = (schema, path, callback) => {
@@ -114,23 +114,14 @@ const getIdToNameHashTable = jsonSchemas => {
 const getNameByPath = (idToNameHashTable, path) => {
 	const name = path
 		.map(id => {
-			return idToNameHashTable[id] instanceof Number ? '$elem$' : idToNameHashTable[id];
+			return typeof idToNameHashTable[id] === 'number' ? '$elem$' : idToNameHashTable[id];
 		})
 		.join('.');
 	return prepareName(name);
 };
 
 const isPrimaryKey = column => {
-	if (column.compositeUniqueKey) {
-		return false;
-	} else if (column.unique) {
-		return false;
-	} else if (column.compositeClusteringKey) {
-		return false;
-	} else if (!column.primaryKey) {
-		return false;
-	}
-	return true;
+	return column.primaryKey && !column.compositeUniqueKey && !column.unique && !column.compositeClusteringKey;
 };
 
 const getPrimaryKeys = (jsonSchema, areColumnConstraintsAvailable) => {

@@ -3,6 +3,7 @@
  * @typedef {import('../types').ConstraintDto} ConstraintDto
  * @typedef {import('../types').JsonSchema} JsonSchema
  */
+const { prepareName } = require('./generalHelper');
 
 const findName = (keyId, properties) => {
 	return Object.keys(properties).find(name => properties[name].GUID === keyId);
@@ -43,12 +44,13 @@ const getConstraintOpts = ({ noValidateSpecification, enableSpecification, rely 
 		return '';
 	}
 
-	return ` ${enableSpecification}${getPartConstraintOpts(noValidateSpecification)}${getPartConstraintOpts(rely)}`;
+	return `${enableSpecification}${getPartConstraintOpts(noValidateSpecification)}${getPartConstraintOpts(rely)}`;
 };
 
 const getUniqueKeyStatement = (jsonSchema, isParentItemActivated) => {
 	const getStatement = ({ keys, name, constraintOptsStatement }) =>
-		`CONSTRAINT ${name} UNIQUE (${keys})${constraintOptsStatement}`;
+		`CONSTRAINT ${prepareName(name)} UNIQUE (${keys}) ${constraintOptsStatement}`.trim();
+
 	const getColumnsName = columns => columns.map(column => column.name).join(', ');
 	const hydratedUniqueKeys = hydrateUniqueKeys(jsonSchema);
 
@@ -83,7 +85,7 @@ const getUniqueKeyStatement = (jsonSchema, isParentItemActivated) => {
 const getCheckConstraint = jsonSchema => {
 	const checks = jsonSchema.chkConstr || [];
 	const createCheckStatement = ({ constraintName, checkExpression, constraintOptsStatement }) =>
-		`CONSTRAINT ${constraintName} CHECK ${checkExpression}${constraintOptsStatement}`;
+		`CONSTRAINT ${prepareName(constraintName)} CHECK (${checkExpression})${constraintOptsStatement}`;
 
 	const checkConstraint = checks.map(check => {
 		const { constraintName, rely, noValidateSpecification, enableSpecification, checkExpression } = check || {};
@@ -110,8 +112,8 @@ const getCompositePrimaryKeys = ({ jsonSchema }) => {
 		.filter(primaryKey => primaryKey.compositePrimaryKey?.length)
 		.map(primaryKey => ({
 			keyType: 'PRIMARY KEY',
-			name: primaryKey.constraintName,
 			columns: getKeys(primaryKey.compositePrimaryKey, jsonSchema),
+			...(primaryKey.constraintName && { name: prepareName(primaryKey.constraintName) }),
 		}));
 };
 
@@ -128,8 +130,8 @@ const getCompositeUniqueKeys = ({ jsonSchema }) => {
 		.filter(uniqueKey => uniqueKey.compositeUniqueKey?.length)
 		.map(uniqueKey => ({
 			keyType: 'UNIQUE',
-			name: uniqueKey.constraintName,
 			columns: getKeys(uniqueKey.compositeUniqueKey, jsonSchema),
+			...(uniqueKey.constraintName && { name: prepareName(uniqueKey.constraintName) }),
 		}));
 };
 

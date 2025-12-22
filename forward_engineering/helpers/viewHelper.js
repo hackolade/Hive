@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { prepareName, commentDeactivatedStatements, encodeStringLiteral } = require('./generalHelper');
+const { prepareName, commentDeactivatedStatements, encodeStringLiteral, indentString } = require('./generalHelper');
 
 const itemIsDeactivated = item => item.startsWith('-- ');
 
@@ -62,7 +62,7 @@ const getFromStatement = (collectionRefsDefinitionsMap, columns) => {
 		return '';
 	}
 
-	return 'FROM ' + sourceCollections.join(' INNER JOIN ');
+	return 'FROM\n' + indentString(sourceCollections.join('\nINNER JOIN '));
 };
 
 const retrievePropertyFromConfig = (config, tab, propertyName, defaultValue = '') =>
@@ -73,7 +73,7 @@ const retrieveContainerName = containerConfig =>
 
 module.exports = {
 	getViewScript({ schema, viewData, containerData, collectionRefsDefinitionsMap }) {
-		let script = [];
+		const statements = [];
 		const columns = schema.properties || {};
 		const view = _.first(viewData) || {};
 
@@ -86,22 +86,32 @@ module.exports = {
 		const comment = view.description;
 		const fromStatement = getFromStatement(collectionRefsDefinitionsMap, columns);
 		const name = bucketName ? `${bucketName}.${viewName}` : `${viewName}`;
-		const createStatement = `CREATE ${orReplace && !ifNotExists ? 'OR REPLACE ' : ''}${isMaterialized ? 'MATERIALIZED ' : ''}VIEW ${ifNotExist ? 'IF NOT EXISTS ' : ''}${name}`;
 
-		script.push(createStatement);
+		const createStatement = [
+			'CREATE',
+			orReplace && !ifNotExists ? 'OR REPLACE' : '',
+			isMaterialized ? 'MATERIALIZED' : '',
+			'VIEW',
+			ifNotExist ? 'IF NOT EXISTS' : '',
+			name,
+			comment ? `COMMENT '${encodeStringLiteral(comment)}'` : '',
+			'AS',
+		]
+			.filter(Boolean)
+			.join(' ');
+
+		statements.push(createStatement);
 
 		if (schema.selectStatement) {
 			let statement = schema.selectStatement;
-			if (!_.trim(statement).toLowerCase().startsWith('as')) {
-				statement = 'AS ' + statement;
+			if (_.trim(statement).toLowerCase().startsWith('as')) {
+				statement = statement
+					.trim()
+					.replace(/\bAS\b/i, '')
+					.trim();
 			}
 
-			return (
-				createStatement +
-				(comment ? " COMMENT '" + encodeStringLiteral(comment) + "' " : ' ') +
-				statement +
-				';\n\n'
-			);
+			return `${createStatement}\n${statement};`;
 		}
 
 		if (_.isEmpty(columns)) {
@@ -115,14 +125,9 @@ module.exports = {
 			return;
 		}
 
-		if (comment) {
-			script.push(`COMMENT '${encodeStringLiteral(comment)}'`);
-		}
+		const joinedColumns = indentString(joinLastDeactivatedItem(columnsNames).join(',\n'));
+		statements.push('SELECT', joinedColumns, fromStatement);
 
-		const joinedColumns = joinLastDeactivatedItem(columnsNames).join(',\n');
-		script.push(`AS SELECT ${joinedColumns}`);
-		script.push(fromStatement);
-
-		return commentDeactivatedStatements(script.join('\n  ') + ';', view.isActivated);
+		return commentDeactivatedStatements(statements.join('\n') + ';', view.isActivated);
 	},
 };

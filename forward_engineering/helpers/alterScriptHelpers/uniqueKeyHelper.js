@@ -1,9 +1,8 @@
 const _ = require('lodash');
-const { getName, prepareName, commentDeactivatedStatements } = require('../generalHelper');
+const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
 const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
-
-const postfix = 'uk';
+const { CONSTRAINT_POSTFIX } = require('../constants');
 
 const getPropertyNameByGuid = (collection, guid) => {
 	const property = _.toPairs(collection?.role?.properties).find(([name, jsonSchema]) => jsonSchema.GUID === guid);
@@ -40,8 +39,9 @@ const getDropCompositeUkScripts = ({ collection, provider }) => {
 	const oldUniqueKeys = pkDto.old || [];
 
 	return oldUniqueKeys.map(oldUk => {
-		const pkConstraintName = oldUk.constraintName || getDefaultConstraintName(collection, postfix);
-		const constraintName = prepareName(pkConstraintName);
+		const ukConstraintName =
+			oldUk.constraintName || getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.uniqueKey });
+		const constraintName = prepareName(ukConstraintName);
 
 		return provider.assignTemplates(templates.dropConstraint, {
 			tableName,
@@ -65,8 +65,9 @@ const getAddCompositeUkScripts = ({ collection, provider }) => {
 		const compositeUniqueKey = newUk.compositeUniqueKey || [];
 		const guidsOfColumnsInUk = compositeUniqueKey.map(compositeUkEntry => compositeUkEntry.keyId);
 		const columnNames = getPropertiesNamesByGUIDs(collection, guidsOfColumnsInUk);
-		const pkConstraintName = newUk.constraintName || getDefaultConstraintName(collection, postfix);
-		const constraintName = prepareName(pkConstraintName);
+		const ukConstraintName =
+			newUk.constraintName || getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.uniqueKey });
+		const constraintName = prepareName(ukConstraintName);
 		const noValidate = newUk.noValidateSpecification ? ` ${newUk.noValidateSpecification}` : '';
 		const rely = newUk.rely ? ` ${newUk.rely}` : '';
 
@@ -89,10 +90,10 @@ const getModifyCompositeUkScripts = ({ collection, provider }) => {
 
 const getDropUkScripts = ({ collection, provider }) => {
 	const tableName = generateFullEntityName(collection);
-	const constraintName = getDefaultConstraintName(collection, postfix);
+	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.uniqueKey });
 
 	return _.toPairs(collection.properties)
-		.filter(([name, jsonSchema]) => {
+		.filter(([, jsonSchema]) => {
 			const oldName = jsonSchema.compMod.oldField.name;
 			const oldJsonSchema = collection.role.properties[oldName];
 			const wasTheFieldARegularUniqueKey = oldJsonSchema?.unique && !oldJsonSchema?.compositeUniqueKey;
@@ -100,7 +101,7 @@ const getDropUkScripts = ({ collection, provider }) => {
 			const isNotAUniqueKey = !jsonSchema.unique && !jsonSchema.compositeUniqueKey;
 			return wasTheFieldARegularUniqueKey && isNotAUniqueKey;
 		})
-		.map(([name, jsonSchema]) => {
+		.map(() => {
 			return provider.assignTemplates(templates.dropConstraint, {
 				tableName,
 				constraintName,
@@ -110,10 +111,10 @@ const getDropUkScripts = ({ collection, provider }) => {
 
 const getAddUkScripts = ({ collection, provider }) => {
 	const tableName = generateFullEntityName(collection);
-	const constraintName = getDefaultConstraintName(collection, postfix);
+	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.uniqueKey });
 
 	return _.toPairs(collection.properties)
-		.filter(([name, jsonSchema]) => {
+		.filter(([, jsonSchema]) => {
 			const isRegularUniqueKey = jsonSchema.unique && !jsonSchema.compositeUniqueKey;
 			const oldName = jsonSchema.compMod.oldField.name;
 			const wasTheFieldAUniqueKey = Boolean(collection.role.properties[oldName]?.unique);

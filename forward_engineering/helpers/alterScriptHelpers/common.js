@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const { stripParentheses } = require('../generalHelper');
 
 const getDifferentItems = (newItems = [], oldItems = []) => {
 	const intersection = _.intersectionWith(newItems, oldItems, _.isEqual);
@@ -10,24 +11,20 @@ const getDifferentItems = (newItems = [], oldItems = []) => {
 
 const hydrateTableProperties = ({ new: newItems, old: oldItems }, name, commentState) => {
 	const hydrateProperties = properties => (properties || '').split(',').map(prop => prop.trim());
-	const prepareProperties = properties =>
-		properties
-			.filter(Boolean)
-			.map(property => property.replace(/(\S+)=((\S|\s)+)/, `'$1'='$2'`))
-			.join(',\n');
+	const prepareProperties = properties => properties.filter(Boolean).join(', ');
 
 	const isCommentChanged = !_.isEqual(commentState?.new, commentState?.old);
-	const addCommentProp = isCommentChanged && commentState?.new ? `comment=${commentState?.new}` : '';
-	const dropCommentProp = isCommentChanged && !commentState?.new ? `comment` : '';
+	const addCommentProp = isCommentChanged && commentState?.new ? `'comment'='${commentState?.new}'` : '';
+	const dropCommentProp = isCommentChanged && !commentState?.new ? `'comment'` : '';
 
 	const preparePropertiesName = properties =>
 		properties
 			.filter(Boolean)
-			.map(prop => `'${prop.replace(/(=\S+)/, '')}'`)
+			.map(prop => `${prop.split('=')[0]}`)
 			.join(', ');
 
-	const newHydrateItems = hydrateProperties(newItems);
-	const oldHydrateItems = hydrateProperties(oldItems);
+	const newHydrateItems = hydrateProperties(stripParentheses(newItems));
+	const oldHydrateItems = hydrateProperties(stripParentheses(oldItems));
 
 	const { add, drop } = getDifferentItems(newHydrateItems, oldHydrateItems);
 

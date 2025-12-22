@@ -1,12 +1,11 @@
 const _ = require('lodash');
-const { getName, prepareName, commentDeactivatedStatements } = require('../generalHelper');
+const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
 const templates = require('./config/templates');
 const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
-
-const postfix = 'pk';
+const { CONSTRAINT_POSTFIX } = require('../constants');
 
 const getPropertyNameByGuid = (collection, guid) => {
-	const property = _.toPairs(collection?.role?.properties).find(([name, jsonSchema]) => jsonSchema.GUID === guid);
+	const property = _.toPairs(collection?.role?.properties).find(([, jsonSchema]) => jsonSchema.GUID === guid);
 	return property?.[0] && prepareName(property[0]);
 };
 
@@ -40,7 +39,8 @@ const getDropCompositePkScripts = ({ collection, provider }) => {
 	const oldPrimaryKeys = pkDto.old || [];
 
 	return oldPrimaryKeys.map(oldPk => {
-		const pkConstraintName = oldPk.constraintName || getDefaultConstraintName(collection, postfix);
+		const pkConstraintName =
+			oldPk.constraintName || getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.primaryKey });
 		const constraintName = prepareName(pkConstraintName);
 
 		return provider.assignTemplates(templates.dropConstraint, {
@@ -65,7 +65,8 @@ const getAddCompositePkScripts = ({ collection, provider }) => {
 		const compositePrimaryKey = newPk.compositePrimaryKey || [];
 		const guidsOfColumnsInPk = compositePrimaryKey.map(compositePkEntry => compositePkEntry.keyId);
 		const columnNames = getPropertiesNamesByGUIDs(collection, guidsOfColumnsInPk);
-		const pkConstraintName = newPk.constraintName || getDefaultConstraintName(collection, postfix);
+		const pkConstraintName =
+			newPk.constraintName || getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.primaryKey });
 		const constraintName = prepareName(pkConstraintName);
 		const noValidate = newPk.noValidateSpecification ? ` ${newPk.noValidateSpecification}` : '';
 		const rely = newPk.rely ? ` ${newPk.rely}` : '';
@@ -89,10 +90,10 @@ const getModifyCompositePkScripts = ({ collection, provider }) => {
 
 const getDropPkScripts = ({ collection, provider }) => {
 	const tableName = generateFullEntityName(collection);
-	const constraintName = getDefaultConstraintName(collection, postfix);
+	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.primaryKey });
 
 	return _.toPairs(collection.properties)
-		.filter(([name, jsonSchema]) => {
+		.filter(([, jsonSchema]) => {
 			const oldName = jsonSchema.compMod.oldField.name;
 			const oldJsonSchema = collection.role.properties[oldName];
 			const wasTheFieldARegularPrimaryKey = oldJsonSchema?.primaryKey && !oldJsonSchema?.compositePrimaryKey;
@@ -100,7 +101,7 @@ const getDropPkScripts = ({ collection, provider }) => {
 			const isNotAPrimaryKey = !jsonSchema.primaryKey && !jsonSchema.compositePrimaryKey;
 			return wasTheFieldARegularPrimaryKey && isNotAPrimaryKey;
 		})
-		.map(([name, jsonSchema]) => {
+		.map(() => {
 			return provider.assignTemplates(templates.dropConstraint, {
 				tableName,
 				constraintName,
@@ -110,10 +111,10 @@ const getDropPkScripts = ({ collection, provider }) => {
 
 const getAddPkScripts = ({ collection, provider }) => {
 	const tableName = generateFullEntityName(collection);
-	const constraintName = getDefaultConstraintName(collection, postfix);
+	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.primaryKey });
 
 	return _.toPairs(collection.properties)
-		.filter(([name, jsonSchema]) => {
+		.filter(([, jsonSchema]) => {
 			const isRegularPrimaryKey = jsonSchema.primaryKey && !jsonSchema.compositePrimaryKey;
 			const oldName = jsonSchema.compMod.oldField.name;
 			const wasTheFieldAPrimaryKey = Boolean(collection.role.properties[oldName]?.primaryKey);

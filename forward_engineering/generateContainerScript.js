@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const sqlFormatter = require('sql-formatter');
 const foreignKeyHelper = require('./helpers/foreignKeyHelper');
 const { getDatabaseStatement } = require('./helpers/databaseHelper');
 const { getAlterScript } = require('./helpers/alterScriptFromDeltaHelper');
@@ -10,6 +9,7 @@ const { buildScript } = require('./helpers/buildScript');
 const { parseEntities } = require('./helpers/parseEntities');
 const { getWorkloadManagementStatements } = require('./helpers/getWorkloadManagementStatements');
 const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('./helpers/constraintHelper');
+const { setMinify } = require('./helpers/generalHelper');
 
 const sortEntitiesByForeignKeyDependencies = ({ entities, relationships }) => {
 	const entitySet = new Set(entities);
@@ -65,11 +65,12 @@ const generateContainerScript = (data, logger, callback, app) => {
 		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
 		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
+		setMinify(needMinify);
 
 		if (data.isUpdateScript) {
 			const deltaModelSchema = _.first(Object.values(jsonSchema)) || {};
 			const definitions = [modelDefinitions, internalDefinitions, externalDefinitions];
-			const scripts = getAlterScript(deltaModelSchema, definitions, data, app, needMinify, sqlFormatter);
+			const scripts = getAlterScript(deltaModelSchema, definitions, data, app);
 			callback(null, scripts);
 			return;
 		}
@@ -118,10 +119,7 @@ const generateContainerScript = (data, logger, callback, app) => {
 			]);
 		}, []);
 
-		callback(
-			null,
-			buildScript(needMinify)(...workloadManagementStatements, databaseStatement, ...entities, ...viewsScripts),
-		);
+		callback(null, buildScript(...workloadManagementStatements, databaseStatement, ...entities, ...viewsScripts));
 	} catch (e) {
 		logger.log('error', { message: e.message, stack: e.stack }, 'Hive Forward-Engineering Error');
 
