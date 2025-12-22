@@ -44,12 +44,12 @@ const getConstraintOpts = ({ noValidateSpecification, enableSpecification, rely 
 		return '';
 	}
 
-	return ` ${enableSpecification}${getPartConstraintOpts(noValidateSpecification)}${getPartConstraintOpts(rely)}`;
+	return `${enableSpecification}${getPartConstraintOpts(noValidateSpecification)}${getPartConstraintOpts(rely)}`;
 };
 
 const getUniqueKeyStatement = (jsonSchema, isParentItemActivated) => {
 	const getStatement = ({ keys, name, constraintOptsStatement }) =>
-		`CONSTRAINT ${prepareName(name)} UNIQUE (${keys})${constraintOptsStatement}`;
+		`CONSTRAINT ${prepareName(name)} UNIQUE (${keys}) ${constraintOptsStatement}`.trim();
 
 	const getColumnsName = columns => columns.map(column => column.name).join(', ');
 	const hydratedUniqueKeys = hydrateUniqueKeys(jsonSchema);

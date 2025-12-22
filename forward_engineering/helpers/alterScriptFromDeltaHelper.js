@@ -191,7 +191,7 @@ const getInlineRelationships = ({ schema, options }) => {
 	return addedRelationships;
 };
 
-const getAlterScript = (schema, definitions, data, app, needMinify) => {
+const getAlterScript = (schema, definitions, data, app) => {
 	const provider = require('./alterScriptHelpers/provider')(app);
 
 	const inlineDeltaRelationships = getInlineRelationships({ schema, options: data.options });
@@ -236,7 +236,7 @@ const getAlterScript = (schema, definitions, data, app, needMinify) => {
 		.filter(Boolean)
 		.map(script => script.trim());
 	scripts = getCommentedDropScript(scripts, data);
-	return buildScript(needMinify)(...scripts);
+	return buildScript(...scripts);
 };
 
 const getCommentedDropScript = (scripts, data) => {

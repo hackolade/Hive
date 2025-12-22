@@ -191,7 +191,7 @@ const getAddCollectionsScripts =
 
 				return statement;
 			})
-			.join('\n');
+			.join(',\n');
 
 		const collectionScript = getTableStatement(
 			...hydratedCollection,
