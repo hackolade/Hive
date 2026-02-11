@@ -6,6 +6,9 @@ const { getIndexes } = require('./helpers/indexHelper');
 const { buildScript } = require('./helpers/buildScript');
 const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('./helpers/constraintHelper');
 const { setMinify } = require('./helpers/generalHelper');
+const { getForeignKeyStatementsByHashItem } = require('./helpers/foreignKeyHelper');
+const { parseEntities } = require('./helpers/parseEntities');
+const foreignKeyHelper = require('./helpers/foreignKeyHelper');
 
 const generateScript = (data, logger, callback, app) => {
 	try {
@@ -17,6 +20,8 @@ const generateScript = (data, logger, callback, app) => {
 		const entityData = data.entityData;
 		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
+		const allCollectionJsonSchema = data.allCollectionJsonSchema ?? [];
+
 		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 		setMinify(needMinify);
 
@@ -26,6 +31,30 @@ const generateScript = (data, logger, callback, app) => {
 			callback(null, scripts);
 			return;
 		}
+		const relationships = data.modelData.find(modelData => 'relationships' in modelData)?.relationships || [];
+
+		const parsedAdditionalEntities = allCollectionJsonSchema.reduce((result, schema) => {
+			const data = JSON.parse(schema);
+			result[data.GUID] = data;
+			return result;
+		}, {});
+
+		const foreignKeyHashTable = foreignKeyHelper.getForeignKeyHashTable({
+			relationships,
+			entities: Object.keys(parsedAdditionalEntities),
+			entityData: {
+				[jsonSchema.GUID]: entityData,
+			},
+			jsonSchemas: parsedAdditionalEntities,
+			modelDefinitions,
+			internalDefinitions,
+			otherDefinitions: [modelDefinitions, externalDefinitions],
+			isContainerActivated: entityData[0]?.isActivated,
+			relatedSchemas: {},
+		});
+		const foreignKeys = foreignKeyHelper.getForeignKeyStatementsByHashItem(
+			foreignKeyHashTable[jsonSchema.GUID] ?? {},
+		);
 
 		callback(
 			null,
@@ -36,7 +65,7 @@ const generateScript = (data, logger, callback, app) => {
 					entityData,
 					jsonSchema,
 					[modelDefinitions, internalDefinitions, externalDefinitions],
-					null,
+					foreignKeys,
 					areColumnConstraintsAvailable,
 					isPkOrFkConstraintAvailable,
 				),
