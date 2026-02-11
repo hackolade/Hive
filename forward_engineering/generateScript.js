@@ -10,6 +10,44 @@ const { getForeignKeyStatementsByHashItem } = require('./helpers/foreignKeyHelpe
 const { parseEntities } = require('./helpers/parseEntities');
 const foreignKeyHelper = require('./helpers/foreignKeyHelper');
 
+const getForeignKeyStatements = ({
+	jsonSchema,
+	entityData,
+	modelDefinitions,
+	internalDefinitions,
+	externalDefinitions,
+	collectionsJsonSchema = [],
+	relationships = [],
+}) => {
+	if (!relationships.length || !collectionsJsonSchema.length) {
+		return null;
+	}
+
+	const parsedEntitiesById = collectionsJsonSchema.reduce((result, schema) => {
+		const data = JSON.parse(schema);
+		result[data.GUID] = data;
+		return result;
+	}, {});
+
+	const foreignKeyHashTable = foreignKeyHelper.getForeignKeyHashTable({
+		relationships,
+		entities: Object.keys(parsedEntitiesById),
+		entityData: {
+			[jsonSchema.GUID]: entityData,
+		},
+		jsonSchemas: parsedEntitiesById,
+		modelDefinitions,
+		internalDefinitions,
+		otherDefinitions: [modelDefinitions, externalDefinitions],
+		isContainerActivated: true,
+		relatedSchemas: {},
+	});
+
+	return foreignKeyHashTable[jsonSchema.GUID]
+		? foreignKeyHelper.getForeignKeyStatementsByHashItem(foreignKeyHashTable[jsonSchema.GUID])
+		: null;
+};
+
 const generateScript = (data, logger, callback, app) => {
 	try {
 		const jsonSchema = JSON.parse(data.jsonSchema);
@@ -20,8 +58,6 @@ const generateScript = (data, logger, callback, app) => {
 		const entityData = data.entityData;
 		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
-		const allCollectionsJsonSchema = data.allCollectionsJsonSchema ?? [];
-
 		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 		setMinify(needMinify);
 
@@ -31,30 +67,16 @@ const generateScript = (data, logger, callback, app) => {
 			callback(null, scripts);
 			return;
 		}
-		const relationships = data.modelData.find(modelData => 'relationships' in modelData)?.relationships || [];
 
-		const parsedEntitiesById = allCollectionsJsonSchema.reduce((result, schema) => {
-			const data = JSON.parse(schema);
-			result[data.GUID] = data;
-			return result;
-		}, {});
-
-		const foreignKeyHashTable = foreignKeyHelper.getForeignKeyHashTable({
-			relationships,
-			entities: Object.keys(parsedEntitiesById),
-			entityData: {
-				[jsonSchema.GUID]: entityData,
-			},
-			jsonSchemas: parsedEntitiesById,
+		const foreignKeys = getForeignKeyStatements({
+			jsonSchema,
+			entityData,
 			modelDefinitions,
 			internalDefinitions,
-			otherDefinitions: [modelDefinitions, externalDefinitions],
-			isContainerActivated: entityData[0]?.isActivated,
-			relatedSchemas: {},
+			externalDefinitions,
+			collectionsJsonSchema: data.collectionsJsonSchema,
+			relationships: data.modelData.find(modelData => 'relationships' in modelData)?.relationships,
 		});
-		const foreignKeys = foreignKeyHelper.getForeignKeyStatementsByHashItem(
-			foreignKeyHashTable[jsonSchema.GUID] ?? {},
-		);
 
 		callback(
 			null,
