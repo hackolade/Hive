@@ -20,7 +20,7 @@ const generateScript = (data, logger, callback, app) => {
 		const entityData = data.entityData;
 		const areColumnConstraintsAvailable = getIsConstraintAvailable(data);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
-		const allCollectionJsonSchema = data.allCollectionJsonSchema ?? [];
+		const allCollectionsJsonSchema = data.allCollectionsJsonSchema ?? [];
 
 		const needMinify = _.get(data, 'options.additionalOptions', []).find(option => option.id === 'minify')?.value;
 		setMinify(needMinify);
@@ -33,7 +33,7 @@ const generateScript = (data, logger, callback, app) => {
 		}
 		const relationships = data.modelData.find(modelData => 'relationships' in modelData)?.relationships || [];
 
-		const parsedAdditionalEntities = allCollectionJsonSchema.reduce((result, schema) => {
+		const parsedEntitiesById = allCollectionsJsonSchema.reduce((result, schema) => {
 			const data = JSON.parse(schema);
 			result[data.GUID] = data;
 			return result;
@@ -41,11 +41,11 @@ const generateScript = (data, logger, callback, app) => {
 
 		const foreignKeyHashTable = foreignKeyHelper.getForeignKeyHashTable({
 			relationships,
-			entities: Object.keys(parsedAdditionalEntities),
+			entities: Object.keys(parsedEntitiesById),
 			entityData: {
 				[jsonSchema.GUID]: entityData,
 			},
-			jsonSchemas: parsedAdditionalEntities,
+			jsonSchemas: parsedEntitiesById,
 			modelDefinitions,
 			internalDefinitions,
 			otherDefinitions: [modelDefinitions, externalDefinitions],
