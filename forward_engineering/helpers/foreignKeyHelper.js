@@ -91,9 +91,12 @@ const getForeignKeyHashTable = ({
 			childTableName: childTableName,
 			parentColumn: getPreparedForeignColumns(relationship.parentField, idToNameHashTable),
 			childColumn: getPreparedForeignColumns(relationship.childField, idToNameHashTable),
-			isActivated: isContainerActivated
-				? _.get(parentTableData, 'isActivated') && _.get(childTableData, 'isActivated')
-				: true && childFieldActivated && parentFieldActivated,
+			isActivated:
+				isContainerActivated &&
+				_.get(parentTableData, 'isActivated') &&
+				_.get(childTableData, 'isActivated') &&
+				childFieldActivated &&
+				parentFieldActivated,
 		});
 
 		return hashTable;

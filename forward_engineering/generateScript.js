@@ -16,14 +16,14 @@ const getForeignKeyStatements = ({
 	modelDefinitions,
 	internalDefinitions,
 	externalDefinitions,
-	collectionsJsonSchema = [],
+	relatedCollectionsJsonSchema = [],
 	relationships = [],
 }) => {
-	if (!relationships.length || !collectionsJsonSchema.length) {
+	if (!relationships.length || !relatedCollectionsJsonSchema.length) {
 		return null;
 	}
 
-	const parsedEntitiesById = collectionsJsonSchema.reduce((result, schema) => {
+	const parsedEntitiesById = relatedCollectionsJsonSchema.reduce((result, schema) => {
 		const data = JSON.parse(schema);
 		result[data.GUID] = data;
 		return result;
@@ -74,7 +74,7 @@ const generateScript = (data, logger, callback, app) => {
 			modelDefinitions,
 			internalDefinitions,
 			externalDefinitions,
-			collectionsJsonSchema: data.collectionsJsonSchema,
+			relatedCollectionsJsonSchema: data.relatedCollectionsJsonSchema,
 			relationships: data.modelData.find(modelData => 'relationships' in modelData)?.relationships,
 		});
 
