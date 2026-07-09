@@ -729,7 +729,10 @@ making sure that you maintain a proper JSON format.
 						"requiredProperty": true,
 						"propertyType": "details",
 						"template": "textarea",
-						"markdown": false
+						"markdown": false,
+						"validation": {
+							"required": true
+						}
 					},
 					{
 						"propertyName": "Disable / Enable",
