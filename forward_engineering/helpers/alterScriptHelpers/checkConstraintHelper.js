@@ -58,7 +58,12 @@ const getAddCompositeCheckConstraintsScripts = ({ collection, provider }) => {
 		const constraintName =
 			newCheckConstraint.constraintName ||
 			getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.check });
+
 		const expression = newCheckConstraint.checkExpression || '';
+		if (!expression?.trim?.()) {
+			return '';
+		}
+
 		const enable = newCheckConstraint.enableSpecification ? ` ${newCheckConstraint.enableSpecification}` : '';
 		const noValidate = newCheckConstraint.noValidateSpecification
 			? ` ${newCheckConstraint.noValidateSpecification}`
