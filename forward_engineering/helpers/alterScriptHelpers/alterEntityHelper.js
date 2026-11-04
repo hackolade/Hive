@@ -14,7 +14,7 @@ const {
 	hydrateProperty,
 } = require('./generalHelper');
 const { hydrateKeys } = require('./tableKeysHelper');
-const { prepareName } = require('../generalHelper');
+const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
 const { getModifyPkConstraintsScripts } = require('./primaryKeyHelper');
 const { getIsPkOrFkConstraintAvailable, getIsConstraintAvailable } = require('../constraintHelper');
 const { getModifyUkConstraintsScripts } = require('./uniqueKeyHelper');
@@ -105,7 +105,8 @@ const hydrateAlterColumns = (entity, definitions) => {
 		const isCommentChanged = newComment !== oldComment;
 		const isColumnChanged = oldName !== newName || newType !== oldType || isCommentChanged;
 
-		const column = isColumnChanged ? { type: newType, oldName, newName } : null;
+		const isActivated = entity.role?.isActivated !== false && property.isActivated !== false;
+		const column = isColumnChanged ? { type: newType, oldName, newName, isActivated } : null;
 
 		if (column && isCommentChanged) {
 			return { ...column, comment: newComment };
@@ -158,7 +159,12 @@ const generateModifyCollectionScript = (entity, definitions, provider) => {
 		return { type: 'new', script: prepareScript(deleteCollectionScript, addCollectionScript) };
 	}
 	const hydratedAlterTable = hydrateAlterTable(entity, fullCollectionName, definitions);
-	return { type: 'modified', script: provider.alterTable(hydratedAlterTable) };
+	const isActivated = entity.role?.isActivated !== false;
+	const script = provider
+		.alterTable(hydratedAlterTable)
+		.filter(Boolean)
+		.map(statement => commentDeactivatedStatements(statement, isActivated));
+	return { type: 'modified', script };
 };
 
 const getAddCollectionsScripts =

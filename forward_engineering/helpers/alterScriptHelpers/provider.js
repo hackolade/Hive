@@ -1,4 +1,5 @@
 const templates = require('./config/templates');
+const { commentDeactivatedStatements } = require('../generalHelper');
 
 module.exports = app => {
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
@@ -39,19 +40,21 @@ module.exports = app => {
 			if (!collectionName) {
 				return [];
 			}
-			const columnsScripts = columns.map(({ oldName, newName, type, comment }) => {
+			const columnsScripts = columns.map(({ oldName, newName, type, comment, isActivated }) => {
 				if (!oldName && !newName && !type) {
 					return '';
 				}
-				return typeof comment === 'string'
-					? assignTemplates(templates.alterTableColumnNameWithComment, {
-							collectionName,
-							oldName,
-							newName,
-							type,
-							comment,
-						})
-					: assignTemplates(templates.alterTableColumnName, { collectionName, oldName, newName, type });
+				const script =
+					typeof comment === 'string'
+						? assignTemplates(templates.alterTableColumnNameWithComment, {
+								collectionName,
+								oldName,
+								newName,
+								type,
+								comment,
+							})
+						: assignTemplates(templates.alterTableColumnName, { collectionName, oldName, newName, type });
+				return commentDeactivatedStatements(script, isActivated !== false);
 			});
 			return columnsScripts.filter(Boolean);
 		},
