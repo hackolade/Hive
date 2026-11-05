@@ -8,7 +8,6 @@ const { CONSTRAINT_POSTFIX } = require('../constants');
 const getModifyDefaultValueConstraintsScripts = ({ collection, provider, definitions }) => {
 	const tableName = generateFullEntityName(collection);
 	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.default });
-	const isActivated = collection.role.isActivated;
 
 	return _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
 		const oldName = jsonSchema.compMod.oldField.name;
@@ -43,6 +42,7 @@ const getModifyDefaultValueConstraintsScripts = ({ collection, provider, definit
 			);
 		}
 
+		const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
 		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
 };

@@ -101,11 +101,13 @@ const getDropUkScripts = ({ collection, provider }) => {
 			const isNotAUniqueKey = !jsonSchema.unique && !jsonSchema.compositeUniqueKey;
 			return wasTheFieldARegularUniqueKey && isNotAUniqueKey;
 		})
-		.map(() => {
-			return provider.assignTemplates(templates.dropConstraint, {
+		.map(([, jsonSchema]) => {
+			const statement = provider.assignTemplates(templates.dropConstraint, {
 				tableName,
 				constraintName,
 			});
+			const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
+			return commentDeactivatedStatements(statement, isActivated);
 		});
 };
 
@@ -125,13 +127,15 @@ const getAddUkScripts = ({ collection, provider }) => {
 			const noValidate = jsonSchema.noValidateSpecification ? ` ${jsonSchema.noValidateSpecification}` : '';
 			const rely = jsonSchema.rely ? ` ${jsonSchema.rely}` : '';
 
-			return provider.assignTemplates(templates.addUkConstraint, {
+			const statement = provider.assignTemplates(templates.addUkConstraint, {
 				tableName,
 				constraintName,
 				columnNames,
 				noValidate,
 				rely,
 			});
+			const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
+			return commentDeactivatedStatements(statement, isActivated);
 		});
 };
 
@@ -145,11 +149,12 @@ const getModifyUkScripts = ({ collection, provider }) => {
 const getModifyUkConstraintsScripts = ({ collection, provider }) => {
 	const modifyCompositeUkScripts = getModifyCompositeUkScripts({ collection, provider });
 	const modifyUkScripts = getModifyUkScripts({ collection, provider });
-	const isActivated = collection.role.isActivated;
+	const isActivated = collection.role?.isActivated !== false;
 
-	return [...modifyCompositeUkScripts, ...modifyUkScripts].map(statement =>
-		commentDeactivatedStatements(statement, isActivated),
-	);
+	return [
+		...modifyCompositeUkScripts.map(statement => commentDeactivatedStatements(statement, isActivated)),
+		...modifyUkScripts,
+	];
 };
 
 module.exports = {

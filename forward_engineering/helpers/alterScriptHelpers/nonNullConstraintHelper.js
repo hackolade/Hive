@@ -8,7 +8,6 @@ const { CONSTRAINT_POSTFIX } = require('../constants');
 const getModifyNonNullColumnsScripts = ({ collection, provider, definitions }) => {
 	const tableName = generateFullEntityName(collection);
 	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.notNull });
-	const isActivated = collection.role.isActivated;
 
 	const currentRequiredColumnNames = collection.required || [];
 	const previousRequiredColumnNames = collection.role.required || [];
@@ -41,6 +40,7 @@ const getModifyNonNullColumnsScripts = ({ collection, provider, definitions }) =
 			scripts.push(provider.assignTemplates(templates.addNotNullConstraint, scriptParams));
 		}
 
+		const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
 		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
 };
