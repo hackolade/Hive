@@ -8,7 +8,7 @@ const {
 	getEntityName,
 } = require('./generalHelper');
 const templates = require('./config/templates');
-const { prepareName } = require('../generalHelper');
+const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
 
 const viewProperties = ['tableProperties', 'viewTemporary', 'viewOrReplace', 'isGlobal', 'description', 'name', 'code'];
 
@@ -115,7 +115,8 @@ const getModifyViewPropertiesScripts = ({ provider, view }) => {
 			})
 		: '';
 
-	return [dropScript, addScript].filter(Boolean);
+	const isActivated = view.role?.isActivated !== false;
+	return [dropScript, addScript].filter(Boolean).map(script => commentDeactivatedStatements(script, isActivated));
 };
 
 const getModifyViewsScripts = provider => view => {

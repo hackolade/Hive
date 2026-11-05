@@ -101,11 +101,13 @@ const getDropPkScripts = ({ collection, provider }) => {
 			const isNotAPrimaryKey = !jsonSchema.primaryKey && !jsonSchema.compositePrimaryKey;
 			return wasTheFieldARegularPrimaryKey && isNotAPrimaryKey;
 		})
-		.map(() => {
-			return provider.assignTemplates(templates.dropConstraint, {
+		.map(([, jsonSchema]) => {
+			const statement = provider.assignTemplates(templates.dropConstraint, {
 				tableName,
 				constraintName,
 			});
+			const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
+			return commentDeactivatedStatements(statement, isActivated);
 		});
 };
 
@@ -125,13 +127,15 @@ const getAddPkScripts = ({ collection, provider }) => {
 			const noValidate = jsonSchema.noValidateSpecification ? ` ${jsonSchema.noValidateSpecification}` : '';
 			const rely = jsonSchema.rely ? ` ${jsonSchema.rely}` : '';
 
-			return provider.assignTemplates(templates.addPkConstraint, {
+			const statement = provider.assignTemplates(templates.addPkConstraint, {
 				tableName,
 				constraintName,
 				columnNames,
 				noValidate,
 				rely,
 			});
+			const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
+			return commentDeactivatedStatements(statement, isActivated);
 		});
 };
 
@@ -145,11 +149,12 @@ const getModifyPkScripts = ({ collection, provider }) => {
 const getModifyPkConstraintsScripts = ({ collection, provider }) => {
 	const modifyCompositePkScripts = getModifyCompositePkScripts({ collection, provider });
 	const modifyPkScripts = getModifyPkScripts({ collection, provider });
-	const isActivated = collection.role.isActivated;
+	const isActivated = collection.role?.isActivated !== false;
 
-	return [...modifyCompositePkScripts, ...modifyPkScripts].map(statement =>
-		commentDeactivatedStatements(statement, isActivated),
-	);
+	return [
+		...modifyCompositePkScripts.map(statement => commentDeactivatedStatements(statement, isActivated)),
+		...modifyPkScripts,
+	];
 };
 
 module.exports = {

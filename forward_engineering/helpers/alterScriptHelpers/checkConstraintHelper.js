@@ -84,14 +84,16 @@ const getAddCompositeCheckConstraintsScripts = ({ collection, provider }) => {
 const getModifyCompositeCheckConstraintsScripts = ({ collection, provider }) => {
 	const dropCompositeCheckConstraintsScripts = getDropCompositeCheckConstraintsScripts({ collection, provider });
 	const addCompositeCheckConstraintsScripts = getAddCompositeCheckConstraintsScripts({ collection, provider });
+	const isActivated = collection.role?.isActivated !== false;
 
-	return [...dropCompositeCheckConstraintsScripts, ...addCompositeCheckConstraintsScripts];
+	return [...dropCompositeCheckConstraintsScripts, ...addCompositeCheckConstraintsScripts].map(statement =>
+		commentDeactivatedStatements(statement, isActivated),
+	);
 };
 
 const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definitions }) => {
 	const tableName = generateFullEntityName(collection);
 	const constraintName = getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.check });
-	const isActivated = collection.role.isActivated;
 
 	return _.toPairs(collection.properties).flatMap(([columnName, jsonSchema]) => {
 		const oldName = jsonSchema.compMod.oldField.name;
@@ -126,6 +128,7 @@ const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definiti
 			);
 		}
 
+		const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
 		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
 };
