@@ -18,6 +18,7 @@ const getForeignKeyStatements = ({
 	externalDefinitions,
 	relatedCollectionsJsonSchema = [],
 	relationships = [],
+	isContainerActivated,
 }) => {
 	if (!relationships.length || !relatedCollectionsJsonSchema.length) {
 		return null;
@@ -39,7 +40,7 @@ const getForeignKeyStatements = ({
 		modelDefinitions,
 		internalDefinitions,
 		otherDefinitions: [modelDefinitions, externalDefinitions],
-		isContainerActivated: true,
+		isContainerActivated,
 		relatedSchemas: {},
 	});
 
@@ -76,6 +77,7 @@ const generateScript = (data, logger, callback, app) => {
 			externalDefinitions,
 			relatedCollectionsJsonSchema: data.relatedCollectionsJsonSchema,
 			relationships: data.modelData.find(modelData => 'relationships' in modelData)?.relationships,
+			isContainerActivated: containerData?.[0]?.isActivated,
 		});
 
 		callback(

@@ -1,16 +1,29 @@
 const _ = require('lodash');
-const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
+const { prepareName, commentDeactivatedStatements, commentDeactivatedInlineKeys } = require('../generalHelper');
 const templates = require('./config/templates');
-const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
+const {
+	generateFullEntityName,
+	getDefaultConstraintName,
+	isCollectionInDeltaModelActivated,
+} = require('./generalHelper');
 const { CONSTRAINT_POSTFIX } = require('../constants');
 
-const getPropertyNameByGuid = (collection, guid) => {
-	const property = _.toPairs(collection?.role?.properties).find(([, jsonSchema]) => jsonSchema.GUID === guid);
-	return property?.[0] && prepareName(property[0]);
-};
+const getCompositePkColumns = (collection, compositePrimaryKey = []) => {
+	return compositePrimaryKey
+		.map(compositePkEntry => {
+			const property = _.toPairs(collection?.role?.properties).find(
+				([, jsonSchema]) => jsonSchema.GUID === compositePkEntry.keyId,
+			);
+			if (!property) {
+				return;
+			}
 
-const getPropertiesNamesByGUIDs = (collection, guids) => {
-	return guids.map(guid => getPropertyNameByGuid(collection, guid)).filter(Boolean);
+			return {
+				name: prepareName(property[0]),
+				isActivated: property[1].isActivated !== false,
+			};
+		})
+		.filter(Boolean);
 };
 
 const didCompositePkChange = collection => {
@@ -37,16 +50,18 @@ const getDropCompositePkScripts = ({ collection, provider }) => {
 	const tableName = generateFullEntityName(collection);
 	const pkDto = collection?.role?.compMod?.primaryKey || {};
 	const oldPrimaryKeys = pkDto.old || [];
+	const isActivated = isCollectionInDeltaModelActivated(collection);
 
 	return oldPrimaryKeys.map(oldPk => {
 		const pkConstraintName =
 			oldPk.constraintName || getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.primaryKey });
 		const constraintName = prepareName(pkConstraintName);
-
-		return provider.assignTemplates(templates.dropConstraint, {
+		const statement = provider.assignTemplates(templates.dropConstraint, {
 			tableName,
 			constraintName,
 		});
+
+		return commentDeactivatedStatements(statement, isActivated);
 	});
 };
 
@@ -60,24 +75,33 @@ const getAddCompositePkScripts = ({ collection, provider }) => {
 	const tableName = generateFullEntityName(collection);
 	const pkDto = collection?.role?.compMod?.primaryKey || {};
 	const newPrimaryKeys = pkDto.new || [];
+	const isCollectionActivated = isCollectionInDeltaModelActivated(collection);
 
 	return newPrimaryKeys.map(newPk => {
-		const compositePrimaryKey = newPk.compositePrimaryKey || [];
-		const guidsOfColumnsInPk = compositePrimaryKey.map(compositePkEntry => compositePkEntry.keyId);
-		const columnNames = getPropertiesNamesByGUIDs(collection, guidsOfColumnsInPk);
+		const columns = getCompositePkColumns(collection, newPk.compositePrimaryKey);
+		const deactivatedColumnNames = new Set(
+			columns.filter(column => !column.isActivated).map(column => column.name),
+		);
+		const { isAllKeysDeactivated, keysString } = commentDeactivatedInlineKeys(
+			columns.map(column => column.name),
+			deactivatedColumnNames,
+		);
+		const isActivated = isCollectionActivated && columns.length > 0 && !isAllKeysDeactivated;
+		const columnNames = isActivated ? keysString : columns.map(column => column.name).join(', ');
 		const pkConstraintName =
 			newPk.constraintName || getDefaultConstraintName({ collection, postfix: CONSTRAINT_POSTFIX.primaryKey });
 		const constraintName = prepareName(pkConstraintName);
 		const noValidate = newPk.noValidateSpecification ? ` ${newPk.noValidateSpecification}` : '';
 		const rely = newPk.rely ? ` ${newPk.rely}` : '';
-
-		return provider.assignTemplates(templates.addPkConstraint, {
+		const statement = provider.assignTemplates(templates.addPkConstraint, {
 			tableName,
 			constraintName,
 			columnNames,
 			noValidate,
 			rely,
 		});
+
+		return commentDeactivatedStatements(statement, isActivated);
 	});
 };
 
@@ -106,7 +130,7 @@ const getDropPkScripts = ({ collection, provider }) => {
 				tableName,
 				constraintName,
 			});
-			const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
+			const isActivated = isCollectionInDeltaModelActivated(collection) && jsonSchema.isActivated !== false;
 			return commentDeactivatedStatements(statement, isActivated);
 		});
 };
@@ -134,7 +158,7 @@ const getAddPkScripts = ({ collection, provider }) => {
 				noValidate,
 				rely,
 			});
-			const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
+			const isActivated = isCollectionInDeltaModelActivated(collection) && jsonSchema.isActivated !== false;
 			return commentDeactivatedStatements(statement, isActivated);
 		});
 };
@@ -149,12 +173,8 @@ const getModifyPkScripts = ({ collection, provider }) => {
 const getModifyPkConstraintsScripts = ({ collection, provider }) => {
 	const modifyCompositePkScripts = getModifyCompositePkScripts({ collection, provider });
 	const modifyPkScripts = getModifyPkScripts({ collection, provider });
-	const isActivated = collection.role?.isActivated !== false;
 
-	return [
-		...modifyCompositePkScripts.map(statement => commentDeactivatedStatements(statement, isActivated)),
-		...modifyPkScripts,
-	];
+	return [...modifyCompositePkScripts, ...modifyPkScripts];
 };
 
 module.exports = {

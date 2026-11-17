@@ -1,6 +1,10 @@
 const _ = require('lodash');
 const templates = require('./config/templates');
-const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
+const {
+	generateFullEntityName,
+	getDefaultConstraintName,
+	isCollectionInDeltaModelActivated,
+} = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
 const { commentDeactivatedStatements, prepareName } = require('../generalHelper');
 const { CONSTRAINT_POSTFIX } = require('../constants');
@@ -42,7 +46,7 @@ const getModifyDefaultValueConstraintsScripts = ({ collection, provider, definit
 			);
 		}
 
-		const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
+		const isActivated = isCollectionInDeltaModelActivated(collection) && jsonSchema.isActivated !== false;
 		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
 };

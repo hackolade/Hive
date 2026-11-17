@@ -12,6 +12,9 @@ const {
 	getEntityName,
 	prepareScript,
 	hydrateProperty,
+	isObjectInDeltaModelActivated,
+	isParentContainerActivated,
+	isCollectionInDeltaModelActivated,
 } = require('./generalHelper');
 const { hydrateKeys } = require('./tableKeysHelper');
 const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
@@ -105,7 +108,7 @@ const hydrateAlterColumns = (entity, definitions) => {
 		const isCommentChanged = newComment !== oldComment;
 		const isColumnChanged = oldName !== newName || newType !== oldType || isCommentChanged;
 
-		const isActivated = entity.role?.isActivated !== false && property.isActivated !== false;
+		const isActivated = isCollectionInDeltaModelActivated(entity) && property.isActivated !== false;
 		const column = isColumnChanged ? { type: newType, oldName, newName, isActivated } : null;
 
 		if (column && isCommentChanged) {
@@ -126,7 +129,7 @@ const hydrateDropIndexes = entity => {
 const hydrateAddIndexes = (entity, SecIndxs, properties, definitions) => {
 	const compMod = _.get(entity, 'role.compMod', {});
 	const entityData = _.get(entity, 'role', {});
-	const containerData = { name: getContainerName(compMod) };
+	const containerData = { name: getContainerName(compMod), isActivated: isParentContainerActivated(entity) };
 	return [[containerData], [entityData, {}, { SecIndxs }], { ...entityData, properties }, definitions];
 };
 
@@ -143,7 +146,7 @@ const hydrateCollection = (entity, definitions) => {
 	const compMod = _.get(entity, 'role.compMod', {});
 	const entityData = _.get(entity, 'role', {});
 	const properties = getEntityProperties(entity);
-	const containerData = { name: getContainerName(compMod) };
+	const containerData = { name: getContainerName(compMod), isActivated: isParentContainerActivated(entity) };
 	return [[containerData], [entityData], { ...entityData, properties }, definitions];
 };
 
@@ -151,15 +154,18 @@ const generateModifyCollectionScript = (entity, definitions, provider) => {
 	const compMod = _.get(entity, 'role.compMod', {});
 	const isChangedProperties = getIsChangeProperties(compMod, tableProperties);
 	const fullCollectionName = generateFullEntityName(entity);
+	const isActivated = isCollectionInDeltaModelActivated(entity);
 	if (isChangedProperties) {
 		const roleData = getEntityData(compMod, tableProperties.concat(otherTableProperties));
 		const hydratedCollection = hydrateCollection({ ...entity, role: { ...entity.role, ...roleData } }, definitions);
 		const addCollectionScript = getTableStatement(...hydratedCollection, null, true);
-		const deleteCollectionScript = provider.dropTable(fullCollectionName);
+		const deleteCollectionScript = commentDeactivatedStatements(
+			provider.dropTable(fullCollectionName),
+			isActivated,
+		);
 		return { type: 'new', script: prepareScript(deleteCollectionScript, addCollectionScript) };
 	}
 	const hydratedAlterTable = hydrateAlterTable(entity, fullCollectionName, definitions);
-	const isActivated = entity.role?.isActivated !== false;
 	const script = provider
 		.alterTable(hydratedAlterTable)
 		.filter(Boolean)
@@ -174,6 +180,7 @@ const getAddCollectionsScripts =
 		const indexes = _.get(entity, 'role.SecIndxs', []);
 		const hydratedCollection = hydrateCollection(entity, definitions);
 		const isPkOrFkConstraintAvailable = getIsPkOrFkConstraintAvailable(data);
+		const isCollectionActivated = isCollectionInDeltaModelActivated(entity);
 
 		const foreignKeyConstraints = inlineDeltaRelationships
 			.filter(relationship => relationship.role.childCollection === entity.role.id)
@@ -194,8 +201,16 @@ const getAddCollectionsScripts =
 					parentColumns,
 					disableNoValidate,
 				});
+				const isActivated =
+					!isCollectionActivated ||
+					(isObjectInDeltaModelActivated(relationship.role) &&
+						compMod.parent.bucket?.isActivated !== false &&
+						compMod.parent.collection.isActivated !== false &&
+						[...compMod.parent.collection.fkFields, ...compMod.child.collection.fkFields].every(
+							field => field.isActivated !== false,
+						));
 
-				return statement;
+				return commentDeactivatedStatements(statement, isActivated);
 			})
 			.join(',\n');
 
@@ -213,10 +228,13 @@ const getAddCollectionsScripts =
 const getDeleteCollectionsScripts = provider => entity => {
 	const entityData = { ...entity, ..._.get(entity, 'role', {}) };
 	const fullCollectionName = generateFullEntityName(entity);
+	const isActivated = isCollectionInDeltaModelActivated(entity);
 	const collectionScript = provider.dropTable(fullCollectionName);
 	const indexScript = provider.dropTableIndex(hydrateDropIndexes(entityData));
 
-	return prepareScript(...indexScript, collectionScript);
+	return prepareScript(...indexScript, collectionScript).map(script =>
+		commentDeactivatedStatements(script, isActivated),
+	);
 };
 
 const getModifyCollectionsScripts = (definitions, provider, data) => entity => {
@@ -257,7 +275,10 @@ const getAddColumnsScripts = (definitions, provider) => entity => {
 	const modifyScript = generateModifyCollectionScript(entity, definitions, provider);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);
-	const addColumnScript = provider.addTableColumns({ name: fullCollectionName, columns: columnStatement });
+	const addColumnScript = commentDeactivatedStatements(
+		provider.addTableColumns({ name: fullCollectionName, columns: columnStatement }),
+		isCollectionInDeltaModelActivated(entity),
+	);
 
 	return modifyScript.type === 'new'
 		? prepareScript(...dropIndexScript, ...modifyScript.script, addIndexScript)
@@ -272,7 +293,10 @@ const getDeleteColumnsScripts = (definitions, provider) => entity => {
 	const fullCollectionName = generateFullEntityName(entity);
 	const dropIndexScript = provider.dropTableIndex(hydratedDropIndexes);
 	const addIndexScript = getIndexes(...hydratedAddIndexes);
-	const deleteCollectionScript = provider.dropTable(fullCollectionName);
+	const deleteCollectionScript = commentDeactivatedStatements(
+		provider.dropTable(fullCollectionName),
+		isCollectionInDeltaModelActivated(entity),
+	);
 	const hydratedCollection = hydrateCollection(entityData, definitions);
 	const addCollectionScript = getTableStatement(...hydratedCollection, null, true);
 

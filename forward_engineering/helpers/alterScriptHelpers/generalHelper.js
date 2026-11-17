@@ -53,7 +53,21 @@ const getDefaultConstraintName = ({ collection, column = {}, postfix }) => {
 	return prepareName([entityName, columnName, postfix].filter(Boolean).join('_'));
 };
 
+const isObjectInDeltaModelActivated = modelObject =>
+	modelObject?.compMod?.isActivated?.new ?? modelObject?.role?.isActivated ?? modelObject?.isActivated ?? true;
+
+const isParentContainerActivated = collection =>
+	collection?.compMod?.bucketProperties?.isActivated ??
+	collection?.role?.compMod?.bucketProperties?.isActivated ??
+	true;
+
+const isCollectionInDeltaModelActivated = collection =>
+	Boolean(isParentContainerActivated(collection) && isObjectInDeltaModelActivated(collection));
+
 module.exports = {
+	isObjectInDeltaModelActivated,
+	isParentContainerActivated,
+	isCollectionInDeltaModelActivated,
 	getEntityData,
 	getFullEntityName,
 	generateFullEntityName,

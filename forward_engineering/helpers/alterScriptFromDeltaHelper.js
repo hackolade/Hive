@@ -21,7 +21,7 @@ const { getItems } = require('./alterScriptHelpers/common');
 const { getContainerName } = require('./alterScriptHelpers/generalHelper');
 const { buildScript } = require('./buildScript');
 const { DROP_STATEMENTS } = require('./constants');
-const { commentDeactivatedStatements, prepareName } = require('./generalHelper');
+const { commentDeactivatedStatements, prepareName, isDeactivatedStatement } = require('./generalHelper');
 
 const getSchemaName = collection => prepareName(getContainerName(collection.role?.compMod));
 
@@ -247,7 +247,7 @@ const getCommentedDropScript = (scripts, data) => {
 	}
 	return scripts.map(script => {
 		const isDrop = DROP_STATEMENTS.some(statement => script.includes(statement));
-		return !isDrop ? script : commentDeactivatedStatements(script, false);
+		return !isDrop || isDeactivatedStatement(script) ? script : commentDeactivatedStatements(script, false);
 	});
 };
 

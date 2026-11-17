@@ -1,4 +1,4 @@
-const { getFullEntityName } = require('./generalHelper');
+const { getFullEntityName, isObjectInDeltaModelActivated } = require('./generalHelper');
 const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
 
 const templates = require('./config/templates');
@@ -12,6 +12,21 @@ const getRelationshipName = (relationship, parentTableName, childTableName) => {
 		return prepareName(name);
 	}
 	return prepareName([parentTableName, childTableName, CONSTRAINT_POSTFIX.foreignKey].filter(Boolean).join('_'));
+};
+
+const isRelatedTableActivated = ({ bucket, collection } = {}) =>
+	bucket?.isActivated !== false && collection?.isActivated !== false;
+
+const isRelationshipActivated = relationship => {
+	const compMod = relationship.role.compMod;
+	const fkFields = [...(compMod.parent?.collection?.fkFields || []), ...(compMod.child?.collection?.fkFields || [])];
+
+	return (
+		isObjectInDeltaModelActivated(relationship.role) &&
+		isRelatedTableActivated(compMod.parent) &&
+		isRelatedTableActivated(compMod.child) &&
+		fkFields.every(field => field.isActivated !== false)
+	);
 };
 
 const getFullParentTableName = relationship => {
@@ -69,9 +84,8 @@ const canRelationshipBeAdded = relationship => {
 
 const getAddForeignKeyScript = provider => relationship => {
 	const script = getAddSingleForeignKeyScript(provider)(relationship);
-	const isActivated = Boolean(relationship.role?.compMod?.isActivated?.new);
 
-	return commentDeactivatedStatements(script, isActivated);
+	return commentDeactivatedStatements(script, isRelationshipActivated(relationship));
 };
 
 const getDeleteSingleForeignKeyScript = provider => relationship => {
@@ -103,7 +117,9 @@ const getDeleteForeignKeyScripts = provider => deletedRelationships => {
 		.filter(relationship => canRelationshipBeDeleted(relationship))
 		.map(relationship => {
 			const script = getDeleteSingleForeignKeyScript(provider)(relationship);
-			const isActivated = Boolean(relationship.role?.compMod?.isActivated?.new);
+			const isActivated =
+				isObjectInDeltaModelActivated(relationship.role) &&
+				isRelatedTableActivated(relationship.role.compMod.child);
 
 			return commentDeactivatedStatements(script, isActivated);
 		});
@@ -112,11 +128,9 @@ const getDeleteForeignKeyScripts = provider => deletedRelationships => {
 const getModifyForeignKeyScript = provider => relationship => {
 	const deleteScript = getDeleteSingleForeignKeyScript(provider)(relationship);
 	const addScript = getAddSingleForeignKeyScript(provider)(relationship);
-	const isActivated = Boolean(relationship.role?.compMod?.isActivated?.new);
+	const isActivated = isRelationshipActivated(relationship);
 
-	return (
-		commentDeactivatedStatements(deleteScript, isActivated) + commentDeactivatedStatements(addScript, isActivated)
-	);
+	return [deleteScript, addScript].map(script => commentDeactivatedStatements(script, isActivated));
 };
 
 const getAlterForeignKeyScripts = ({ schema, provider, currentSchemaName, ignoreRelationshipIDs = [] }) => {
