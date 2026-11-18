@@ -117,9 +117,7 @@ const getDeleteForeignKeyScripts = provider => deletedRelationships => {
 		.filter(relationship => canRelationshipBeDeleted(relationship))
 		.map(relationship => {
 			const script = getDeleteSingleForeignKeyScript(provider)(relationship);
-			const isActivated =
-				isObjectInDeltaModelActivated(relationship.role) &&
-				isRelatedTableActivated(relationship.role.compMod.child);
+			const isActivated = isRelationshipActivated(relationship);
 
 			return commentDeactivatedStatements(script, isActivated);
 		});
