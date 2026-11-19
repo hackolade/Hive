@@ -8,11 +8,11 @@ const {
 } = require('./generalHelper');
 const { CONSTRAINT_POSTFIX } = require('../constants');
 
-const getCompositeUkColumns = (collection, compositeUniqueKey = []) => {
-	return compositeUniqueKey
-		.map(compositeUkEntry => {
+const getCompositeColumns = (collection, compositeKey = []) => {
+	return compositeKey
+		.map(compositeEntry => {
 			const property = _.toPairs(collection?.role?.properties).find(
-				([, jsonSchema]) => jsonSchema.GUID === compositeUkEntry.keyId,
+				([, jsonSchema]) => jsonSchema.GUID === compositeEntry.keyId,
 			);
 			if (!property) {
 				return;
@@ -78,7 +78,7 @@ const getAddCompositeUkScripts = ({ collection, provider }) => {
 	const isCollectionActivated = isCollectionInDeltaModelActivated(collection);
 
 	return newUniqueKeys.map(newUk => {
-		const columns = getCompositeUkColumns(collection, newUk.compositeUniqueKey);
+		const columns = getCompositeColumns(collection, newUk.compositeUniqueKey);
 		const deactivatedColumnNames = new Set(
 			columns.filter(column => !column.isActivated).map(column => column.name),
 		);
@@ -179,4 +179,5 @@ const getModifyUkConstraintsScripts = ({ collection, provider }) => {
 
 module.exports = {
 	getModifyUkConstraintsScripts,
+	getCompositeColumns,
 };

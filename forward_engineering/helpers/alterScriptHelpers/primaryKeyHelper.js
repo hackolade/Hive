@@ -7,24 +7,7 @@ const {
 	isCollectionInDeltaModelActivated,
 } = require('./generalHelper');
 const { CONSTRAINT_POSTFIX } = require('../constants');
-
-const getCompositePkColumns = (collection, compositePrimaryKey = []) => {
-	return compositePrimaryKey
-		.map(compositePkEntry => {
-			const property = _.toPairs(collection?.role?.properties).find(
-				([, jsonSchema]) => jsonSchema.GUID === compositePkEntry.keyId,
-			);
-			if (!property) {
-				return;
-			}
-
-			return {
-				name: prepareName(property[0]),
-				isActivated: property[1].isActivated !== false,
-			};
-		})
-		.filter(Boolean);
-};
+const { getCompositeColumns } = require('./uniqueKeyHelper');
 
 const didCompositePkChange = collection => {
 	const pkDto = collection?.role?.compMod?.primaryKey || {};
@@ -78,7 +61,7 @@ const getAddCompositePkScripts = ({ collection, provider }) => {
 	const isCollectionActivated = isCollectionInDeltaModelActivated(collection);
 
 	return newPrimaryKeys.map(newPk => {
-		const columns = getCompositePkColumns(collection, newPk.compositePrimaryKey);
+		const columns = getCompositeColumns(collection, newPk.compositePrimaryKey);
 		const deactivatedColumnNames = new Set(
 			columns.filter(column => !column.isActivated).map(column => column.name),
 		);
