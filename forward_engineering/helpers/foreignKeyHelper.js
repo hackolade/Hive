@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const schemaHelper = require('./jsonSchemaHelper');
 const { getName, getTab, commentDeactivatedStatements, prepareName } = require('./generalHelper');
 
@@ -69,14 +68,15 @@ const getForeignKeyHashTable = ({
 		const childTableData = getTab(0, entityData[relationship.childCollection]);
 		const childTableName = prepareName(getName(childTableData) || childSchema?.collectionName) || '';
 		const groupKey = parentTableName + constraintName;
-		const childFieldActivated = relationship.childField.reduce((isActivated, field) => {
-			const fieldData = schemaHelper.getItemByPath(field.slice(1), childSchema);
-			return isActivated && _.get(fieldData, 'isActivated');
-		}, true);
-		const parentFieldActivated = relationship.parentField.reduce((isActivated, field) => {
-			const fieldData = schemaHelper.getItemByPath(field.slice(1), parentSchema);
-			return isActivated && _.get(fieldData, 'isActivated');
-		}, true);
+		const childFieldActivated = relationship.childField.every(
+			field => schemaHelper.getItemByPath(field.slice(1), childSchema)?.isActivated !== false,
+		);
+		const parentFieldActivated = relationship.parentField.every(
+			field => schemaHelper.getItemByPath(field.slice(1), parentSchema)?.isActivated !== false,
+		);
+		const isParentTableActivated = (parentTableData.isActivated ?? parentSchema?.isActivated) !== false;
+		const isChildTableActivated =
+			isContainerActivated !== false && (childTableData.isActivated ?? childSchema?.isActivated) !== false;
 
 		if (!hashTable[relationship.childCollection][groupKey]) {
 			hashTable[relationship.childCollection][groupKey] = [];
@@ -92,11 +92,11 @@ const getForeignKeyHashTable = ({
 			parentColumn: getPreparedForeignColumns(relationship.parentField, idToNameHashTable),
 			childColumn: getPreparedForeignColumns(relationship.childField, idToNameHashTable),
 			isActivated:
-				isContainerActivated &&
-				_.get(parentTableData, 'isActivated') &&
-				_.get(childTableData, 'isActivated') &&
-				childFieldActivated &&
-				parentFieldActivated,
+				!isChildTableActivated ||
+				(relationship.isActivated !== false &&
+					isParentTableActivated &&
+					childFieldActivated &&
+					parentFieldActivated),
 		});
 
 		return hashTable;

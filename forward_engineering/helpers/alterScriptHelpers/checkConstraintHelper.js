@@ -1,6 +1,10 @@
 const _ = require('lodash');
 const templates = require('./config/templates');
-const { generateFullEntityName, getDefaultConstraintName } = require('./generalHelper');
+const {
+	generateFullEntityName,
+	getDefaultConstraintName,
+	isCollectionInDeltaModelActivated,
+} = require('./generalHelper');
 const { getTypeByProperty } = require('../columnHelper');
 const { commentDeactivatedStatements, prepareName } = require('../generalHelper');
 const { CONSTRAINT_POSTFIX } = require('../constants');
@@ -84,7 +88,7 @@ const getAddCompositeCheckConstraintsScripts = ({ collection, provider }) => {
 const getModifyCompositeCheckConstraintsScripts = ({ collection, provider }) => {
 	const dropCompositeCheckConstraintsScripts = getDropCompositeCheckConstraintsScripts({ collection, provider });
 	const addCompositeCheckConstraintsScripts = getAddCompositeCheckConstraintsScripts({ collection, provider });
-	const isActivated = collection.role?.isActivated !== false;
+	const isActivated = isCollectionInDeltaModelActivated(collection);
 
 	return [...dropCompositeCheckConstraintsScripts, ...addCompositeCheckConstraintsScripts].map(statement =>
 		commentDeactivatedStatements(statement, isActivated),
@@ -128,7 +132,7 @@ const getModifyColumnCheckConstraintsScripts = ({ collection, provider, definiti
 			);
 		}
 
-		const isActivated = collection.role?.isActivated !== false && jsonSchema.isActivated !== false;
+		const isActivated = isCollectionInDeltaModelActivated(collection) && jsonSchema.isActivated !== false;
 		return scripts.map(statement => commentDeactivatedStatements(statement, isActivated));
 	});
 };

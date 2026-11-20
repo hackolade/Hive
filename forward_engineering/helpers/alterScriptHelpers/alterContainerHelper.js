@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const { getDatabaseStatement } = require('../databaseHelper');
 const templates = require('./config/templates');
+const { isObjectInDeltaModelActivated } = require('./generalHelper');
+const { commentDeactivatedStatements } = require('../generalHelper');
 
 const hydrateDrop = container => {
 	const { role } = container;
@@ -15,7 +17,7 @@ const getAddContainerScript = container => {
 
 const getDeleteContainerScript = provider => container => {
 	const hydratedDrop = hydrateDrop(container);
-	return provider.dropDatabase(hydratedDrop);
+	return commentDeactivatedStatements(provider.dropDatabase(hydratedDrop), isObjectInDeltaModelActivated(container));
 };
 
 const getModifyContainerScript = provider => container => {
@@ -29,7 +31,10 @@ const getModifyContainerScript = provider => container => {
 		return [];
 	}
 	const hydratedDrop = hydrateDrop({ role: { ...(container?.role || {}), name: name.old } });
-	const deletedScript = provider.dropDatabase(hydratedDrop);
+	const deletedScript = commentDeactivatedStatements(
+		provider.dropDatabase(hydratedDrop),
+		isObjectInDeltaModelActivated(container),
+	);
 	const addedScript = getAddContainerScript({ role: { ...(container?.role || {}), name: name.new } });
 
 	return [deletedScript, addedScript];
