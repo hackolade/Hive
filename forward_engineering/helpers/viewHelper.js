@@ -83,7 +83,7 @@ const isViewColumnActivated = (column, collectionRefsDefinitionsMap = {}) => {
  * @param {Record<string, Object>} [options.collectionRefsDefinitionsMap] Explicit source map (CREATE FE)
  * @returns {boolean}
  */
-const isViewActivated = (
+const checkIsViewActivated = (
 	view = {},
 	{ isActivated, isContainerActivated, collectionRefsDefinitionsMap: refsMap } = {},
 ) => {
@@ -120,12 +120,12 @@ const isViewActivated = (
 	return true;
 };
 
-const getColumnNames = (collectionRefsDefinitionsMap, columns, viewIsActivated) => {
+const getColumnNames = (collectionRefsDefinitionsMap, columns, isViewActivated) => {
 	return _.uniq(
 		Object.keys(columns).map(name => {
 			const column = columns[name] || {};
 			const itemData = getViewColumnSource(column, collectionRefsDefinitionsMap);
-			const isActivated = viewIsActivated ? isViewColumnActivated(column, collectionRefsDefinitionsMap) : true;
+			const isActivated = isViewActivated ? isViewColumnActivated(column, collectionRefsDefinitionsMap) : true;
 
 			if (!itemData.name || itemData.name === name) {
 				return commentDeactivatedStatements(prepareName(itemData.name), isActivated);
@@ -139,7 +139,7 @@ const getColumnNames = (collectionRefsDefinitionsMap, columns, viewIsActivated) 
 	).filter(_.identity);
 };
 
-const getFromStatement = (collectionRefsDefinitionsMap, columns, viewIsActivated) => {
+const getFromStatement = (collectionRefsDefinitionsMap, columns, isViewActivated) => {
 	const sourceCollections = Object.keys(columns).reduce((result, name) => {
 		const column = columns[name] || {};
 		const source = collectionRefsDefinitionsMap[column.refId];
@@ -167,7 +167,7 @@ const getFromStatement = (collectionRefsDefinitionsMap, columns, viewIsActivated
 	}
 
 	const [activatedCollections, deactivatedCollections] = _.partition(sourceCollections, 'isActivated');
-	if (!viewIsActivated || _.isEmpty(activatedCollections)) {
+	if (!isViewActivated || _.isEmpty(activatedCollections)) {
 		return 'FROM\n' + indentString(_.map(sourceCollections, 'name').join('\nINNER JOIN '));
 	}
 
@@ -201,7 +201,7 @@ const getViewScript = ({ schema, viewData, containerData, collectionRefsDefiniti
 	const ifNotExists = view.ifNotExist;
 	const comment = view.description;
 	const name = bucketName ? `${bucketName}.${viewName}` : `${viewName}`;
-	const viewActivated = isViewActivated(schema, {
+	const isViewActivated = checkIsViewActivated(schema, {
 		isActivated: view.isActivated,
 		isContainerActivated: containerData?.[0]?.isActivated,
 		collectionRefsDefinitionsMap,
@@ -231,14 +231,14 @@ const getViewScript = ({ schema, viewData, containerData, collectionRefsDefiniti
 				.trim();
 		}
 
-		return commentDeactivatedStatements(`${createStatement}\n${statement};`, viewActivated);
+		return commentDeactivatedStatements(`${createStatement}\n${statement};`, isViewActivated);
 	}
 
 	if (_.isEmpty(columns)) {
 		return;
 	}
 
-	const columnsNames = getColumnNames(collectionRefsDefinitionsMap, columns, viewActivated);
+	const columnsNames = getColumnNames(collectionRefsDefinitionsMap, columns, isViewActivated);
 	const allColumnsAreDeactivated = areAllColumnsDeactivated(columnsNames);
 
 	if (allColumnsAreDeactivated) {
@@ -246,15 +246,15 @@ const getViewScript = ({ schema, viewData, containerData, collectionRefsDefiniti
 	}
 
 	const joinedColumns = indentString(joinLastDeactivatedItem(columnsNames).join(',\n'));
-	const fromStatement = getFromStatement(collectionRefsDefinitionsMap, columns, viewActivated);
+	const fromStatement = getFromStatement(collectionRefsDefinitionsMap, columns, isViewActivated);
 	statements.push('SELECT', joinedColumns, fromStatement);
 
-	return commentDeactivatedStatements(statements.join('\n') + ';', viewActivated);
+	return commentDeactivatedStatements(statements.join('\n') + ';', isViewActivated);
 };
 
 module.exports = {
 	getViewScript,
-	isViewActivated,
+	isViewActivated: checkIsViewActivated,
 	isViewColumnActivated,
 	isViewColumnSourceActivated,
 	getViewColumnSource,
