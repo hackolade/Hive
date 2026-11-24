@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { getViewScript } = require('../viewHelper');
+const { getViewScript, isViewActivated } = require('../viewHelper');
 const {
 	getEntityData,
 	getEntityProperties,
@@ -120,8 +120,8 @@ const getModifyViewPropertiesScripts = ({ provider, view }) => {
 			})
 		: '';
 
-	const isActivated = isCollectionInDeltaModelActivated(view);
-	return [dropScript, addScript].filter(Boolean).map(script => commentDeactivatedStatements(script, isActivated));
+	const activated = isViewActivated(view);
+	return [dropScript, addScript].filter(Boolean).map(script => commentDeactivatedStatements(script, activated));
 };
 
 const getModifyViewsScripts = provider => view => {
