@@ -139,9 +139,10 @@ const getColumnNames = (collectionRefsDefinitionsMap, columns, viewIsActivated) 
 	).filter(_.identity);
 };
 
-const getFromStatement = (collectionRefsDefinitionsMap, columns, isViewActivated) => {
+const getFromStatement = (collectionRefsDefinitionsMap, columns, viewIsActivated) => {
 	const sourceCollections = Object.keys(columns).reduce((result, name) => {
-		const source = collectionRefsDefinitionsMap[columns[name].refId];
+		const column = columns[name] || {};
+		const source = collectionRefsDefinitionsMap[column.refId];
 		const collection = _.first(source?.collection) || {};
 		if (_.isEmpty(collection)) {
 			return result;
@@ -150,7 +151,7 @@ const getFromStatement = (collectionRefsDefinitionsMap, columns, isViewActivated
 		const collectionName = prepareName(collection.collectionName || collection.code);
 		const bucketName = prepareName(bucket.name || bucket.code || '');
 		const fullCollectionName = bucketName ? `${bucketName}.${collectionName}` : `${collectionName}`;
-		const columnActivated = isColumnActivated(columns[name], source);
+		const columnActivated = column.isActivated !== false && isViewColumnSourceActivated(source);
 		const existing = result.find(item => item.name === fullCollectionName);
 
 		if (existing) {
@@ -166,7 +167,7 @@ const getFromStatement = (collectionRefsDefinitionsMap, columns, isViewActivated
 	}
 
 	const [activatedCollections, deactivatedCollections] = _.partition(sourceCollections, 'isActivated');
-	if (!isViewActivated || _.isEmpty(activatedCollections)) {
+	if (!viewIsActivated || _.isEmpty(activatedCollections)) {
 		return 'FROM\n' + indentString(_.map(sourceCollections, 'name').join('\nINNER JOIN '));
 	}
 
@@ -199,7 +200,6 @@ const getViewScript = ({ schema, viewData, containerData, collectionRefsDefiniti
 	const orReplace = view.orReplace;
 	const ifNotExists = view.ifNotExist;
 	const comment = view.description;
-	const fromStatement = getFromStatement(collectionRefsDefinitionsMap, columns);
 	const name = bucketName ? `${bucketName}.${viewName}` : `${viewName}`;
 	const viewActivated = isViewActivated(schema, {
 		isActivated: view.isActivated,
@@ -246,6 +246,7 @@ const getViewScript = ({ schema, viewData, containerData, collectionRefsDefiniti
 	}
 
 	const joinedColumns = indentString(joinLastDeactivatedItem(columnsNames).join(',\n'));
+	const fromStatement = getFromStatement(collectionRefsDefinitionsMap, columns, viewActivated);
 	statements.push('SELECT', joinedColumns, fromStatement);
 
 	return commentDeactivatedStatements(statements.join('\n') + ';', viewActivated);
