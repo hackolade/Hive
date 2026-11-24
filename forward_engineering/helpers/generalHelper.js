@@ -82,7 +82,7 @@ const getTypeDescriptor = typeName => {
 };
 
 const commentDeactivatedStatements = (statement, isActivated = true) => {
-	if (isActivated) {
+	if (isActivated || !statement) {
 		return statement;
 	}
 	const insertBeforeEachLine = (statement, insertValue) =>
@@ -114,15 +114,16 @@ const commentDeactivatedInlineKeys = (keys, deactivatedKeyNames) => {
 
 const removeRedundantTrailingCommaFromStatement = statement => {
 	const statements = statement.split('\n');
-	if (statements.length < 4 || !statements[statements.length - 2].trim().startsWith('--')) {
+	const closingBracketIndex = statements.findIndex(line => line.startsWith(')'));
+	if (closingBracketIndex < 2 || !statements[closingBracketIndex - 1].trim().startsWith('--')) {
 		return statement;
 	}
-	const lineWithTrailingCommaIndex = _.findLastIndex(statements, line => {
-		if (line.trim() !== ');' && !line.trim().startsWith('--')) {
-			return true;
-		}
-	});
-	if (lineWithTrailingCommaIndex !== -1) {
+	const lineWithTrailingCommaIndex = _.findLastIndex(
+		statements,
+		line => !line.trim().startsWith('--'),
+		closingBracketIndex - 1,
+	);
+	if (lineWithTrailingCommaIndex > 0 && statements[lineWithTrailingCommaIndex].endsWith(',')) {
 		statements[lineWithTrailingCommaIndex] = `${statements[lineWithTrailingCommaIndex].slice(0, -1)} -- ,`;
 		return statements.join('\n');
 	}

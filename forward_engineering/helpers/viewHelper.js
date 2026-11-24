@@ -139,28 +139,46 @@ const getColumnNames = (collectionRefsDefinitionsMap, columns, viewIsActivated) 
 	).filter(_.identity);
 };
 
-const getFromStatement = (collectionRefsDefinitionsMap, columns) => {
-	const sourceCollections = _.uniq(
-		Object.keys(columns).map(name => {
-			const refId = columns[name].refId;
-			const source = collectionRefsDefinitionsMap[refId];
-			const collection = _.first(source.collection) || {};
-			if (_.isEmpty(collection)) {
-				return;
-			}
-			const bucket = _.first(source.bucket) || {};
-			const collectionName = prepareName(collection.collectionName || collection.code);
-			const bucketName = prepareName(bucket.name || bucket.code || '');
-			const fullCollectionName = bucketName ? `${bucketName}.${collectionName}` : `${collectionName}`;
+const getFromStatement = (collectionRefsDefinitionsMap, columns, isViewActivated) => {
+	const sourceCollections = Object.keys(columns).reduce((result, name) => {
+		const source = collectionRefsDefinitionsMap[columns[name].refId];
+		const collection = _.first(source?.collection) || {};
+		if (_.isEmpty(collection)) {
+			return result;
+		}
+		const bucket = _.first(source.bucket) || {};
+		const collectionName = prepareName(collection.collectionName || collection.code);
+		const bucketName = prepareName(bucket.name || bucket.code || '');
+		const fullCollectionName = bucketName ? `${bucketName}.${collectionName}` : `${collectionName}`;
+		const columnActivated = isColumnActivated(columns[name], source);
+		const existing = result.find(item => item.name === fullCollectionName);
 
-			return fullCollectionName;
-		}),
-	).filter(Boolean);
+		if (existing) {
+			existing.isActivated = existing.isActivated || columnActivated;
+		} else {
+			result.push({ name: fullCollectionName, isActivated: columnActivated });
+		}
+
+		return result;
+	}, []);
 	if (_.isEmpty(sourceCollections)) {
 		return '';
 	}
 
-	return 'FROM\n' + indentString(sourceCollections.join('\nINNER JOIN '));
+	const [activatedCollections, deactivatedCollections] = _.partition(sourceCollections, 'isActivated');
+	if (!isViewActivated || _.isEmpty(activatedCollections)) {
+		return 'FROM\n' + indentString(_.map(sourceCollections, 'name').join('\nINNER JOIN '));
+	}
+
+	return (
+		'FROM\n' +
+		indentString(
+			[
+				_.map(activatedCollections, 'name').join('\nINNER JOIN '),
+				...deactivatedCollections.map(collection => `/* INNER JOIN ${collection.name} */`),
+			].join('\n'),
+		)
+	);
 };
 
 const retrievePropertyFromConfig = (config, tab, propertyName, defaultValue = '') =>

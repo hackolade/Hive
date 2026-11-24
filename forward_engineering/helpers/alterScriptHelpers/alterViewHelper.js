@@ -6,6 +6,8 @@ const {
 	getContainerName,
 	generateFullEntityName,
 	getEntityName,
+	isParentContainerActivated,
+	isCollectionInDeltaModelActivated,
 } = require('./generalHelper');
 const templates = require('./config/templates');
 const { prepareName, commentDeactivatedStatements } = require('../generalHelper');
@@ -48,7 +50,7 @@ const hydrateView = view => {
 		schema,
 		collectionRefsDefinitionsMap,
 		viewData: [schema],
-		containerData: [{ name: getContainerName(compMod) }],
+		containerData: [{ name: getContainerName(compMod), isActivated: isParentContainerActivated(view) }],
 	};
 };
 
@@ -65,7 +67,10 @@ const getAddViewsScripts = view => {
 const getDeleteViewsScripts = provider => view => {
 	const name = generateFullEntityName(view);
 	const isMaterialized = view.role?.materialized;
-	return provider.dropView({ name, isMaterialized });
+	return commentDeactivatedStatements(
+		provider.dropView({ name, isMaterialized }),
+		isCollectionInDeltaModelActivated(view),
+	);
 };
 
 const getModifyViewPropertiesScripts = ({ provider, view }) => {
